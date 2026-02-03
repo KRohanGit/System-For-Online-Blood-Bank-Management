@@ -1,0 +1,70 @@
+.emergency-actions {
+  padding: 20px 0;
+}
+
+.section-header {
+  margin-bottom: 25px;
+}
+
+.section-header h3 {
+  color: #d32f2f;
+  margin: 0 0 10px 0;
+}
+
+.alert-banner {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 87, 108, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(245, 87, 108, 0);
+  }
+}
+
+.alert-banner h4 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2em;
+}
+
+.emergency-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.no-emergency {
+  text-align: center;
+  padding: 60px 20px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.no-emergency h4 {
+  color: #4caf50;
+  margin: 0 0 10px 0;
+}
+
+.no-emergency p {
+  color: #666;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .emergency-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,163 @@
+.propagation-timeline {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.propagation-timeline h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.timeline-phases {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.timeline-phase {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border-left: 4px solid #ccc;
+  transition: all 0.3s ease;
+}
+
+.timeline-phase:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-phase.risk-critical {
+  border-left-color: #c00;
+  background: #fff5f5;
+}
+
+.timeline-phase.risk-high {
+  border-left-color: #e65100;
+  background: #fff9f0;
+}
+
+.timeline-phase.risk-medium {
+  border-left-color: #f57f17;
+  background: #fffef0;
+}
+
+.timeline-phase.risk-low {
+  border-left-color: #2e7d32;
+  background: #f5fef5;
+}
+
+.phase-marker {
+  width: 12px;
+  min-width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: currentColor;
+  margin-top: 6px;
+}
+
+.risk-critical .phase-marker {
+  color: #c00;
+}
+
+.risk-high .phase-marker {
+  color: #e65100;
+}
+
+.risk-medium .phase-marker {
+  color: #f57f17;
+}
+
+.risk-low .phase-marker {
+  color: #2e7d32;
+}
+
+.phase-content {
+  flex: 1;
+}
+
+.phase-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.phase-header h4 {
+  margin: 0;
+  font-size: 15px;
+  color: #333;
+  font-weight: 600;
+}
+
+.phase-timeframe {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  background: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.phase-stats {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 12px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-icon {
+  font-size: 18px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+}
+
+.stat-value.risk-critical {
+  color: #c00;
+}
+
+.stat-value.risk-high {
+  color: #e65100;
+}
+
+.stat-value.risk-medium {
+  color: #f57f17;
+}
+
+.stat-value.risk-low {
+  color: #2e7d32;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.phase-summary {
+  margin: 0;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .phase-stats {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

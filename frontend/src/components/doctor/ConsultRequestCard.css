@@ -1,0 +1,172 @@
+.consult-request-card {
+  background: white;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  border-left: 4px solid #3498db;
+  margin-bottom: 15px;
+}
+
+.consult-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.consult-id {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.id-label {
+  font-size: 11px;
+  color: #95a5a6;
+  text-transform: uppercase;
+}
+
+.id-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2c3e50;
+  font-family: 'Courier New', monospace;
+}
+
+.urgency-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  color: white;
+  font-weight: 700;
+}
+
+.consult-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-label {
+  font-size: 13px;
+  color: #7f8c8d;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.patient-context {
+  background: #f0f8ff;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 15px;
+}
+
+.patient-context h4 {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  color: #3498db;
+  font-weight: 700;
+}
+
+.context-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.context-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.context-label {
+  font-size: 11px;
+  color: #7f8c8d;
+}
+
+.context-value {
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.clinical-condition {
+  margin: 10px 0 0 0;
+  padding: 8px;
+  background: white;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #2c3e50;
+  line-height: 1.5;
+}
+
+.medical-query {
+  background: #fff9e6;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 15px;
+}
+
+.medical-query h4 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #f39c12;
+  font-weight: 700;
+}
+
+.medical-query p {
+  margin: 0;
+  font-size: 14px;
+  color: #2c3e50;
+  line-height: 1.6;
+}
+
+.consult-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.consult-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: white;
+}
+
+.consult-btn.accept {
+  background: #28a745;
+}
+
+.consult-btn.accept:hover {
+  background: #218838;
+  transform: scale(1.02);
+}
+
+.consult-btn.decline {
+  background: #6c757d;
+}
+
+.consult-btn.decline:hover {
+  background: #5a6268;
+  transform: scale(1.02);
+}

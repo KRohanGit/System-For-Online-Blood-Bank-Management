@@ -1,0 +1,169 @@
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+  padding: 100px 2rem 2rem;
+}
+
+.hero-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.hero-content {
+  animation: fadeInUp 1s ease-out;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+}
+
+.highlight {
+  color: #c41e3a;
+  position: relative;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: #666;
+  line-height: 1.8;
+  margin-bottom: 2.5rem;
+  max-width: 500px;
+}
+
+.hero-cta {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.cta-btn {
+  padding: 1rem 2.5rem;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cta-btn.primary {
+  background: linear-gradient(135deg, #c41e3a 0%, #e74c3c 100%);
+  color: white;
+  box-shadow: 0 5px 20px rgba(196, 30, 58, 0.3);
+}
+
+.cta-btn.primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(196, 30, 58, 0.4);
+}
+
+.cta-btn.secondary {
+  background: white;
+  color: #c41e3a;
+  border: 2px solid #c41e3a;
+}
+
+.cta-btn.secondary:hover {
+  background: #c41e3a;
+  color: white;
+}
+
+.hero-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.blood-drop {
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(135deg, #c41e3a 0%, #e74c3c 100%);
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 20px 60px rgba(196, 30, 58, 0.3);
+  animation: float 3s ease-in-out infinite;
+}
+
+.drop-icon {
+  font-size: 8rem;
+  transform: rotate(45deg);
+  filter: brightness(1.5);
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: rotate(-45deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-45deg) translateY(-20px);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 968px) {
+  .hero-container {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    margin: 0 auto 2rem;
+  }
+
+  .hero-cta {
+    justify-content: center;
+  }
+
+  .blood-drop {
+    width: 200px;
+    height: 200px;
+  }
+
+  .drop-icon {
+    font-size: 5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .cta-btn {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+  }
+}

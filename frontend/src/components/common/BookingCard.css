@@ -1,0 +1,147 @@
+/* BookingCard Styles */
+
+.booking-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.booking-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.booking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.booking-title {
+  font-size: 1.2rem;
+  color: #333;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+}
+
+.booking-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.booking-badge.confirmed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.booking-badge.pending {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.booking-badge.cancelled {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.booking-badge.completed {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.booking-badge.no-show {
+  background: #f5f5f5;
+  color: #757575;
+}
+
+.booking-details {
+  margin-bottom: 1rem;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.detail-icon {
+  font-size: 1rem;
+  min-width: 20px;
+}
+
+.detail-text {
+  color: #555;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.donation-badge {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-top: 1rem;
+  display: inline-block;
+}
+
+.booking-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.booking-actions button {
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.booking-actions .btn-outline {
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.booking-actions .btn-outline:hover {
+  background: #f7f9fc;
+}
+
+.booking-actions .btn-danger {
+  background: transparent;
+  color: #c62828;
+  border: 2px solid #c62828;
+}
+
+.booking-actions .btn-danger:hover {
+  background: #ffebee;
+}
+
+@media (max-width: 480px) {
+  .booking-card {
+    padding: 1rem;
+  }
+
+  .booking-title {
+    font-size: 1.1rem;
+  }
+
+  .booking-actions {
+    flex-direction: column;
+  }
+
+  .booking-actions button {
+    width: 100%;
+  }
+}

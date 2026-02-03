@@ -1,0 +1,153 @@
+.blood-unit-card {
+  background: white;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  border: 1px solid #e0e0e0;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.blood-unit-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.unit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.unit-id {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.id-label {
+  font-size: 11px;
+  color: #95a5a6;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.id-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c3e50;
+  font-family: 'Courier New', monospace;
+}
+
+.blood-group-badge {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  font-weight: 900;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+}
+
+.unit-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.expiry-highlight {
+  font-weight: 700;
+}
+
+.donor-section {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 15px;
+}
+
+.donor-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.donor-details p {
+  margin: 0;
+  font-size: 13px;
+  color: #2c3e50;
+}
+
+.validation-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.validate-btn {
+  flex: 1;
+  min-width: 100px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: white;
+}
+
+.validate-btn.approve {
+  background: #28a745;
+}
+
+.validate-btn.approve:hover {
+  background: #218838;
+  transform: scale(1.02);
+}
+
+.validate-btn.hold {
+  background: #ffc107;
+  color: #000;
+}
+
+.validate-btn.hold:hover {
+  background: #e0a800;
+  transform: scale(1.02);
+}
+
+.validate-btn.reject {
+  background: #dc3545;
+}
+
+.validate-btn.reject:hover {
+  background: #c82333;
+  transform: scale(1.02);
+}

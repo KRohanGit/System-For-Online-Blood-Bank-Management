@@ -1,0 +1,170 @@
+.note-card {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.note-timeline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 30px;
+}
+
+.timeline-dot {
+  width: 12px;
+  height: 12px;
+  background: #d32f2f;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 0 2px #d32f2f;
+  z-index: 1;
+}
+
+.timeline-line {
+  width: 2px;
+  flex: 1;
+  background: #e0e0e0;
+  margin-top: 5px;
+}
+
+.note-content {
+  flex: 1;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  transition: all 0.3s;
+}
+
+.note-content:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-color: #d32f2f;
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.note-type {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.note-type.blood_request {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.note-type.donor {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.note-type.blood_unit {
+  background: #fce4ec;
+  color: #c2185b;
+}
+
+.note-type.camp {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.note-type.reaction {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.note-type.general {
+  background: #f5f5f5;
+  color: #616161;
+}
+
+.note-time {
+  font-size: 0.85em;
+  color: #666;
+}
+
+.note-body {
+  margin-bottom: 12px;
+}
+
+.note-body h4 {
+  margin: 0 0 8px 0;
+  color: #2c3e50;
+  font-size: 1.1em;
+}
+
+.clinical-note {
+  color: #555;
+  line-height: 1.6;
+  margin: 10px 0;
+}
+
+.entity-details {
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-radius: 5px;
+  font-size: 0.9em;
+  margin: 10px 0;
+}
+
+.decision-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85em;
+  font-weight: 600;
+  margin-top: 8px;
+  text-transform: capitalize;
+}
+
+.decision-badge.approved {
+  background: #d4edda;
+  color: #155724;
+}
+
+.decision-badge.rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.decision-badge.pending,
+.decision-badge.observation {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.decision-badge.deferred {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.note-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.doctor-name {
+  color: #d32f2f;
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+.note-id {
+  color: #999;
+  font-size: 0.8em;
+}

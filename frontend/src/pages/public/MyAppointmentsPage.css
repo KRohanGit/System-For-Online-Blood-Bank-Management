@@ -1,0 +1,149 @@
+.my-appointments-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow-x: auto;
+}
+
+.filter-bar button {
+  padding: 8px 20px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.filter-bar button.active {
+  background: #d32f2f;
+  color: white;
+  border-color: #d32f2f;
+}
+
+.appointments-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.appointment-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.apt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.apt-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status-scheduled {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-confirmed {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.status-completed {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.status-cancelled {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status-missed {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.apt-details p {
+  margin: 8px 0;
+  color: #555;
+  font-size: 14px;
+}
+
+.blood-badge {
+  background: #d32f2f;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.cancel-reason {
+  background: #fff3cd;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 12px;
+  color: #856404;
+}
+
+.btn-danger {
+  margin-top: 16px;
+  padding: 10px 24px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-danger:hover {
+  background: #d32f2f;
+}
+
+@media (max-width: 768px) {
+  .apt-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .filter-bar {
+    overflow-x: scroll;
+  }
+}

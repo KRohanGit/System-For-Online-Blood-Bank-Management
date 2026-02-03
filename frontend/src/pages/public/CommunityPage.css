@@ -1,0 +1,231 @@
+.community-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.community-header {
+  background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+  color: white;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.community-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 32px;
+}
+
+.community-header p {
+  margin: 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.action-bar {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 10px 24px;
+  border-radius: 20px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #d32f2f;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #b71c1c;
+}
+
+.btn-secondary {
+  background: white;
+  color: #d32f2f;
+  border: 2px solid #d32f2f;
+}
+
+.btn-secondary:hover, .btn-secondary.active {
+  background: #d32f2f;
+  color: white;
+}
+
+.action-bar select {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 2px solid #ddd;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.posts-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #999;
+  line-height: 1;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.post-details p {
+  margin: 12px 0;
+  color: #555;
+}
+
+.post-full-content {
+  margin: 16px 0;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  line-height: 1.6;
+}
+
+.contact-info {
+  background: #e3f2fd;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.comments-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 2px solid #eee;
+}
+
+.comments-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+}
+
+.comment {
+  background: #f9f9f9;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.comment strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.comment p {
+  margin: 0;
+  color: #555;
+  font-size: 14px;
+}
+
+.comment-form {
+  margin-top: 16px;
+}
+
+.comment-form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.comment-form button {
+  margin-top: 12px;
+}
+
+@media (max-width: 768px) {
+  .posts-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .action-bar button, .action-bar select {
+    width: 100%;
+  }
+  
+  .modal-content {
+    max-height: 90vh;
+  }
+}

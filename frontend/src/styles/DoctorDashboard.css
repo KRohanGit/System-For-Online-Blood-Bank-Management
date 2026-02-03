@@ -1,0 +1,182 @@
+/* Doctor Clinical Intelligence Dashboard */
+.doctor-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 20px;
+}
+
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+}
+
+.dashboard-sidebar {
+  position: sticky;
+  top: 20px;
+  height: fit-content;
+}
+
+.dashboard-main {
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  color: #2c3e50;
+  font-weight: 700;
+}
+
+.dashboard-subtitle {
+  margin: 0;
+  color: #7f8c8d;
+  font-size: 15px;
+}
+
+.dashboard-navigation {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dashboard-navigation button {
+  padding: 10px 18px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.dashboard-navigation button:hover {
+  background: #f8f9fa;
+  border-color: #3498db;
+  transform: translateY(-2px);
+}
+
+.dashboard-navigation button.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+}
+
+.dashboard-content {
+  background: transparent;
+}
+
+.overview-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.coming-soon {
+  background: white;
+  padding: 60px 20px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.coming-soon h2 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  font-size: 24px;
+}
+
+.coming-soon p {
+  margin: 0;
+  color: #7f8c8d;
+  font-size: 16px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.loading {
+  font-size: 18px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* Legacy styles for backward compatibility */
+.doctor-name {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+.verification-status {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  margin-top: 10px;
+}
+
+.verification-status.verified {
+  background-color: #4caf50;
+  color: white;
+}
+
+.verification-status.pending {
+  background-color: #ff9800;
+  color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .dashboard-container {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-sidebar {
+    position: relative;
+    top: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-navigation {
+    flex-direction: column;
+  }
+
+  .dashboard-navigation button {
+    width: 100%;
+    text-align: left;
+  }
+}

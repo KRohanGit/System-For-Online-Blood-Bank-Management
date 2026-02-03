@@ -1,0 +1,49 @@
+.risk-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.risk-badge.risk-small {
+  padding: 2px 8px;
+  font-size: 9px;
+}
+
+.risk-badge.risk-large {
+  padding: 6px 16px;
+  font-size: 13px;
+}
+
+.risk-critical {
+  background: #fee;
+  color: #c00;
+  border: 1px solid #fcc;
+}
+
+.risk-high {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffcc80;
+}
+
+.risk-medium {
+  background: #fff9c4;
+  color: #f57f17;
+  border: 1px solid #fff59d;
+}
+
+.risk-low {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.risk-unknown {
+  background: #f5f5f5;
+  color: #757575;
+  border: 1px solid #e0e0e0;
+}

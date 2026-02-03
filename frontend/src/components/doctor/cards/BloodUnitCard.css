@@ -1,0 +1,149 @@
+.blood-unit-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+  transition: all 0.3s;
+}
+
+.blood-unit-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.blood-unit-card.pending {
+  border-left: 5px solid #ff9800;
+}
+
+.blood-unit-card.safe {
+  border-left: 5px solid #4caf50;
+}
+
+.blood-unit-card.unsafe {
+  border-left: 5px solid #f44336;
+  background: #ffebee;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.card-header h4 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.status-badge.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.validated {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.card-body {
+  margin-bottom: 15px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px dashed #e0e0e0;
+}
+
+.info-row .label {
+  color: #666;
+  font-weight: 500;
+}
+
+.info-row .value {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.blood-group {
+  background: #d32f2f;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-weight: 700;
+}
+
+.lab-tests {
+  margin-top: 15px;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 5px;
+}
+
+.lab-tests h5 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  font-size: 0.95em;
+}
+
+.tests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.test-item {
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 600;
+  text-align: center;
+}
+
+.test-item.negative,
+.test-item.pass {
+  background: #d4edda;
+  color: #155724;
+}
+
+.test-item.positive,
+.test-item.fail {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.validate-btn {
+  background: #d32f2f;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.validate-btn:hover {
+  background: #b71c1c;
+}

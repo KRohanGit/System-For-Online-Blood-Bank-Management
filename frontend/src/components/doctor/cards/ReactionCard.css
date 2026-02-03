@@ -1,0 +1,94 @@
+.reaction-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+  transition: all 0.3s;
+}
+
+.reaction-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.reaction-card.mild {
+  border-left: 5px solid #4caf50;
+}
+
+.reaction-card.moderate {
+  border-left: 5px solid #ff9800;
+  background: #fff3e0;
+}
+
+.reaction-card.severe {
+  border-left: 5px solid #f44336;
+  background: #ffebee;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.card-header h4 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.severity-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.severity-badge.mild {
+  background: #d4edda;
+  color: #155724;
+}
+
+.severity-badge.moderate {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.severity-badge.severe {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.card-body {
+  margin-bottom: 15px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px dashed #e0e0e0;
+}
+
+.info-row .label {
+  color: #666;
+  font-weight: 500;
+}
+
+.info-row .value {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.info-row .value.unsafe {
+  color: #f44336;
+  font-weight: 700;
+}
+
+.info-row .value.safe {
+  color: #4caf50;
+  font-weight: 700;
+}

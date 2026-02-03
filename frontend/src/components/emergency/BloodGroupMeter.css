@@ -1,0 +1,68 @@
+.blood-meter {
+  margin-bottom: 12px;
+}
+
+.blood-meter.compact {
+  margin-bottom: 8px;
+}
+
+.meter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.blood-group-label {
+  font-weight: 700;
+  font-size: 13px;
+  color: #333;
+  min-width: 40px;
+}
+
+.meter-values {
+  font-size: 11px;
+  color: #666;
+  font-weight: 500;
+}
+
+.meter-bar {
+  height: 8px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.blood-meter.compact .meter-bar {
+  height: 6px;
+}
+
+.meter-fill {
+  height: 100%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+  border-radius: 4px;
+}
+
+.meter-good {
+  background: linear-gradient(90deg, #4caf50, #66bb6a);
+}
+
+.meter-warning {
+  background: linear-gradient(90deg, #ff9800, #ffa726);
+}
+
+.meter-critical {
+  background: linear-gradient(90deg, #f44336, #e57373);
+}
+
+.meter-severe {
+  background: linear-gradient(90deg, #d32f2f, #c62828);
+}
+
+.meter-deficit {
+  font-size: 10px;
+  color: #d32f2f;
+  margin-top: 2px;
+  font-weight: 500;
+}

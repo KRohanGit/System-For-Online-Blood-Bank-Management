@@ -1,0 +1,45 @@
+.blood-group-selector {
+  margin-bottom: 32px;
+}
+
+.blood-group-selector h3 {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 18px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 8px;
+}
+
+.blood-groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 12px;
+}
+
+.blood-group-btn {
+  padding: 12px;
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.blood-group-btn:hover {
+  border-color: #d32f2f;
+  transform: translateY(-2px);
+}
+
+.blood-group-btn.selected {
+  background: #d32f2f;
+  color: white;
+  border-color: #d32f2f;
+}
+
+@media (max-width: 768px) {
+  .blood-groups-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

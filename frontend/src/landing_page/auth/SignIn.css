@@ -1,0 +1,92 @@
+.signin-page {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.signin-page .back-link {
+  color: #667eea;
+}
+
+.signin-page .signin-link a {
+  color: #667eea;
+}
+
+.signin-page .submit-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.signin-page .submit-btn:hover:not(:disabled) {
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+.signin-page .form-group input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.role-selector {
+  margin-bottom: 2rem;
+}
+
+.role-selector label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.role-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.role-select-btn {
+  padding: 1rem;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  color: #666;
+}
+
+.role-select-btn.public-user-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  grid-column: span 3;
+}
+
+.role-select-btn.public-user-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.role-select-btn:hover {
+  border-color: #667eea;
+  background: #f5f7fa;
+}
+
+.role-select-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+}
+
+.signin-page .forgot-password {
+  color: #667eea;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .role-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .role-select-btn {
+    padding: 0.875rem;
+  }
+}

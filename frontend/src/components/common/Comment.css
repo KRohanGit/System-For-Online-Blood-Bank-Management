@@ -1,0 +1,29 @@
+.comment {
+  background: #f9f9f9;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.comment-header strong {
+  color: #333;
+  font-size: 14px;
+}
+
+.comment-time {
+  color: #999;
+  font-size: 12px;
+}
+
+.comment-content {
+  margin: 0;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.5;
+}

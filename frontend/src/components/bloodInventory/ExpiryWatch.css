@@ -1,0 +1,236 @@
+.expiry-watch {
+  padding: 20px;
+}
+
+.expiry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.expiry-header h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  color: #1f2937;
+}
+
+.btn-refresh {
+  padding: 8px 16px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.btn-refresh:hover {
+  background-color: #2563eb;
+}
+
+/* Category Cards */
+.expiry-categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.expiry-card {
+  background: white;
+  border: 3px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.expiry-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.expiry-card.active {
+  background-color: #f9fafb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-content h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.25rem;
+  color: #1f2937;
+}
+
+.card-description {
+  margin: 0 0 8px 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.card-count {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Units List Section */
+.expiry-units-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.expiry-units-section h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.25rem;
+  color: #1f2937;
+}
+
+.expiry-units-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.expiry-unit-card {
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.expiry-unit-card:hover {
+  border-color: #9ca3af;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.unit-main-info {
+  flex: 1;
+}
+
+.unit-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.unit-id {
+  font-family: monospace;
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.95rem;
+}
+
+.blood-type {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.blood-type-A\+ { background-color: #fecaca; color: #991b1b; }
+.blood-type-A- { background-color: #fed7aa; color: #9a3412; }
+.blood-type-B\+ { background-color: #bfdbfe; color: #1e40af; }
+.blood-type-B- { background-color: #ddd6fe; color: #5b21b6; }
+.blood-type-AB\+ { background-color: #fbcfe8; color: #9f1239; }
+.blood-type-AB- { background-color: #fce7f3; color: #831843; }
+.blood-type-O\+ { background-color: #d1fae5; color: #065f46; }
+.blood-type-O- { background-color: #ccfbf1; color: #115e59; }
+
+.unit-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detail-item {
+  font-size: 0.875rem;
+}
+
+.detail-item .label {
+  font-weight: 600;
+  color: #6b7280;
+  margin-right: 8px;
+}
+
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-available {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-reserved {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+/* Expiry Info */
+.unit-expiry-info {
+  text-align: right;
+  padding-left: 20px;
+  border-left: 2px solid #e5e7eb;
+}
+
+.expiry-countdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.countdown-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.countdown-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.expiry-date {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+  font-size: 1.1rem;
+}

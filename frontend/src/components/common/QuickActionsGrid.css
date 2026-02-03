@@ -1,0 +1,15 @@
+.quick-actions-grid {
+  margin-top: 32px;
+}
+
+.quick-actions-grid h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.25rem;
+  color: #1f2937;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}

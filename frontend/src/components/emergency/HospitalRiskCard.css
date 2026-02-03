@@ -1,0 +1,144 @@
+.hospital-risk-card {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-left: 4px solid #ccc;
+}
+
+.hospital-risk-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.hospital-risk-card.risk-critical {
+  border-left-color: #c00;
+}
+
+.hospital-risk-card.risk-high {
+  border-left-color: #e65100;
+}
+
+.hospital-risk-card.risk-medium {
+  border-left-color: #f57f17;
+}
+
+.hospital-risk-card.risk-low {
+  border-left-color: #2e7d32;
+}
+
+.hospital-risk-card.compact {
+  padding: 12px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.hospital-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.impact-icon {
+  font-size: 20px;
+}
+
+.hospital-title h4 {
+  margin: 0;
+  font-size: 15px;
+  color: #333;
+  font-weight: 600;
+}
+
+.card-info {
+  margin-bottom: 12px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 12px;
+}
+
+.info-row.warning {
+  background: #fff3e0;
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+.info-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.info-value {
+  color: #333;
+  font-weight: 600;
+}
+
+.impact-level {
+  text-transform: capitalize;
+}
+
+.inventory-summary {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: #f9f9f9;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.summary-label {
+  font-size: 10px;
+  color: #666;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.summary-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+}
+
+.summary-value.deficit {
+  color: #d32f2f;
+}
+
+.summary-divider {
+  font-size: 16px;
+  color: #999;
+}
+
+.blood-groups {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+.blood-groups h5 {
+  font-size: 12px;
+  color: #666;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  text-transform: uppercase;
+}

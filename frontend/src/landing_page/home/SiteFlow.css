@@ -1,0 +1,138 @@
+.flow-section {
+  padding: 5rem 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+}
+
+.flow-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.flow-content {
+  margin-bottom: 4rem;
+}
+
+.flow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.flow-step:hover {
+  transform: translateX(10px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.step-number {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #c41e3a 0%, #e74c3c 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.step-content h3 {
+  font-size: 1.5rem;
+  color: #1a1a1a;
+  margin-bottom: 0.75rem;
+}
+
+.step-content p {
+  color: #666;
+  line-height: 1.8;
+  font-size: 1rem;
+}
+
+.step-content strong {
+  color: #c41e3a;
+}
+
+.role-comparison {
+  padding: 3rem;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+}
+
+.role-comparison h3 {
+  text-align: center;
+  font-size: 2rem;
+  color: #1a1a1a;
+  margin-bottom: 2rem;
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.comparison-card {
+  padding: 2rem;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+  border-radius: 15px;
+  border: 2px solid #ffcccc;
+}
+
+.comparison-card h4 {
+  font-size: 1.3rem;
+  color: #c41e3a;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.comparison-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.comparison-card li {
+  padding: 0.5rem 0;
+  color: #666;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.comparison-card li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #c41e3a;
+  font-weight: bold;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .flow-section {
+    padding: 3rem 1.5rem;
+  }
+
+  .flow-step {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .step-number {
+    margin: 0 auto;
+  }
+
+  .comparison-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .role-comparison {
+    padding: 2rem 1rem;
+  }
+}

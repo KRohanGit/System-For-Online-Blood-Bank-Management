@@ -1,0 +1,243 @@
+.signup-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+  padding: 2rem;
+}
+
+.signup-nav {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.back-home {
+  color: #c41e3a;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.back-home:hover {
+  transform: translateX(-5px);
+}
+
+.signin-link {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.signin-link a {
+  color: #c41e3a;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.signin-link a:hover {
+  color: #e74c3c;
+}
+
+.signup-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.signup-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.signup-header h1 {
+  font-size: 3rem;
+  color: #1a1a1a;
+  margin-bottom: 1rem;
+  font-weight: 800;
+}
+
+.signup-header p {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.role-card {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  transition: all 0.4s ease;
+  cursor: pointer;
+  border: 3px solid #e0e0e0;
+}
+
+.role-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+}
+
+.role-card.super-admin:hover {
+  border-color: #9b59b6;
+}
+
+.role-card.hospital:hover {
+  border-color: #2ecc71;
+}
+
+.role-card.doctor:hover {
+  border-color: #3498db;
+}
+
+.role-card.donor:hover {
+  border-color: #c41e3a;
+}
+
+.role-card.public-user:hover {
+  border-color: #667eea;
+}
+
+.role-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.role-card h2 {
+  font-size: 1.8rem;
+  color: #1a1a1a;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.role-card > p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.role-features {
+  list-style: none;
+  margin-bottom: 2rem;
+  padding: 0;
+}
+
+.role-features li {
+  padding: 0.6rem 0;
+  color: #555;
+  position: relative;
+  padding-left: 1.8rem;
+  font-size: 0.95rem;
+}
+
+.role-features li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #2ecc71;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.role-btn {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.super-admin .role-btn {
+  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+}
+
+.hospital .role-btn {
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+}
+
+.doctor .role-btn {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+
+.donor .role-btn {
+  background: linear-gradient(135deg, #c41e3a 0%, #e74c3c 100%);
+}
+
+.public-user .role-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.role-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.info-box {
+  background: white;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+  border-left: 5px solid #c41e3a;
+}
+
+.info-box h3 {
+  color: #1a1a1a;
+  margin-bottom: 1.5rem;
+  font-size: 1.3rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.info-grid div {
+  color: #666;
+  line-height: 1.6;
+}
+
+.info-grid strong {
+  color: #c41e3a;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .signup-page {
+    padding: 1rem;
+  }
+
+  .signup-nav {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .signup-header h1 {
+    font-size: 2rem;
+  }
+
+  .roles-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}

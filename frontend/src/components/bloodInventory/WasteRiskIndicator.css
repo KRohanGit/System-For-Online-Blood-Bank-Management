@@ -1,0 +1,283 @@
+.waste-risk-indicator {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 16px 0;
+}
+
+/* Compact Version */
+.waste-risk-compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border-left: 4px solid;
+}
+
+.risk-icon {
+  font-size: 1rem;
+}
+
+.risk-label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.risk-percentage {
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+/* Full Version */
+.risk-header {
+  margin-bottom: 20px;
+}
+
+.risk-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 10px;
+  color: white;
+}
+
+.badge-icon {
+  font-size: 2rem;
+}
+
+.badge-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.badge-title {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.badge-level {
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-percentage {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.risk-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.timeline-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.timeline-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.timeline-content strong {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.timeline-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.risk-action {
+  background: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.risk-action h4 {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  color: #92400e;
+}
+
+.action-text {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #78350f;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.suggested-transfers {
+  background: #f0f9ff;
+  padding: 16px;
+  border-radius: 8px;
+  border: 2px solid #bae6fd;
+  margin-bottom: 16px;
+}
+
+.suggested-transfers h4 {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  color: #075985;
+}
+
+.transfer-note {
+  margin: 0 0 12px 0;
+  font-size: 0.875rem;
+  color: #0369a1;
+}
+
+.hospitals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hospital-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e0f2fe;
+  transition: all 0.2s;
+}
+
+.hospital-item:hover {
+  border-color: #0ea5e9;
+  box-shadow: 0 2px 4px rgba(14, 165, 233, 0.1);
+}
+
+.hospital-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hospital-icon {
+  font-size: 1.5rem;
+}
+
+.hospital-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hospital-details strong {
+  font-size: 0.95rem;
+  color: #111827;
+}
+
+.hospital-distance {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.hospital-contact {
+  padding: 6px 12px;
+  background: #0ea5e9;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.hospital-contact:hover {
+  background: #0284c7;
+  transform: translateY(-1px);
+}
+
+.risk-progress {
+  margin-top: 16px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.progress-bar {
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.5s ease-out;
+  border-radius: 6px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .waste-risk-indicator {
+    padding: 16px;
+  }
+
+  .risk-badge {
+    padding: 12px 16px;
+  }
+
+  .badge-icon {
+    font-size: 1.5rem;
+  }
+
+  .badge-level {
+    font-size: 1.25rem;
+  }
+
+  .badge-percentage {
+    font-size: 2rem;
+  }
+
+  .hospital-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .hospital-contact {
+    width: 100%;
+    text-align: center;
+  }
+}

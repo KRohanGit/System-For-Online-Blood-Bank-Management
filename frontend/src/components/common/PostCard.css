@@ -1,0 +1,149 @@
+.post-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.post-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.post-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.post-icon {
+  font-size: 24px;
+}
+
+.post-meta h3 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.post-author {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.urgency-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.urgent-critical {
+  background: #fee;
+  color: #c00;
+}
+
+.urgent-high {
+  background: #ffede0;
+  color: #e65100;
+}
+
+.urgent-medium {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.urgent-low {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.post-content {
+  margin: 12px 0;
+  color: #444;
+  line-height: 1.6;
+}
+
+.blood-info {
+  margin: 12px 0;
+}
+
+.blood-badge {
+  background: #d32f2f;
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.post-footer {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s;
+}
+
+.btn-icon:hover {
+  color: #d32f2f;
+}
+
+.btn-icon.liked {
+  color: #d32f2f;
+}
+
+.btn-primary-sm {
+  margin-left: auto;
+  background: #d32f2f;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.btn-primary-sm:hover {
+  background: #b71c1c;
+}
+
+@media (max-width: 768px) {
+  .post-card {
+    padding: 16px;
+  }
+  
+  .post-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .urgency-badge {
+    align-self: flex-start;
+  }
+}

@@ -1,0 +1,132 @@
+.emergency-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.emergency-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.emergency-card.critical {
+  border-left: 5px solid #d32f2f;
+  background: #ffebee;
+  animation: pulse 2s infinite;
+}
+
+.emergency-card.high {
+  border-left: 5px solid #ff9800;
+  background: #fff3e0;
+}
+
+.emergency-card.medium {
+  border-left: 5px solid #ffc107;
+  background: #fffde7;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(211, 47, 47, 0); }
+}
+
+.emergency-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.time-badge {
+  background: #d32f2f;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.emergency-icon {
+  font-size: 1.5em;
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.card-body {
+  margin-bottom: 15px;
+}
+
+.card-body h4 {
+  margin: 10px 0;
+  color: #2c3e50;
+  font-size: 1.2em;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px dashed #e0e0e0;
+}
+
+.info-row .label {
+  color: #666;
+  font-weight: 500;
+}
+
+.info-row .value {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.info-row .value.urgent {
+  color: #d32f2f;
+  font-weight: 700;
+  font-size: 1.1em;
+}
+
+.blood-group {
+  background: #d32f2f;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-weight: 700;
+}
+
+.blood-group.urgent {
+  animation: pulse-bg 1.5s infinite;
+}
+
+@keyframes pulse-bg {
+  0%, 100% { background: #d32f2f; }
+  50% { background: #f44336; }
+}
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.fast-track-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.3s;
+  font-size: 1em;
+}
+
+.fast-track-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
