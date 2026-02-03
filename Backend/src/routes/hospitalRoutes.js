@@ -9,6 +9,14 @@ const {
   createDonorAccount
 } = require('../controllers/hospitalController');
 const certificateController = require('../controllers/certificateController');
+const {
+  createCivicAlert,
+  createEmergencyEvent,
+  getMyAlerts,
+  getMyEvents,
+  updateAlertStatus,
+  updateEventStatus
+} = require('../controllers/adminEmergencyController');
 
 /**
  * @route   GET /api/hospital/profile
@@ -39,6 +47,13 @@ router.get('/verification-status', auth, checkRole('admin'), getVerificationStat
 router.post('/donor', auth, checkRole('admin'), createDonorAccount);
 
 router.post('/certificates', auth, checkRole('HOSPITAL_ADMIN'), certificateController.createCertificate);
+
+router.post('/civic-alert', auth, checkRole('HOSPITAL_ADMIN'), createCivicAlert);
+router.post('/emergency-event', auth, checkRole('HOSPITAL_ADMIN'), createEmergencyEvent);
+router.get('/my-alerts', auth, checkRole('HOSPITAL_ADMIN'), getMyAlerts);
+router.get('/my-events', auth, checkRole('HOSPITAL_ADMIN'), getMyEvents);
+router.put('/alert/:alertId/status', auth, checkRole('HOSPITAL_ADMIN'), updateAlertStatus);
+router.put('/event/:eventId/status', auth, checkRole('HOSPITAL_ADMIN'), updateEventStatus);
 
 router.get('/list', async (req, res) => {
   try {

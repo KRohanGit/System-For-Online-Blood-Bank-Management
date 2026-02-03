@@ -1,0 +1,346 @@
+.emergency-mobilization {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.emergency-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 20px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #e74c3c;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.emergency-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.emergency-header h2 {
+  font-size: 28px;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.emergency-header p {
+  color: #7f8c8d;
+  font-size: 16px;
+}
+
+.tab-navigation {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.tab-btn {
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-weight: 600;
+  color: #7f8c8d;
+  transition: all 0.3s;
+}
+
+.tab-btn.active {
+  color: #e74c3c;
+  border-bottom-color: #e74c3c;
+}
+
+.tab-btn:hover {
+  color: #e74c3c;
+}
+
+.no-events, .no-responses {
+  text-align: center;
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 15px;
+}
+
+.no-events-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+
+.no-events h3 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.no-events p, .no-responses p {
+  color: #7f8c8d;
+}
+
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 25px;
+}
+
+.emergency-card {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border-top: 5px solid #e74c3c;
+  transition: transform 0.3s ease;
+}
+
+.emergency-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.emergency-urgency-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.emergency-main {
+  margin-bottom: 20px;
+}
+
+.emergency-hospital {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 15px 0;
+}
+
+.emergency-requirement {
+  margin-bottom: 15px;
+}
+
+.blood-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.blood-group-large {
+  background: #e74c3c;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.units-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.units-needed {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.volunteers-count {
+  font-size: 14px;
+  color: #7f8c8d;
+}
+
+.emergency-description {
+  color: #34495e;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 15px 0;
+}
+
+.emergency-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.meta-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border-radius: 15px;
+  font-size: 13px;
+  color: #34495e;
+  font-weight: 600;
+}
+
+.meta-icon {
+  font-size: 16px;
+}
+
+.volunteer-progress {
+  margin: 15px 0;
+}
+
+.progress-bar {
+  height: 10px;
+  background: #ecf0f1;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #7f8c8d;
+  font-weight: 600;
+}
+
+.instructions-box {
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 15px 0;
+  font-size: 14px;
+  color: #856404;
+}
+
+.emergency-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.volunteer-btn, .navigate-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.volunteer-btn {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+}
+
+.volunteer-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231,76,60,0.4);
+}
+
+.volunteer-btn:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+}
+
+.navigate-btn {
+  background: white;
+  color: #3498db;
+  border: 2px solid #3498db;
+}
+
+.navigate-btn:hover {
+  background: #3498db;
+  color: white;
+}
+
+.responses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.response-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-left: 4px solid #3498db;
+}
+
+.response-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.response-header h4 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 18px;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+}
+
+.status-interested {
+  background: #3498db;
+}
+
+.status-confirmed {
+  background: #2ecc71;
+}
+
+.status-arrived {
+  background: #27ae60;
+}
+
+.status-cancelled {
+  background: #95a5a6;
+}
+
+.response-details p {
+  margin: 5px 0;
+  color: #34495e;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .events-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .blood-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .emergency-actions {
+    flex-direction: column;
+  }
+}
