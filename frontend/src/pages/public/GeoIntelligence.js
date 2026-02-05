@@ -133,6 +133,8 @@ const GeoIntelligence = () => {
   useEffect(() => {
     if (userLocation) {
       fetchGeoData(userLocation.latitude, userLocation.longitude);
+      // Update map center to force re-render
+      setMapCenter([userLocation.latitude, userLocation.longitude]);
     }
   }, [searchRadius, showEmergencyOnly]);
 
@@ -177,11 +179,12 @@ const GeoIntelligence = () => {
                 className="btn-test-location"
                 onClick={() => {
                   setUserLocation({
-                    latitude: loc.coords[0],
-                    longitude: loc.coords[1]
+                    latitude: loc.latitude,
+                    longitude: loc.longitude,
+                    name: loc.name
                   });
-                  setMapCenter([loc.coords[0], loc.coords[1]]);
-                  fetchGeoData(loc.coords[0], loc.coords[1]);
+                  setMapCenter([loc.latitude, loc.longitude]);
+                  fetchGeoData(loc.latitude, loc.longitude);
                 }}
               >
                 {loc.name}

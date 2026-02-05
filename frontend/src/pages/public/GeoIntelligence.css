@@ -48,6 +48,7 @@
 .location-info {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 1rem;
   flex-wrap: wrap;
 }
@@ -81,6 +82,7 @@
   display: flex;
   gap: 1rem;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
   margin-top: 1rem;
 }
@@ -91,6 +93,7 @@
   align-items: center;
   flex-wrap: wrap;
   padding-left: 1rem;
+  margin-left: 1rem;
   border-left: 2px solid #e0e0e0;
 }
 
@@ -227,6 +230,8 @@
   border-radius: 12px;
   margin-bottom: 1.5rem;
   display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 2rem;
   flex-wrap: wrap;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -235,7 +240,8 @@
 
 .filter-group {
   flex: 1;
-  min-width: 200px;
+  min-width: 250px;
+  max-width: 400px;
 }
 
 .filter-group label {
@@ -243,6 +249,7 @@
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: #333;
+  text-align: center;
 }
 
 .radius-slider {
@@ -393,6 +400,14 @@
 /* Map Container */
 .map-container {
   position: relative;
+  background: white;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.leaflet-container {
+  border-radius: 12px;
 }
 
 .map-legend {
