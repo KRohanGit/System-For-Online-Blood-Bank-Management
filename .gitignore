@@ -14,6 +14,12 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+*.env
+
+# Sensitive configuration files
+Backend/src/config/database.js
+**/config/secrets.js
+**/config/keys.js
 
 # IDE
 .vscode/
@@ -33,5 +39,27 @@ Backend/uploads/
 # Test coverage
 coverage/
 
-# MongoDB
+# MongoDB scripts (may contain connection strings)
 *.mongodb.js
+check-*.mongodb.js
+view-*.mongodb.js
+
+# Documentation and guides
+README*.md
+README*.js
+**/README_*.md
+**/README_*.js
+GUIDE*.md
+TODO*.md
+
+# Private keys and certificates
+*.pem
+*.key
+*.cert
+*.p12
+*.pfx
+
+# Backup files
+*.backup
+*.bak
+*.old

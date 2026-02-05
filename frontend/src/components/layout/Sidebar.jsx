@@ -11,8 +11,12 @@ function Sidebar({ isOpen, toggleSidebar }) {
     { path: '/admin/blood-inventory', icon: '🩸', label: 'Blood Inventory', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
     { path: '/admin/blood-requests', icon: '📋', label: 'Blood Requests', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
     { path: '/admin/emergency', icon: '🚨', label: 'Emergency', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' },
+    { path: '/emergency-intelligence', icon: '🌊', label: 'Crisis Propagation', gradient: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)', badge: 'AI' },
+    { path: '/geo-intelligence', icon: '🗺️', label: 'Geo Intelligence', gradient: 'linear-gradient(135deg, #56ab2f 0%, #a8e063 100%)', badge: 'NEW' },
     { path: '/admin/donors', icon: '👥', label: 'Donors', gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)' },
     { path: '/admin/approvals', icon: '🧑‍⚕️', label: 'Doctor Approvals', gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' },
+    { path: '/blood-camps', icon: '⛺', label: 'Blood Camps', gradient: 'linear-gradient(135deg, #fa8bff 0%, #2bd2ff 100%)' },
+    { path: '/community', icon: '🤝', label: 'Community', gradient: 'linear-gradient(135deg, #fddb92 0%, #d1fdff 100%)' },
     { path: '/admin/logs', icon: '📊', label: 'Audit Logs', gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)' },
     { path: '/admin/settings', icon: '⚙️', label: 'Settings', gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)' }
   ];
@@ -76,7 +80,10 @@ function Sidebar({ isOpen, toggleSidebar }) {
             >
               <div className="nav-indicator" style={{ background: item.gradient }}></div>
               <span className="nav-icon">{item.icon}</span>
-              <span className="nav-label">{item.label}</span>
+              <span className="nav-label">
+                {item.label}
+                {item.badge && <span className="nav-badge">{item.badge}</span>}
+              </span>
               <span className="nav-arrow">›</span>
             </NavLink>
           ))}

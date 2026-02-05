@@ -103,34 +103,38 @@ function SignIn() {
             console.log('🔍 Doctor login - Full response data:', {
               isVerified,
               profileData,
-              userRole
+              userRole,
+              hasProfile: !!profileData
             });
             
             // Check if doctor profile exists and is approved
             // Allow login if either user.isVerified is true OR profile.verificationStatus is 'approved'
-            if (!profileData) {
-              console.log('❌ Doctor profile not found, pending approval');
-              navigate('/doctor/pending-approval');
-            } else if (profileData.verificationStatus === 'rejected') {
+            
+            // If profile exists and is rejected, block login
+            if (profileData && profileData.verificationStatus === 'rejected') {
               console.log('❌ Doctor application rejected');
               setApiError('Your doctor application has been rejected. Please contact support.');
               setIsSubmitting(false);
               return;
-            } else if (isVerified === true || profileData.verificationStatus === 'approved') {
-              // Allow login if user is verified OR profile is approved
-              console.log('✅ Doctor approved, navigating to dashboard', { 
-                isVerified, 
-                status: profileData.verificationStatus,
-                condition1: isVerified === true,
-                condition2: profileData.verificationStatus === 'approved'
-              });
+            }
+            
+            // Doctor can login if EITHER condition is true:
+            // 1. User.isVerified === true (approved at user level)
+            // 2. DoctorProfile.verificationStatus === 'approved'
+            const isApproved = (isVerified === true) || (profileData?.verificationStatus === 'approved');
+            
+            console.log('🔍 Doctor approval check:', {
+              isVerified: isVerified === true,
+              profileStatus: profileData?.verificationStatus,
+              isProfileApproved: profileData?.verificationStatus === 'approved',
+              finalDecision: isApproved
+            });
+            
+            if (isApproved) {
+              console.log('✅ Doctor approved, navigating to dashboard');
               navigate('/doctor/dashboard');
             } else {
-              // Still pending
-              console.log('⏳ Doctor still pending approval', { 
-                isVerified, 
-                status: profileData.verificationStatus 
-              });
+              console.log('⏳ Doctor still pending approval');
               navigate('/doctor/pending-approval');
             }
           }

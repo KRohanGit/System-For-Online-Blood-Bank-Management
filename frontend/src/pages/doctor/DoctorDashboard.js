@@ -6,6 +6,8 @@ import DoctorIdentityCard from '../../components/doctor/DoctorIdentityCard';
 import EmergencyAlertBanner from '../../components/doctor/EmergencyAlertBanner';
 import PendingTasksCard from '../../components/doctor/PendingTasksCard';
 import AvailabilityToggle from '../../components/doctor/AvailabilityToggle';
+import ClinicalLoadCard from '../../components/doctor/cards/ClinicalLoadCard';
+import ClinicalDecisionLogCard from '../../components/doctor/cards/ClinicalDecisionLogCard';
 import BloodUnitValidationPage from './BloodUnitValidationPage';
 import EmergencyConsultsPage from './EmergencyConsultsPage';
 import CampOversightPage from './CampOversightPage';
@@ -40,12 +42,22 @@ const DoctorDashboard = () => {
           console.log('🔍 Dashboard verification check:', { 
             isUserVerified, 
             profileStatus,
-            fullProfile: userData.profile,
-            condition: isUserVerified === true || profileStatus === 'approved'
+            hasProfile: !!userData.profile,
+            fullProfile: userData.profile
           });
           
-          // Only redirect to pending if BOTH conditions are false
-          if (isUserVerified !== true && profileStatus !== 'approved') {
+          // Doctor can access dashboard if:
+          // 1. User.isVerified === true (approved at user level) OR
+          // 2. DoctorProfile.verificationStatus === 'approved'
+          const isApproved = (isUserVerified === true) || (profileStatus === 'approved');
+          
+          console.log('🔍 Approval status:', {
+            isUserVerified: isUserVerified === true,
+            isProfileApproved: profileStatus === 'approved',
+            finalDecision: isApproved
+          });
+          
+          if (!isApproved) {
             console.log('❌ Doctor not yet approved, redirecting to pending');
             navigate('/doctor/pending-approval');
             return;
@@ -120,14 +132,78 @@ const DoctorDashboard = () => {
       case 'overview':
         return (
           <div className="overview-section">
+            {/* Emergency Alerts - Always at Top */}
             {overview?.emergencyAlerts && overview.emergencyAlerts.length > 0 && (
               <EmergencyAlertBanner alerts={overview.emergencyAlerts} />
             )}
-            <PendingTasksCard pending={overview?.pending} />
-            <AvailabilityToggle 
-              currentStatus={overview?.availability?.status || 'off_duty'}
-              onStatusChange={handleAvailabilityChange}
-            />
+
+            {/* Card Grid Layout */}
+            <div className="dashboard-cards-grid">
+              {/* Row 1: Core Operational Cards */}
+              <div className="card-grid-row">
+                <PendingTasksCard pending={overview?.pending} />
+                <AvailabilityToggle 
+                  currentStatus={overview?.availability?.status || 'off_duty'}
+                  onStatusChange={handleAvailabilityChange}
+                />
+              </div>
+
+              {/* Row 2: Clinical Intelligence Cards (NEW) */}
+              <div className="card-grid-row">
+                <ClinicalLoadCard />
+                <ClinicalDecisionLogCard />
+              </div>
+
+              {/* Quick Actions Section */}
+              <div className="quick-actions-section">
+                <h3>⚡ Quick Actions</h3>
+                <div className="quick-actions-grid">
+                  <button 
+                    className="quick-action-btn validation-btn"
+                    onClick={() => setActiveTab('validations')}
+                  >
+                    <span className="action-icon">🩸</span>
+                    <span className="action-label">Blood Unit Validation</span>
+                    {overview?.pending?.validations > 0 && (
+                      <span className="action-badge">{overview.pending.validations}</span>
+                    )}
+                  </button>
+                  
+                  <button 
+                    className="quick-action-btn consults-btn"
+                    onClick={() => setActiveTab('consults')}
+                  >
+                    <span className="action-icon">🚑</span>
+                    <span className="action-label">Emergency Consults</span>
+                    {overview?.pending?.consults > 0 && (
+                      <span className="action-badge">{overview.pending.consults}</span>
+                    )}
+                  </button>
+                  
+                  <button 
+                    className="quick-action-btn camps-btn"
+                    onClick={() => setActiveTab('camps')}
+                  >
+                    <span className="action-icon">⛺</span>
+                    <span className="action-label">Camp Oversight</span>
+                    {overview?.pending?.camps > 0 && (
+                      <span className="action-badge">{overview.pending.camps}</span>
+                    )}
+                  </button>
+                  
+                  <button 
+                    className="quick-action-btn advisories-btn"
+                    onClick={() => setActiveTab('advisories')}
+                  >
+                    <span className="action-icon">📋</span>
+                    <span className="action-label">Clinical Advisories</span>
+                    {overview?.pending?.advisories > 0 && (
+                      <span className="action-badge">{overview.pending.advisories}</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         );
       case 'validations':
@@ -146,8 +222,9 @@ const DoctorDashboard = () => {
       case 'audit':
         return (
           <div className="coming-soon">
-            <h2>📊 Audit Trail</h2>
-            <p>Action audit log coming soon</p>
+            <h2>🔍 Audit Trail</h2>
+            <p>Comprehensive audit log coming soon</p>
+            <small>Note: Individual decision logs are available in the Clinical Decision Log card on the Overview tab</small>
           </div>
         );
       default:
@@ -156,7 +233,11 @@ const DoctorDashboard = () => {
             {overview?.emergencyAlerts && overview.emergencyAlerts.length > 0 && (
               <EmergencyAlertBanner alerts={overview.emergencyAlerts} />
             )}
-            <PendingTasksCard pending={overview?.pending} />
+            <div className="dashboard-cards-grid">
+              <div className="card-grid-row">
+                <PendingTasksCard pending={overview?.pending} />
+              </div>
+            </div>
           </div>
         );
     }

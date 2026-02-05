@@ -1,16 +1,3 @@
-/**
- * Geolocation Intelligence Showcase
- * 
- * Purpose: Demonstrate the power of geolocation features in blood bank management
- * 
- * Features:
- * - Interactive map with hospital and camp markers
- * - Real-time location detection
- * - Nearby resource discovery
- * - Statistical insights and analytics
- * - Coverage analysis
- */
-
 import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -340,12 +327,14 @@ const GeoIntelligence = () => {
                   
                   {/* Search radius circle */}
                   <Circle
+                    key={`circle-${searchRadius}`}
                     center={[userLocation.latitude, userLocation.longitude]}
                     radius={searchRadius * 1000}
                     pathOptions={{ 
                       color: '#4A90E2', 
                       fillColor: '#4A90E2',
-                      fillOpacity: 0.1 
+                      fillOpacity: 0.15,
+                      weight: 2
                     }}
                   />
                 </>

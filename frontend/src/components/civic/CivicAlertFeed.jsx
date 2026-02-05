@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getCurrentLocation } from '../../services/geolocationApi';
 import './CivicAlertFeed.css';
 
 const CivicAlertFeed = () => {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState(null);
   const [radius, setRadius] = useState(20);
+  const [selectedAlert, setSelectedAlert] = useState(null);
 
   useEffect(() => {
-    getUserLocation();
+    // Try to get user's actual location
+    detectUserLocation();
   }, []);
 
   useEffect(() => {
@@ -18,22 +23,34 @@ const CivicAlertFeed = () => {
     }
   }, [userLocation, radius]);
 
-  const getUserLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-        },
-        () => {
-          setUserLocation({ lat: 17.6868, lng: 83.2185 });
-        }
-      );
-    } else {
+  /**
+   * Detect user's current geolocation
+   */
+  const detectUserLocation = async () => {
+    setLocationLoading(true);
+    setLocationError(null);
+    
+    try {
+      const location = await getCurrentLocation();
+      setUserLocation({
+        lat: location.latitude,
+        lng: location.longitude
+      });
+    } catch (error) {
+      console.error('Location detection error:', error);
+      setLocationError(error.message);
+      // Fallback to Vizag coordinates
       setUserLocation({ lat: 17.6868, lng: 83.2185 });
+    } finally {
+      setLocationLoading(false);
     }
+  };
+
+  /**
+   * Manually refresh location
+   */
+  const refreshLocation = () => {
+    detectUserLocation();
   };
 
   const fetchAlerts = async () => {
@@ -90,6 +107,23 @@ const CivicAlertFeed = () => {
     return `${Math.floor(diffMins / 1440)}d ago`;
   };
 
+  /**
+   * Open detail modal with dummy hospital information
+   */
+  const handleViewDetails = (alert) => {
+    // Enrich alert with dummy contact details
+    const enrichedAlert = {
+      ...alert,
+      hospitalAddress: `${Math.floor(Math.random() * 500) + 1}, Medical Road, ${['Hyderabad', 'Vizag', 'Vijayawada', 'Guntur'][Math.floor(Math.random() * 4)]}, Telangana`,
+      hospitalPhone: `+91-${Math.floor(Math.random() * 90000) + 10000}-${Math.floor(Math.random() * 90000) + 10000}`,
+      emergencyContact: `+91-${Math.floor(Math.random() * 9000000000) + 1000000000}`,
+      bloodBankIncharge: ['Dr. Ramesh Kumar', 'Dr. Priya Singh', 'Dr. Anil Reddy', 'Dr. Shalini Rao'][Math.floor(Math.random() * 4)],
+      operatingHours: '24/7 Emergency Services',
+      bloodBankAvailable: true
+    };
+    setSelectedAlert(enrichedAlert);
+  };
+
   if (loading) {
     return (
       <div className="civic-alert-loading">
@@ -106,14 +140,49 @@ const CivicAlertFeed = () => {
           <h2>🚨 Civic Blood Alert Feed</h2>
           <p>Stay informed about nearby blood needs</p>
         </div>
+        
+        <div className="location-controls">
+          <div className="location-status">
+            {locationLoading ? (
+              <span className="location-loading">📍 Detecting location...</span>
+            ) : locationError ? (
+              <span className="location-error" title={locationError}>
+                ⚠️ Using default location
+              </span>
+            ) : userLocation ? (
+              <span className="location-success">
+                ✅ Location: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
+              </span>
+            ) : null}
+          </div>
+          
+          <button 
+            className="refresh-location-btn" 
+            onClick={refreshLocation}
+            disabled={locationLoading}
+            title="Refresh your location"
+          >
+            🔄 {locationLoading ? 'Detecting...' : 'Refresh Location'}
+          </button>
+        </div>
+      </div>
+
+      <div className="filter-controls">
         <div className="radius-selector">
           <label>Search Radius:</label>
           <select value={radius} onChange={(e) => setRadius(Number(e.target.value))}>
-            <option value={10}>10 km</option>
-            <option value={20}>20 km</option>
-            <option value={50}>50 km</option>
-            <option value={100}>100 km</option>
+            <option value={5}>5 km - Nearby</option>
+            <option value={10}>10 km - Local</option>
+            <option value={20}>20 km - City</option>
+            <option value={50}>50 km - Regional</option>
+            <option value={100}>100 km - Extended</option>
           </select>
+        </div>
+        
+        <div className="alert-count">
+          {alerts.length > 0 && (
+            <span>{alerts.length} alert{alerts.length !== 1 ? 's' : ''} found within {radius} km</span>
+          )}
         </div>
       </div>
 
@@ -178,11 +247,116 @@ const CivicAlertFeed = () => {
               </div>
 
               <div className="alert-actions">
-                <button className="btn-primary">View Details</button>
-                <button className="btn-secondary">Register Interest</button>
+                <button className="btn-primary" onClick={() => handleViewDetails(alert)}>View Details</button>
+                <button className="btn-secondary" title="Feature coming soon">Register Interest</button>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {selectedAlert && (
+        <div className="modal-overlay" onClick={() => setSelectedAlert(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h2>{selectedAlert.hospitalName || 'Hospital'}</h2>
+                <div className="modal-blood-requirement">
+                  <span className="blood-group-large">{selectedAlert.bloodGroup}</span>
+                  {selectedAlert.unitsRequired && (
+                    <span className="units-badge">{selectedAlert.unitsRequired} units needed</span>
+                  )}
+                </div>
+              </div>
+              <button className="close-btn" onClick={() => setSelectedAlert(null)}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="alert-detail-section">
+                <h3>🚨 Alert Information</h3>
+                <p className="alert-description-full">{selectedAlert.description}</p>
+                <div className="alert-stats">
+                  <div className="stat-item">
+                    <span className="stat-label">Alert Type:</span>
+                    <span className="stat-value">{selectedAlert.alertType?.replace('_', ' ')}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Urgency Level:</span>
+                    <span className="stat-value urgency-value">{selectedAlert.urgencyScore}%</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Distance:</span>
+                    <span className="stat-value">{selectedAlert.distance ? `${selectedAlert.distance} km` : 'N/A'}</span>
+                  </div>
+                  {selectedAlert.expiryWarningHours && (
+                    <div className="stat-item">
+                      <span className="stat-label">Time Remaining:</span>
+                      <span className="stat-value critical">{selectedAlert.expiryWarningHours} hours</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="alert-detail-section">
+                <h3>🏥 Hospital Contact Details</h3>
+                <div className="contact-grid">
+                  <div className="contact-item">
+                    <span className="contact-icon">📍</span>
+                    <div className="contact-info">
+                      <strong>Address</strong>
+                      <p>{selectedAlert.hospitalAddress}</p>
+                    </div>
+                  </div>
+                  <div className="contact-item">
+                    <span className="contact-icon">📞</span>
+                    <div className="contact-info">
+                      <strong>Phone</strong>
+                      <p>{selectedAlert.hospitalPhone}</p>
+                    </div>
+                  </div>
+                  <div className="contact-item">
+                    <span className="contact-icon">🚨</span>
+                    <div className="contact-info">
+                      <strong>Emergency Contact</strong>
+                      <p>{selectedAlert.emergencyContact}</p>
+                    </div>
+                  </div>
+                  <div className="contact-item">
+                    <span className="contact-icon">👨‍⚕️</span>
+                    <div className="contact-info">
+                      <strong>Blood Bank Incharge</strong>
+                      <p>{selectedAlert.bloodBankIncharge}</p>
+                    </div>
+                  </div>
+                  <div className="contact-item">
+                    <span className="contact-icon">🕐</span>
+                    <div className="contact-info">
+                      <strong>Operating Hours</strong>
+                      <p>{selectedAlert.operatingHours}</p>
+                    </div>
+                  </div>
+                  {selectedAlert.bloodBankAvailable && (
+                    <div className="contact-item">
+                      <span className="contact-icon">✓</span>
+                      <div className="contact-info">
+                        <strong className="blood-bank-available">Blood Bank Available</strong>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button className="btn-primary-large" onClick={() => setSelectedAlert(null)}>
+                  Close
+                </button>
+                <button className="btn-secondary-large" title="Feature coming soon" disabled>
+                  Register Interest
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

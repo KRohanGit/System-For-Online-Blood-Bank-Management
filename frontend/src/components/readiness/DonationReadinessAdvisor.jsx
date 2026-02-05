@@ -4,13 +4,33 @@ import './DonationReadinessAdvisor.css';
 
 const DonationReadinessAdvisor = () => {
   const [formData, setFormData] = useState({
+    // Existing parameters
     age: '',
     weight: '',
     lastDonationDate: '',
     hemoglobinLevel: '',
     medicationStatus: false,
     illnessHistory: false,
-    travelHistory: false
+    
+    // New basic eligibility
+    gender: '',
+    bloodGroup: '',
+    
+    // Health & safety checks
+    recentFever: false,
+    chronicConditions: false,
+    anemiaHistory: false,
+    bleedingDisorders: false,
+    
+    // Lifestyle & risk
+    recentAlcohol: false,
+    recentTattoo: false,
+    recentVaccination: false,
+    
+    // Female-specific
+    isPregnant: false,
+    isBreastfeeding: false,
+    recentChildbirth: false
   });
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
@@ -66,6 +86,7 @@ const DonationReadinessAdvisor = () => {
     const colors = {
       ELIGIBLE: '#2ecc71',
       CONDITIONAL: '#f39c12',
+      TEMPORARILY_DEFERRED: '#e67e22',
       NOT_ELIGIBLE: '#e74c3c'
     };
     return colors[status] || '#95a5a6';
@@ -75,6 +96,7 @@ const DonationReadinessAdvisor = () => {
     const icons = {
       ELIGIBLE: '✅',
       CONDITIONAL: '⚠️',
+      TEMPORARILY_DEFERRED: '⏸️',
       NOT_ELIGIBLE: '❌'
     };
     return icons[status] || '❓';
@@ -98,6 +120,7 @@ const DonationReadinessAdvisor = () => {
       <div className="advisor-container">
         <div className="assessment-form-section">
           <form onSubmit={handleSubmit} className="readiness-form">
+            {/* Section 1: Basic Information */}
             <div className="form-section">
               <h3>📋 Basic Information</h3>
               
@@ -110,10 +133,11 @@ const DonationReadinessAdvisor = () => {
                     value={formData.age}
                     onChange={handleChange}
                     required
-                    min="1"
-                    max="120"
-                    placeholder="Enter your age"
+                    min="18"
+                    max="65"
+                    placeholder="18-65"
                   />
+                  <small className="helper-text">Eligible age: 18-65 years</small>
                 </div>
 
                 <div className="form-group">
@@ -126,8 +150,46 @@ const DonationReadinessAdvisor = () => {
                     required
                     min="1"
                     step="0.1"
-                    placeholder="Enter your weight"
+                    placeholder="Minimum 50 kg"
                   />
+                  <small className="helper-text">Minimum weight: 50 kg</small>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Gender *</label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Blood Group (Optional)</label>
+                  <select
+                    name="bloodGroup"
+                    value={formData.bloodGroup}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select blood group</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                  <small className="helper-text">Recommended for better matching</small>
                 </div>
               </div>
 
@@ -139,7 +201,9 @@ const DonationReadinessAdvisor = () => {
                     name="lastDonationDate"
                     value={formData.lastDonationDate}
                     onChange={handleChange}
+                    max={new Date().toISOString().split('T')[0]}
                   />
+                  <small className="helper-text">Leave blank if first time donor</small>
                 </div>
 
                 <div className="form-group">
@@ -152,14 +216,26 @@ const DonationReadinessAdvisor = () => {
                     step="0.1"
                     placeholder="Optional"
                   />
+                  <small className="helper-text">Normal: Male 13+, Female 12+</small>
                 </div>
               </div>
             </div>
 
+            {/* Section 2: Health Status */}
             <div className="form-section">
               <h3>🏥 Health Status</h3>
               
               <div className="checkbox-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="recentFever"
+                    checked={formData.recentFever}
+                    onChange={handleChange}
+                  />
+                  <span>Fever or infection in the last 14 days</span>
+                </label>
+
                 <label className="checkbox-label">
                   <input
                     type="checkbox"
@@ -177,23 +253,119 @@ const DonationReadinessAdvisor = () => {
                     checked={formData.illnessHistory}
                     onChange={handleChange}
                   />
-                  <span>Recent illness or surgery</span>
+                  <span>Recent illness or surgery (within 6 months)</span>
                 </label>
 
                 <label className="checkbox-label">
                   <input
                     type="checkbox"
-                    name="travelHistory"
-                    checked={formData.travelHistory}
+                    name="chronicConditions"
+                    checked={formData.chronicConditions}
                     onChange={handleChange}
                   />
-                  <span>Recent international travel</span>
+                  <span>Chronic conditions (Diabetes, BP, Heart problems)</span>
+                </label>
+
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="anemiaHistory"
+                    checked={formData.anemiaHistory}
+                    onChange={handleChange}
+                  />
+                  <span>History of anemia or low hemoglobin</span>
+                </label>
+
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="bleedingDisorders"
+                    checked={formData.bleedingDisorders}
+                    onChange={handleChange}
+                  />
+                  <span>Bleeding or clotting disorders</span>
                 </label>
               </div>
             </div>
 
+            {/* Section 3: Safety & Risk Checks */}
+            <div className="form-section">
+              <h3>🔒 Safety & Risk Checks</h3>
+              
+              <div className="checkbox-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="recentAlcohol"
+                    checked={formData.recentAlcohol}
+                    onChange={handleChange}
+                  />
+                  <span>Consumed alcohol in the last 24 hours</span>
+                </label>
+
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="recentTattoo"
+                    checked={formData.recentTattoo}
+                    onChange={handleChange}
+                  />
+                  <span>Got a tattoo or piercing in the last 6 months</span>
+                </label>
+
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="recentVaccination"
+                    checked={formData.recentVaccination}
+                    onChange={handleChange}
+                  />
+                  <span>Received vaccination in the last 30 days</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Section 4: Female-Specific (Conditional) */}
+            {formData.gender === 'Female' && (
+              <div className="form-section female-specific">
+                <h3>👩‍⚕️ Additional Information (Female)</h3>
+                
+                <div className="checkbox-group">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      name="isPregnant"
+                      checked={formData.isPregnant}
+                      onChange={handleChange}
+                    />
+                    <span>Currently pregnant</span>
+                  </label>
+
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      name="isBreastfeeding"
+                      checked={formData.isBreastfeeding}
+                      onChange={handleChange}
+                    />
+                    <span>Currently breastfeeding</span>
+                  </label>
+
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      name="recentChildbirth"
+                      checked={formData.recentChildbirth}
+                      onChange={handleChange}
+                    />
+                    <span>Gave birth within the last 6 months</span>
+                  </label>
+                </div>
+              </div>
+            )}
+
             <button type="submit" className="submit-btn" disabled={loading}>
-              {loading ? 'Analyzing...' : 'Check Readiness'}
+              {loading ? 'Analyzing...' : '🔍 Check My Eligibility'}
             </button>
           </form>
         </div>
@@ -207,9 +379,20 @@ const DonationReadinessAdvisor = () => {
                   <span className="score-label">/100</span>
                 </div>
                 <div className="status-badge" style={{ backgroundColor: getStatusColor(result.eligibilityStatus) }}>
-                  {getStatusIcon(result.eligibilityStatus)} {result.eligibilityStatus.replace('_', ' ')}
+                  {getStatusIcon(result.eligibilityStatus)} {result.eligibilityStatus.replace(/_/g, ' ')}
                 </div>
               </div>
+
+              {result.deferralReasons && result.deferralReasons.length > 0 && (
+                <div className="deferral-reasons">
+                  <h3>⚠️ Deferral Reasons</h3>
+                  <ul className="deferral-list">
+                    {result.deferralReasons.map((reason, index) => (
+                      <li key={index} className="deferral-item">{reason}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               <div className="result-details">
                 <h3>📅 Next Eligible Date</h3>

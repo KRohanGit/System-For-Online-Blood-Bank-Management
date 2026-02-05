@@ -1,0 +1,260 @@
+/* MyResponsesTab Styles */
+
+.my-responses-tab {
+  padding: 20px;
+}
+
+/* Empty State */
+.no-responses-state {
+  text-align: center;
+  padding: 80px 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 16px;
+}
+
+.no-responses-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+
+.no-responses-state h3 {
+  color: #2c3e50;
+  font-size: 24px;
+  margin: 0 0 10px 0;
+}
+
+.no-responses-state p {
+  color: #7f8c8d;
+  font-size: 16px;
+  margin: 5px 0;
+}
+
+.hint-text {
+  font-size: 14px !important;
+  color: #95a5a6 !important;
+  font-style: italic;
+  margin-top: 15px !important;
+}
+
+/* Responses Header */
+.responses-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.responses-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 22px;
+}
+
+.responses-count {
+  background: #3498db;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Responses List */
+.responses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Response Item */
+.response-item {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.response-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Status Badge */
+.response-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 20px;
+  color: white;
+}
+
+.status-icon {
+  font-size: 24px;
+}
+
+.status-text strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.status-text small {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+/* Response Content */
+.response-content {
+  padding: 20px;
+}
+
+.response-hospital {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Response Details */
+.response-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: #7f8c8d;
+  font-weight: 600;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.blood-group-badge-small {
+  background: #e74c3c;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.urgency-tag {
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Event Description */
+.response-event-description {
+  font-size: 14px;
+  color: #7f8c8d;
+  line-height: 1.6;
+  margin: 15px 0;
+  padding: 12px;
+  background: #f8f9fa;
+  border-left: 3px solid #3498db;
+  border-radius: 4px;
+}
+
+/* Timestamp */
+.response-timestamp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #ecf0f1;
+  color: #95a5a6;
+  font-size: 13px;
+}
+
+.timestamp-icon {
+  font-size: 16px;
+}
+
+/* Confirmation Status */
+.confirmation-status {
+  margin-top: 15px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.status-indicator.pending {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffc107;
+}
+
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffc107;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .my-responses-tab {
+    padding: 15px;
+  }
+
+  .responses-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .response-status-badge {
+    padding: 12px 15px;
+  }
+
+  .response-content {
+    padding: 15px;
+  }
+
+  .response-details {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .detail-item {
+    width: 100%;
+  }
+}

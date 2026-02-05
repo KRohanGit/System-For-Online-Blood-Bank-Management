@@ -213,9 +213,35 @@ const SuperAdminDashboard = () => {
             <h1 className="dashboard-title">Central Admin Dashboard 🛡️</h1>
             <p className="dashboard-subtitle">Platform Administration & User Management</p>
           </div>
-          <div className="live-indicator">
-            <span className="live-pulse"></span>
-            <span className="live-text">LIVE</span>
+          <div className="header-actions">
+            <button 
+              className="quick-nav-btn"
+              onClick={() => navigate('/emergency-intelligence')}
+              title="Crisis Propagation Engine"
+            >
+              <span className="btn-icon">🌊</span>
+              <span className="btn-label">Crisis Intelligence</span>
+            </button>
+            <button 
+              className="quick-nav-btn"
+              onClick={() => navigate('/geo-intelligence')}
+              title="Geolocation Intelligence"
+            >
+              <span className="btn-icon">🗺️</span>
+              <span className="btn-label">Geo Intelligence</span>
+            </button>
+            <button 
+              className="quick-nav-btn"
+              onClick={() => navigate('/blood-camps')}
+              title="Blood Camps & Community"
+            >
+              <span className="btn-icon">⛺</span>
+              <span className="btn-label">Blood Camps</span>
+            </button>
+            <div className="live-indicator">
+              <span className="live-pulse"></span>
+              <span className="live-text">LIVE</span>
+            </div>
           </div>
         </div>
       </div>

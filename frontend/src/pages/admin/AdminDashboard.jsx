@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import gsap from 'gsap';
-import DashboardLayout from '../../components/layout/DashboardLayout';
 import BloodStockChart from '../../components/charts/BloodStockChart';
 import Loader from '../../components/common/Loader';
 import UrgencyIndexCard from '../../components/common/UrgencyIndexCard';
@@ -12,11 +10,6 @@ import '../../styles/admin.css';
 
 function AdminDashboard() {
   const navigate = useNavigate();
-  const pageRef = useRef(null);
-  const headerRef = useRef(null);
-  const statsRef = useRef(null);
-  const cardsRef = useRef(null);
-  const actionsRef = useRef(null);
   
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -40,78 +33,6 @@ function AdminDashboard() {
     
     return () => clearInterval(timer);
   }, []);
-
-  useEffect(() => {
-    if (!loading && pageRef.current) {
-      const ctx = gsap.context(() => {
-        // Header animation
-        gsap.fromTo(headerRef.current, 
-          {
-            y: -20,
-            opacity: 0
-          },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.6,
-            ease: 'power3.out'
-          }
-        );
-        
-        // Stats cards animation with stagger
-        gsap.fromTo('.stat-card', 
-          {
-            scale: 0.9,
-            y: 30,
-            opacity: 0
-          },
-          {
-            scale: 1,
-            y: 0,
-            opacity: 1,
-            duration: 0.7,
-            stagger: 0.1,
-            delay: 0.2,
-            ease: 'back.out(1.4)'
-          }
-        );
-        
-        // Main cards animation
-        gsap.fromTo('.dashboard-card', 
-          {
-            y: 40,
-            opacity: 0
-          },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.8,
-            stagger: 0.15,
-            delay: 0.6,
-            ease: 'power3.out'
-          }
-        );
-        
-        // Quick actions animation
-        gsap.fromTo('.quick-action-card', 
-          {
-            scale: 0.95,
-            opacity: 0
-          },
-          {
-            scale: 1,
-            opacity: 1,
-            duration: 0.6,
-            stagger: 0.08,
-            delay: 1,
-            ease: 'power2.out'
-          }
-        );
-      }, pageRef);
-      
-      return () => ctx.revert();
-    }
-  }, [loading]);
 
   const fetchDashboardData = async () => {
     try {
@@ -157,10 +78,10 @@ function AdminDashboard() {
   }
 
   return (
-    <DashboardLayout>
-      <div className="admin-dashboard-page" ref={pageRef}>
+    <div className="admin-dashboard-container">
+      <div className="admin-dashboard-page">
         {/* Header Section */}
-        <div className="dashboard-header" ref={headerRef}>
+        <div className="dashboard-header">
           <div className="header-content">
             <div className="header-text">
               <h1 className="dashboard-title">
@@ -179,7 +100,7 @@ function AdminDashboard() {
         </div>
 
         {/* Statistics Cards */}
-        <div className="stats-section" ref={statsRef}>
+        <div className="stats-section">
           <div className="stat-card stat-primary">
             <div className="stat-card-inner">
               <div className="stat-icon-wrapper">
@@ -234,13 +155,12 @@ function AdminDashboard() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="dashboard-content-grid" ref={cardsRef}>
+        <div className="dashboard-content-grid">
           {/* Blood Inventory Card */}
           <div className="dashboard-card inventory-card">
             <div className="card-header-modern">
               <div className="card-title-group">
                 <h3 className="card-title">Blood Inventory</h3>
-                <span className="card-badge">Live</span>
               </div>
               <button 
                 className="btn-link-modern" 
@@ -347,7 +267,7 @@ function AdminDashboard() {
         </div>
 
         {/* Quick Actions Section */}
-        <div className="quick-actions-section" ref={actionsRef}>
+        <div className="quick-actions-section">
           <h2 className="section-title">📊 Analytics & Insights</h2>
           
           {/* Geo-Time Heatmap */}
@@ -449,10 +369,94 @@ function AdminDashboard() {
               </div>
               <div className="action-arrow">→</div>
             </button>
+
+            <button 
+              className="quick-action-card crisis-card"
+              onClick={() => navigate('/emergency-intelligence')}
+            >
+              <div className="action-icon-wrapper">
+                <span className="action-icon">🌊</span>
+              </div>
+              <div className="action-content">
+                <h4 className="action-title">Crisis Propagation</h4>
+                <p className="action-description">AI-powered emergency intelligence</p>
+              </div>
+              <div className="action-arrow">→</div>
+            </button>
+
+            <button 
+              className="quick-action-card geo-card"
+              onClick={() => navigate('/geo-intelligence')}
+            >
+              <div className="action-icon-wrapper">
+                <span className="action-icon">🗺️</span>
+              </div>
+              <div className="action-content">
+                <h4 className="action-title">Geo Intelligence</h4>
+                <p className="action-description">Location-based insights</p>
+              </div>
+              <div className="action-arrow">→</div>
+            </button>
+
+            <button 
+              className="quick-action-card camp-card"
+              onClick={() => navigate('/blood-camps')}
+            >
+              <div className="action-icon-wrapper">
+                <span className="action-icon">⛺</span>
+              </div>
+              <div className="action-content">
+                <h4 className="action-title">Blood Camps</h4>
+                <p className="action-description">Organize & manage camps</p>
+              </div>
+              <div className="action-arrow">→</div>
+            </button>
+
+            <button 
+              className="quick-action-card community-card"
+              onClick={() => navigate('/community')}
+            >
+              <div className="action-icon-wrapper">
+                <span className="action-icon">🤝</span>
+              </div>
+              <div className="action-content">
+                <h4 className="action-title">Community</h4>
+                <p className="action-description">Connect with donors</p>
+              </div>
+              <div className="action-arrow">→</div>
+            </button>
+
+            <button 
+              className="quick-action-card hospital-card"
+              onClick={() => navigate('/hospitals')}
+            >
+              <div className="action-icon-wrapper">
+                <span className="action-icon">🏥</span>
+              </div>
+              <div className="action-content">
+                <h4 className="action-title">Hospitals</h4>
+                <p className="action-description">View all hospitals</p>
+              </div>
+              <div className="action-arrow">→</div>
+            </button>
+
+            <button 
+              className="quick-action-card approvals-card"
+              onClick={() => navigate('/admin/approvals')}
+            >
+              <div className="action-icon-wrapper">
+                <span className="action-icon">🧑‍⚕️</span>
+              </div>
+              <div className="action-content">
+                <h4 className="action-title">Doctor Approvals</h4>
+                <p className="action-description">{stats.pendingVerifications || 0} pending</p>
+              </div>
+              <div className="action-arrow">→</div>
+            </button>
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
 
