@@ -43,6 +43,8 @@ coverage/
 *.mongodb.js
 check-*.mongodb.js
 view-*.mongodb.js
+check-*.js
+view-*.js
 
 # Documentation and guides
 README*.md
@@ -58,6 +60,10 @@ TODO*.md
 *.cert
 *.p12
 *.pfx
+keys/
+**/keys/
+private_key*
+public_key*
 
 # Backup files
 *.backup
