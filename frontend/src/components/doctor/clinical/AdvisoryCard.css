@@ -1,0 +1,203 @@
+.advisory-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s;
+}
+
+.advisory-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.advisory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.advisory-title {
+  flex: 1;
+}
+
+.advisory-title h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.advisory-subtitle {
+  font-size: 13px;
+  color: #666;
+}
+
+.severity-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.severity-badge.critical {
+  background: #ff4444;
+  color: white;
+}
+
+.severity-badge.medium {
+  background: #ffaa00;
+  color: white;
+}
+
+.severity-badge.low {
+  background: #44ff44;
+  color: #1a1a1a;
+}
+
+.advisory-content {
+  margin-bottom: 16px;
+}
+
+.advisory-message {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.protocol-section {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 3px solid #0066cc;
+}
+
+.protocol-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.protocol-header h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0066cc;
+}
+
+.protocol-details {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #dee2e6;
+}
+
+.protocol-details p {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.protocol-details strong {
+  color: #1a1a1a;
+}
+
+.advisory-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-accept {
+  flex: 1;
+  padding: 10px 16px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-accept:hover {
+  background: #218838;
+}
+
+.btn-override {
+  flex: 1;
+  padding: 10px 16px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-override:hover {
+  background: #c82333;
+}
+
+.override-form {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #dee2e6;
+}
+
+.override-form label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.override-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.override-form textarea:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.override-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.btn-submit {
+  flex: 1;
+  padding: 8px 16px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 8px 16px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}

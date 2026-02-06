@@ -117,7 +117,7 @@ const CivicAlertFeed = () => {
       hospitalAddress: `${Math.floor(Math.random() * 500) + 1}, Medical Road, ${['Hyderabad', 'Vizag', 'Vijayawada', 'Guntur'][Math.floor(Math.random() * 4)]}, Telangana`,
       hospitalPhone: `+91-${Math.floor(Math.random() * 90000) + 10000}-${Math.floor(Math.random() * 90000) + 10000}`,
       emergencyContact: `+91-${Math.floor(Math.random() * 9000000000) + 1000000000}`,
-      bloodBankIncharge: ['Dr. Ramesh Kumar', 'Dr. Priya Singh', 'Dr. Anil Reddy', 'Dr. Shalini Rao'][Math.floor(Math.random() * 4)],
+      bloodBankIncharge: ['Dr. K. Rohan', 'Dr. L. Gaveshna', 'Dr. G. Giri', 'Dr. S. Dinesh'][Math.floor(Math.random() * 4)],
       operatingHours: '24/7 Emergency Services',
       bloodBankAvailable: true
     };

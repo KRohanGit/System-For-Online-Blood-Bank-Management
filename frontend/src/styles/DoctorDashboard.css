@@ -1,101 +1,75 @@
-/* ============================================
-   Doctor Dashboard - Clean & Simple Design
-   ============================================ */
+/* Doctor Dashboard - Simple & Clean */
 
-/* Main Container */
 .doctor-dashboard {
   min-height: 100vh;
-  background: #f8f9fa;
+  background: white;
   padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+  font-family: Arial, sans-serif;
 }
 
-/* Dashboard Layout */
 .dashboard-container {
   max-width: 1400px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 300px 1fr;
   gap: 20px;
-  align-items: start;
 }
 
-/* Sidebar */
 .dashboard-sidebar {
   position: sticky;
   top: 20px;
-  height: fit-content;
 }
 
 .dashboard-main {
   width: 100%;
 }
 
-/* Header */
 .dashboard-header {
   background: white;
-  padding: 24px;
-  border-radius: 8px;
+  padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  border: 1px solid #ddd;
 }
 
 .dashboard-header h1 {
-  margin: 0 0 8px 0;
-  font-size: 26px;
-  color: #2d3748;
-  font-weight: 700;
-}
-
-.dashboard-subtitle {
   margin: 0;
-  color: #718096;
-  font-size: 15px;
-  font-weight: 400;
+  font-size: 24px;
+  color: #000;
+  font-weight: normal;
 }
 
-/* Navigation Tabs */
 .dashboard-navigation {
   background: white;
-  padding: 16px;
-  border-radius: 8px;
+  padding: 15px;
   margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  border: 1px solid #e2e8f0;
 }
 
 .dashboard-navigation button {
-  padding: 10px 16px;
-  border: 1px solid #e2e8f0;
+  padding: 10px 15px;
+  border: 1px solid #ddd;
   background: white;
-  border-radius: 6px;
   font-size: 14px;
-  font-weight: 600;
-  color: #4a5568;
+  color: #000;
   cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
+  font-weight: normal;
 }
 
 .dashboard-navigation button:hover {
-  background: #f7fafc;
-  border-color: #cbd5e0;
-  color: #2d3748;
+  background: #f5f5f5;
 }
 
 .dashboard-navigation button.active {
-  background: #3182ce;
+  background: #000;
   color: white;
-  border-color: #3182ce;
+  border-color: #000;
 }
 
-/* Content Area */
 .dashboard-content {
-  background: transparent;
+  background: white;
 }
 
 .overview-section {
@@ -104,47 +78,82 @@
   gap: 20px;
 }
 
-/* Coming Soon / Placeholder */
-.coming-soon {
+.dashboard-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card-grid-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.quick-actions-section {
   background: white;
-  padding: 60px 40px;
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  padding: 20px;
+  border: 1px solid #ddd;
 }
 
-.coming-soon h2 {
-  margin: 0 0 12px 0;
-  color: #2d3748;
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.coming-soon p {
-  margin: 0;
-  color: #718096;
+.quick-actions-section h3 {
+  margin: 0 0 15px 0;
   font-size: 16px;
+  color: #000;
+  font-weight: normal;
 }
 
-/* Loading States */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.quick-action-btn {
+  position: relative;
+  background: white;
+  border: 1px solid #ddd;
+  padding: 15px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.quick-action-btn:hover {
+  background: #f5f5f5;
+}
+
+.quick-action-btn .action-label {
+  font-size: 14px;
+  color: #000;
+  display: block;
+}
+
+.quick-action-btn .action-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #000;
+  color: white;
+  font-size: 12px;
+  padding: 3px 7px;
+  min-width: 20px;
+  text-align: center;
+}
+
 .loading-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: #f8f9fa;
+  background: white;
 }
 
 .loading {
   background: white;
-  padding: 24px 40px;
-  border-radius: 8px;
-  font-size: 16px;
-  color: #2d3748;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  padding: 20px;
+  font-size: 14px;
+  color: #000;
+  border: 1px solid #ddd;
 }
 
 .error-container {
@@ -152,225 +161,43 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: #f8f9fa;
+  background: white;
   padding: 20px;
 }
 
 .error-container > div {
   background: white;
-  padding: 32px;
-  border-radius: 8px;
-  color: #e53e3e;
-  font-size: 16px;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  color: #000;
+  font-size: 14px;
   max-width: 500px;
   text-align: center;
-  border: 1px solid #feb2b2;
+  border: 1px solid #ddd;
 }
 
-/* Legacy Compatibility */
-.doctor-name {
-  color: #3182ce;
-  font-weight: 700;
-}
-
-.verification-status {
-  display: inline-block;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  margin-top: 10px;
-}
-
-.verification-status.verified {
-  background-color: #48bb78;
-  color: white;
-}
-
-.verification-status.pending {
-  background-color: #ed8936;
-  color: white;
-}
-
-/* ============================================
-   CARD-BASED GRID LAYOUT (NEW)
-   ============================================ */
-
-.dashboard-cards-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-/* Card Grid Rows */
-.card-grid-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-/* Single card spanning full width */
-.card-grid-row.full-width {
-  grid-template-columns: 1fr;
-}
-
-/* Three cards per row for smaller cards */
-.card-grid-row.three-col {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-/* Quick Actions Section */
-.quick-actions-section {
+.coming-soon {
   background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-}
-
-.quick-actions-section h3 {
-  margin: 0 0 20px 0;
-  font-size: 18px;
-  color: #2d3748;
-  font-weight: 700;
-}
-
-.quick-actions-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.quick-action-btn {
-  position: relative;
-  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+  padding: 50px 30px;
   text-align: center;
+  border: 1px solid #ddd;
 }
 
-.quick-action-btn:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  border-color: #667eea;
+.coming-soon h2 {
+  margin: 0 0 10px 0;
+  color: #000;
+  font-size: 20px;
+  font-weight: normal;
 }
 
-.quick-action-btn .action-icon {
-  font-size: 36px;
-  display: block;
-}
-
-.quick-action-btn .action-label {
+.coming-soon p {
+  margin: 0;
+  color: #666;
   font-size: 14px;
-  font-weight: 600;
-  color: #2d3748;
-  display: block;
 }
 
-.quick-action-btn .action-badge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: #e74c3c;
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 12px;
-  min-width: 20px;
-  text-align: center;
-}
-
-/* Specific Quick Action Button Styles */
-.validation-btn:hover {
-  background: linear-gradient(135deg, #fef5e7 0%, #fdebd0 100%);
-  border-color: #f39c12;
-}
-
-.consults-btn:hover {
-  background: linear-gradient(135deg, #fdf2f2 0%, #fce8e8 100%);
-  border-color: #e74c3c;
-}
-
-.camps-btn:hover {
-  background: linear-gradient(135deg, #eef8f0 0%, #dcf2e0 100%);
-  border-color: #27ae60;
-}
-
-.advisories-btn:hover {
-  background: linear-gradient(135deg, #f0f4ff 0%, #e0e8ff 100%);
-  border-color: #667eea;
-}
-
-/* ============================================
-   RESPONSIVE DESIGN FOR CARD GRID
-   ============================================ */
-
-/* Tablet (Medium screens) */
-@media (max-width: 1200px) {
-  .card-grid-row {
-    grid-template-columns: 1fr;
-  }
-
-  .card-grid-row.three-col {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .quick-actions-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* Mobile (Small screens) */
-@media (max-width: 768px) {
-  .dashboard-cards-grid {
-    gap: 16px;
-  }
-
-  .card-grid-row {
-    gap: 16px;
-  }
-
-  .card-grid-row.three-col {
-    grid-template-columns: 1fr;
-  }
-
-  .quick-actions-section {
-    padding: 16px;
-  }
-
-  .quick-actions-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .quick-action-btn {
-    padding: 16px;
-  }
-
-  .quick-action-btn .action-icon {
-    font-size: 28px;
-  }
-
-  .quick-action-btn .action-label {
-    font-size: 13px;
-  }
-}
-
-/* Responsive Design */
 @media (max-width: 1024px) {
   .dashboard-container {
     grid-template-columns: 1fr;
-    gap: 20px;
   }
 
   .dashboard-sidebar {
@@ -381,42 +208,45 @@
 
 @media (max-width: 768px) {
   .doctor-dashboard {
-    padding: 12px;
+    padding: 10px;
   }
 
   .dashboard-header {
-    padding: 20px;
+    padding: 15px;
   }
 
   .dashboard-header h1 {
-    font-size: 22px;
-  }
-
-  .dashboard-subtitle {
-    font-size: 14px;
+    font-size: 20px;
   }
 
   .dashboard-navigation {
-    padding: 12px;
-    gap: 8px;
+    padding: 10px;
+    flex-direction: column;
   }
 
   .dashboard-navigation button {
     width: 100%;
     text-align: left;
-    padding: 12px 14px;
-    font-size: 14px;
+    padding: 12px 15px;
+  }
+
+  .card-grid-row {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-actions-section {
+    padding: 15px;
   }
 
   .coming-soon {
-    padding: 50px 24px;
+    padding: 40px 20px;
   }
 
   .coming-soon h2 {
-    font-size: 20px;
-  }
-
-  .coming-soon p {
-    font-size: 14px;
+    font-size: 18px;
   }
 }

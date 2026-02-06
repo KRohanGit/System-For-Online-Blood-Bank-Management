@@ -41,7 +41,7 @@ const NewFeaturesDemo = () => {
       id: 1,
       patientName: 'Emergency Case',
       source: 'hospital',
-      createdBy: { name: 'Dr. Rajesh Kumar', role: 'hospital_admin' },
+      createdBy: { name: 'Dr. K. Rohan', role: 'hospital_admin' },
       hospitalName: 'City General Hospital',
       createdAt: new Date()
     },
@@ -242,7 +242,7 @@ const NewFeaturesDemo = () => {
 
             <ReputationCard 
               activities={sampleActivities} 
-              userName="Priya Sharma"
+              userName="L. Gaveshna"
             />
 
             <div className="integration-note">

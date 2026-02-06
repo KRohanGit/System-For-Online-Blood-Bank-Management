@@ -115,7 +115,7 @@ const DUMMY_DECISIONS = [
     caseType: 'Blood Unit Validation',
     caseId: 'BU-2026-0205-001',
     patientInitials: 'R.K.',
-    justification: 'Patient hemoglobin levels are within acceptable range (13.2 g/dL). Blood typing confirmed as O+ matching donor unit. No contraindications found. Medical history reviewed - no recent surgeries or active infections.',
+    justification: 'Patient hemoglobin levels are within acceptable range. No contraindications found. Medical history reviewed ',
     timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
     doctorId: 'DR-2024-001',
     linkedRecords: ['PAT-001', 'UNIT-1234']
@@ -126,7 +126,7 @@ const DUMMY_DECISIONS = [
     caseType: 'Emergency Consult',
     caseId: 'EC-2026-0205-089',
     patientInitials: 'S.M.',
-    justification: 'Patient recently received blood transfusion 18 days ago. Medical protocol requires minimum 56-day gap between donations. Current iron levels (serum ferritin: 18 ng/mL) are below threshold for safe donation.',
+    justification: 'Patient recently received blood transfusion 18 days ago.',
     timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
     doctorId: 'DR-2024-001',
     linkedRecords: ['PAT-045', 'PREV-TRANS-2025-12']
@@ -137,7 +137,7 @@ const DUMMY_DECISIONS = [
     caseType: 'Emergency Urgency',
     caseId: 'EMG-2026-0205-012',
     patientInitials: 'A.P.',
-    justification: 'Initial assessment marked as CRITICAL. Upon detailed review, patient vitals stable (BP: 120/80, HR: 78). Alternative blood source identified at nearby facility. Downgraded to HIGH priority to optimize resource allocation for active critical cases.',
+    justification: 'Initial assessment marked as CRITICAL. Upon detailed review, patient vitals stable (BP: 120/80, HR: 78).',
     timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
     doctorId: 'DR-2024-001',
     linkedRecords: ['EMG-012', 'HOSP-ALT-789']
@@ -148,7 +148,7 @@ const DUMMY_DECISIONS = [
     caseType: 'Camp Blood Unit',
     caseId: 'CAMP-VZG-2026-234',
     patientInitials: 'D.R.',
-    justification: 'Donor screening completed successfully. Pre-donation vitals normal (BP: 118/76, temp: 98.4°F, pulse: 72 bpm). Health questionnaire shows no risk factors. Weight: 68 kg. Last donation: 14 months ago. Cleared for 450mL whole blood donation.',
+    justification: 'Donor screening completed successfully. Pre-donation vitals normal (BP: 118/76, temp: 98.4°F, pulse: 72 bpm).',
     timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
     doctorId: 'DR-2024-001',
     linkedRecords: ['DONOR-234', 'CAMP-VZG-001']
@@ -159,7 +159,7 @@ const DUMMY_DECISIONS = [
     caseType: 'Emergency Consult',
     caseId: 'EC-2026-0204-156',
     patientInitials: 'M.L.',
-    justification: 'Patient family confirmed blood unit sourced from alternative hospital network (Apollo Blood Bank). Emergency requirement fulfilled through private channel. Consult cancelled per standard protocol when external solution confirmed.',
+    justification: 'Patient family confirmed blood unit sourced from alternative hospital network (Apollo Blood Bank). ',
     timestamp: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(), // 30 hours ago
     doctorId: 'DR-2024-001',
     linkedRecords: ['PAT-156', 'ALT-HOSP-APOLLO']

@@ -73,10 +73,10 @@ export const calculateUrgencyIndex = (request) => {
 
   // Determine urgency label
   let label, color;
-  if (totalScore >= 80) {
+  if (totalScore >= 85) {
     label = 'CRITICAL';
     color = '#dc2626'; // red
-  } else if (totalScore >= 60) {
+  } else if (totalScore >= 65) {
     label = 'HIGH';
     color = '#ea580c'; // orange
   } else if (totalScore >= 40) {

@@ -11,7 +11,7 @@ function OurTeam() {
       photoPlaceholder: 'photo1.jpg'
     },
     { 
-      name: 'G. Girindra', 
+      name: 'G. Giri', 
       role: 'Full Stack Developer',
       bio: 'Specializing in backend architecture and database design.',
       photoPlaceholder: 'photo2.jpg'

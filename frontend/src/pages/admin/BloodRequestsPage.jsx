@@ -25,7 +25,7 @@ function BloodRequestsPage() {
       const mockRequests = [
         {
           id: 1,
-          patientName: 'Rajesh Kumar',
+          patientName: 'K. Rohan',
           bloodGroup: 'O+',
           units: 2,
           urgency: 'Emergency',
@@ -37,7 +37,7 @@ function BloodRequestsPage() {
         },
         {
           id: 2,
-          patientName: 'Priya Sharma',
+          patientName: 'L. Gaveshna',
           bloodGroup: 'A+',
           units: 3,
           urgency: 'Urgent',
@@ -49,7 +49,7 @@ function BloodRequestsPage() {
         },
         {
           id: 3,
-          patientName: 'Amit Patel',
+          patientName: 'S. Dinesh',
           bloodGroup: 'B+',
           units: 1,
           urgency: 'Regular',

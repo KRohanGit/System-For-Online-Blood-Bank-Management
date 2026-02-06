@@ -11,6 +11,7 @@ import ClinicalDecisionLogCard from '../../components/doctor/cards/ClinicalDecis
 import BloodUnitValidationPage from './BloodUnitValidationPage';
 import EmergencyConsultsPage from './EmergencyConsultsPage';
 import CampOversightPage from './CampOversightPage';
+import AuditTrailPage from './AuditTrailPage';
 import '../../styles/DoctorDashboard.css';
 
 const DoctorDashboard = () => {
@@ -156,13 +157,12 @@ const DoctorDashboard = () => {
 
               {/* Quick Actions Section */}
               <div className="quick-actions-section">
-                <h3>⚡ Quick Actions</h3>
+                <h3>Quick Actions</h3>
                 <div className="quick-actions-grid">
                   <button 
                     className="quick-action-btn validation-btn"
                     onClick={() => setActiveTab('validations')}
                   >
-                    <span className="action-icon">🩸</span>
                     <span className="action-label">Blood Unit Validation</span>
                     {overview?.pending?.validations > 0 && (
                       <span className="action-badge">{overview.pending.validations}</span>
@@ -173,7 +173,6 @@ const DoctorDashboard = () => {
                     className="quick-action-btn consults-btn"
                     onClick={() => setActiveTab('consults')}
                   >
-                    <span className="action-icon">🚑</span>
                     <span className="action-label">Emergency Consults</span>
                     {overview?.pending?.consults > 0 && (
                       <span className="action-badge">{overview.pending.consults}</span>
@@ -184,21 +183,9 @@ const DoctorDashboard = () => {
                     className="quick-action-btn camps-btn"
                     onClick={() => setActiveTab('camps')}
                   >
-                    <span className="action-icon">⛺</span>
                     <span className="action-label">Camp Oversight</span>
                     {overview?.pending?.camps > 0 && (
                       <span className="action-badge">{overview.pending.camps}</span>
-                    )}
-                  </button>
-                  
-                  <button 
-                    className="quick-action-btn advisories-btn"
-                    onClick={() => setActiveTab('advisories')}
-                  >
-                    <span className="action-icon">📋</span>
-                    <span className="action-label">Clinical Advisories</span>
-                    {overview?.pending?.advisories > 0 && (
-                      <span className="action-badge">{overview.pending.advisories}</span>
                     )}
                   </button>
                 </div>
@@ -212,21 +199,8 @@ const DoctorDashboard = () => {
         return <EmergencyConsultsPage />;
       case 'camps':
         return <CampOversightPage />;
-      case 'advisories':
-        return (
-          <div className="coming-soon">
-            <h2>📋 Clinical Advisories</h2>
-            <p>Clinical advisory system coming soon</p>
-          </div>
-        );
       case 'audit':
-        return (
-          <div className="coming-soon">
-            <h2>🔍 Audit Trail</h2>
-            <p>Comprehensive audit log coming soon</p>
-            <small>Note: Individual decision logs are available in the Clinical Decision Log card on the Overview tab</small>
-          </div>
-        );
+        return <AuditTrailPage />;
       default:
         return (
           <div className="overview-section">
@@ -276,8 +250,7 @@ const DoctorDashboard = () => {
 
         <div className="dashboard-main">
           <div className="dashboard-header">
-            <h1>🏥 Doctor Clinical Intelligence Dashboard</h1>
-            <p className="dashboard-subtitle">Medical Validation & Blood Safety Oversight</p>
+            <h1>Doctor Dashboard</h1>
           </div>
 
           <div className="dashboard-navigation">
@@ -285,37 +258,31 @@ const DoctorDashboard = () => {
               className={activeTab === 'overview' ? 'active' : ''}
               onClick={() => setActiveTab('overview')}
             >
-              📊 Overview
+              Overview
             </button>
             <button 
               className={activeTab === 'validations' ? 'active' : ''}
               onClick={() => setActiveTab('validations')}
             >
-              🩸 Blood Unit Validation
+              Blood Unit Validation
             </button>
             <button 
               className={activeTab === 'consults' ? 'active' : ''}
               onClick={() => setActiveTab('consults')}
             >
-              🚑 Emergency Consults
+              Emergency Consults
             </button>
             <button 
               className={activeTab === 'camps' ? 'active' : ''}
               onClick={() => setActiveTab('camps')}
             >
-              ⛺ Camp Oversight
-            </button>
-            <button 
-              className={activeTab === 'advisories' ? 'active' : ''}
-              onClick={() => setActiveTab('advisories')}
-            >
-              📋 Clinical Advisories
+              Camp Oversight
             </button>
             <button 
               className={activeTab === 'audit' ? 'active' : ''}
               onClick={() => setActiveTab('audit')}
             >
-              🔍 Audit Trail
+              Audit Trail
             </button>
           </div>
 

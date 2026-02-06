@@ -58,7 +58,7 @@ const seedCamps = async () => {
         },
         medicalSupport: {
           coordinatingHospital: hospitals[0]._id,
-          emergencyContactName: 'Dr. Rajesh Kumar',
+          emergencyContactName: 'Dr. K. Rohan',
           emergencyContactPhone: '9876543210',
           medicalSupportAvailable: true
         },
@@ -118,7 +118,7 @@ const seedCamps = async () => {
         },
         medicalSupport: {
           coordinatingHospital: hospitals[1]._id,
-          emergencyContactName: 'Dr. Priya Sharma',
+          emergencyContactName: 'Dr. L. Gaveshna',
           emergencyContactPhone: '9876543211',
           medicalSupportAvailable: true
         },
@@ -178,7 +178,7 @@ const seedCamps = async () => {
         },
         medicalSupport: {
           coordinatingHospital: hospitals[2]._id,
-          emergencyContactName: 'Dr. Arun Menon',
+          emergencyContactName: 'Dr. G. Giri',
           emergencyContactPhone: '9876543212',
           medicalSupportAvailable: true
         },
@@ -238,7 +238,7 @@ const seedCamps = async () => {
         },
         medicalSupport: {
           coordinatingHospital: hospitals[0]._id,
-          emergencyContactName: 'Dr. Suresh Reddy',
+          emergencyContactName: 'Dr. S. Dinesh',
           emergencyContactPhone: '9876543213',
           medicalSupportAvailable: true
         },
@@ -298,7 +298,7 @@ const seedCamps = async () => {
         },
         medicalSupport: {
           coordinatingHospital: hospitals[1]._id,
-          emergencyContactName: 'Dr. Meena Iyer',
+          emergencyContactName: 'Dr. L. Gaveshna',
           emergencyContactPhone: '9876543214',
           medicalSupportAvailable: true
         },
@@ -324,19 +324,19 @@ const seedCamps = async () => {
         },
         feedback: [
           {
-            userName: 'Rahul Sharma',
+            userName: 'K. Rohan',
             rating: 5,
             comment: 'Excellent organization! Very smooth process and friendly staff.',
             createdAt: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000)
           },
           {
-            userName: 'Priya Patel',
+            userName: 'L. Gaveshna',
             rating: 5,
             comment: 'Great experience. Will definitely participate again!',
             createdAt: new Date(Date.now() - 27 * 24 * 60 * 60 * 1000)
           },
           {
-            userName: 'Amit Kumar',
+            userName: 'G. Giri',
             rating: 4,
             comment: 'Good camp. Waiting time was a bit long but overall good.',
             createdAt: new Date(Date.now() - 26 * 24 * 60 * 60 * 1000)

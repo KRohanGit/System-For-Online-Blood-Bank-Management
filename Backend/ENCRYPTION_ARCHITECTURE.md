@@ -218,8 +218,8 @@ Backend/src/utils/
 ```javascript
 {
   "_id": ObjectId("..."),
-  "fullName": "Rohan Kumar",
-  "email": "rohan@example.com",
+  "fullName": "K. Rohan",
+  "email": "k.rohan@example.com",
   "password": "$2a$12$xyz...", // ← Bcrypt hashed
   
   // Identity Proof Encryption

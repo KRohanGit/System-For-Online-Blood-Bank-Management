@@ -15,7 +15,7 @@
     "mongodb",
     "express"
   ],
-  "author": "Rohan",
+  "author": "K. Rohan",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^6.0.0",

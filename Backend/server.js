@@ -18,6 +18,8 @@ const emergencyIntelligenceRoutes = require('./src/routes/emergencyIntelligenceR
 const doctorClinicalRoutes = require('./src/routes/doctorClinicalRoutes');
 const geolocationRoutes = require('./src/routes/geolocationRoutes');
 const emergencyCoordinationRoutes = require('./src/routes/emergencyCoordinationRoutes');
+const clinicalAdvisoryRoutes = require('./src/routes/clinicalAdvisory');
+const auditTrailRoutes = require('./src/routes/auditTrail');
 
 // Initialize Express app
 const app = express();
@@ -68,6 +70,8 @@ app.use('/api/emergency-intelligence', emergencyIntelligenceRoutes);
 app.use('/api/doctor-clinical', doctorClinicalRoutes);
 app.use('/api/geolocation', geolocationRoutes);
 app.use('/api/emergency-coordination', emergencyCoordinationRoutes);
+app.use('/api/clinical-advisory', clinicalAdvisoryRoutes);
+app.use('/api/audit-trail', auditTrailRoutes);
 
 // Root route
 app.get('/', (req, res) => {
