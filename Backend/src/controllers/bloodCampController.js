@@ -1,26 +1,9 @@
-/**
- * Blood Camp Controller
- * 
- * Purpose: Handle all blood camp related operations
- * 
- * Academic Context:
- * - Implements MVC pattern (Model-View-Controller)
- * - Uses async/await for asynchronous operations
- * - Implements proper error handling and validation
- * - Uses MongoDB geospatial queries for location-based features
- * - Enforces RBAC (Role-Based Access Control)
- */
-
 const BloodCamp = require('../models/BloodCamp');
 const CampBooking = require('../models/CampBooking');
 const Notification = require('../models/Notification');
 const PublicUser = require('../models/PublicUser');
 const User = require('../models/User');
 
-/**
- * Get all blood camps with optional filters
- * Access: Public (no authentication required)
- */
 exports.getAllCamps = async (req, res) => {
   try {
     const {

@@ -96,8 +96,6 @@ exports.createEmergencyRequest = async (req, res) => {
     }));
 
     await emergencyRequest.save();
-
-    // TODO: Emit socket event for real-time updates
     // io.emit('new-emergency-request', emergencyRequest);
 
     res.status(201).json({
@@ -231,8 +229,6 @@ exports.acceptEmergencyRequest = async (req, res) => {
     };
 
     await request.save();
-
-    // TODO: Emit socket event
     // io.emit('request-accepted', request);
 
     res.json({
@@ -388,8 +384,6 @@ exports.updateTransferLocation = async (req, res) => {
 
     transfer.addTrackingPoint(latitude, longitude, status, notes);
     await transfer.save();
-
-    // TODO: Emit socket event for real-time tracking
     // io.emit('transfer-location-update', transfer);
 
     res.json({

@@ -40,20 +40,12 @@ const processEncryptedUpload = async (fileBuffer, fileInfo = {}) => {
     }
 
     console.log(`🔒 Encrypting file: ${fileInfo.originalName || 'unknown'}`);
-
-    // Step 1: Generate unique AES key for this file
     const aesKey = generateAESKey();
     console.log('✅ Generated unique AES-256 key');
-
-    // Step 2: Encrypt file with AES
     const { encryptedData, iv, metadata } = encryptFile(fileBuffer, aesKey);
     console.log('✅ File encrypted with AES-256-CBC');
-
-    // Step 3: Encrypt AES key with RSA
     const encryptedAESKey = encryptAESKey(aesKey);
     console.log('✅ AES key encrypted with RSA-2048');
-
-    // Step 4: Prepare MongoDB storage package
     const encryptionPackage = {
       encryptedFileData: encryptedData.toString('base64'),
       encryptedAESKey,
@@ -95,12 +87,8 @@ const retrieveDecryptedFile = async (encryptionPackage) => {
     }
 
     console.log('🔓 Decrypting file from MongoDB...');
-
-    // Step 1: Decrypt AES key using RSA private key
     const aesKey = decryptAESKey(encryptionPackage.encryptedAESKey);
     console.log('✅ AES key decrypted with RSA private key');
-
-    // Step 2: Decrypt file using AES key
     const encryptedData = Buffer.from(encryptionPackage.encryptedFileData, 'base64');
     const iv = Buffer.from(encryptionPackage.encryptionIV, 'hex');
     const decryptedBuffer = decryptFile(encryptedData, aesKey, iv);

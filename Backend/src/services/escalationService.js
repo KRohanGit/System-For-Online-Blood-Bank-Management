@@ -98,8 +98,6 @@ async function escalateRequest(request, level) {
     });
 
     await request.save();
-
-    // TODO: Send notifications to hospitals
     await notifyHospitals(request, hospitalsToNotify, level);
 
     console.log(`Request ${request._id} escalated to level ${level}`);
@@ -134,8 +132,6 @@ async function notifyHospitals(request, hospitals, level) {
     // 4. Log to notification system
 
     console.log(`Notifying ${hospitals.length} hospitals about escalated request`);
-    
-    // TODO: Implement actual notification logic
     // - Email via nodemailer
     // - SMS via Twilio
     // - Socket.io events
@@ -161,8 +157,6 @@ async function notifyHospitals(request, hospitals, level) {
 async function notifyCityHealthAuthority(request) {
   try {
     console.log(`🚨 CRITICAL: Notifying city health authority about request ${request._id}`);
-    
-    // TODO: Implement authority notification
     // - Email to health department
     // - SMS to emergency coordinator
     // - Alert to regional blood bank network

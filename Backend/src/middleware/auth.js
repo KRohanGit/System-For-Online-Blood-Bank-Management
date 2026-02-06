@@ -6,10 +6,7 @@ const auth = async (req, res, next) => {
   try {
     const authHeader = req.header('Authorization');
     
-    console.log(`🔐 Auth middleware: ${req.method} ${req.path}`);
-    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('❌ Auth failed: No token provided');
       return res.status(401).json({ 
         success: false,
         message: 'Access denied. No token provided.' 
@@ -17,10 +14,7 @@ const auth = async (req, res, next) => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    console.log(`🔑 Token received: ${token.substring(0, 20)}...`);
-
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(`✅ Token decoded: userId=${decoded.userId}, role=${decoded.role}`);
 
     let user;
     
@@ -31,14 +25,11 @@ const auth = async (req, res, next) => {
     }
 
     if (!user) {
-      console.log(`❌ Auth failed: User ${decoded.userId} not found in database`);
       return res.status(401).json({ 
         success: false,
         message: 'Invalid token. User not found.' 
       });
     }
-
-    console.log(`✅ User authenticated: ${user.email} (${user.role})`);
 
     req.user = user;
     req.userId = decoded.userId;

@@ -1,29 +1,3 @@
-/**
- * AES UTILITY MODULE
- * 
- * PURPOSE: Document & File Encryption Layer (Layer 2)
- * 
- * WHY AES-256?
- * - Industry standard for symmetric encryption (HIPAA, GDPR compliant)
- * - Fast and efficient for encrypting large files (certificates, documents)
- * - 256-bit key length provides extremely strong security
- * - Uses CBC mode with random IV for each encryption
- * 
- * USAGE:
- * - Encrypt uploaded documents (doctor certificates, ID proofs, signatures)
- * - Encrypt sensitive medical records
- * - Each file gets a unique AES key for maximum security
- * 
- * MONGODB STORAGE:
- * - Encrypted file data stored as Buffer or Base64
- * - AES key is encrypted with RSA (see rsaUtils.js)
- * - Metadata includes: algorithm, IV, encryptedAESKey, timestamp
- * 
- * ARCHITECTURE:
- * Plaintext File → [AES-256] → Encrypted File
- * AES Key → [RSA] → Encrypted AES Key (stored in MongoDB)
- */
-
 const crypto = require('crypto');
 
 // AES Configuration
@@ -31,54 +5,31 @@ const ALGORITHM = 'aes-256-cbc';
 const IV_LENGTH = 16; // 16 bytes for AES
 const KEY_LENGTH = 32; // 32 bytes = 256 bits
 
-/**
- * Generate a random AES-256 key
- * @returns {Buffer} - A 256-bit random key
- */
 const generateAESKey = () => {
   return crypto.randomBytes(KEY_LENGTH);
 };
 
-/**
- * Generate a random initialization vector (IV)
- * @returns {Buffer} - A 16-byte random IV
- */
 const generateIV = () => {
   return crypto.randomBytes(IV_LENGTH);
 };
 
-/**
- * Encrypt a file buffer using AES-256-CBC
- * @param {Buffer} fileBuffer - The file data to encrypt
- * @param {Buffer} aesKey - Optional AES key (generates new one if not provided)
- * @returns {Object} - { encryptedData, aesKey, iv, metadata }
- * @throws {Error} - If encryption fails
- */
 const encryptFile = (fileBuffer, aesKey = null) => {
   try {
     if (!fileBuffer || !Buffer.isBuffer(fileBuffer)) {
       throw new Error('Valid file buffer is required for encryption');
     }
 
-    // Generate new AES key if not provided
     const key = aesKey || generateAESKey();
-    
-    // Generate random IV for this encryption
     const iv = generateIV();
-    
-    // Create cipher
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-    
-    // Encrypt the file
     const encryptedData = Buffer.concat([
       cipher.update(fileBuffer),
       cipher.final()
     ]);
 
-    // Return encrypted data with metadata
     return {
       encryptedData,
-      aesKey: key, // Will be encrypted with RSA before storing
+      aesKey: key,
       iv,
       metadata: {
         algorithm: ALGORITHM,
@@ -117,10 +68,7 @@ const decryptFile = (encryptedData, aesKey, iv) => {
       throw new Error('Valid IV is required for decryption');
     }
 
-    // Create decipher
     const decipher = crypto.createDecipheriv(ALGORITHM, aesKey, iv);
-    
-    // Decrypt the file
     const decryptedData = Buffer.concat([
       decipher.update(encryptedData),
       decipher.final()
@@ -133,12 +81,6 @@ const decryptFile = (encryptedData, aesKey, iv) => {
   }
 };
 
-/**
- * Encrypt text data using AES-256-CBC
- * @param {string} plainText - The text to encrypt
- * @param {Buffer} aesKey - Optional AES key
- * @returns {Object} - { encryptedText, aesKey, iv }
- */
 const encryptText = (plainText, aesKey = null) => {
   try {
     if (!plainText) {
@@ -163,12 +105,6 @@ const encryptText = (plainText, aesKey = null) => {
   }
 };
 
-/**
- * Decrypt text data using AES-256-CBC
- * @param {string} encryptedText - Format: "iv:encryptedData"
- * @param {Buffer} aesKey - The AES key
- * @returns {string} - The decrypted text
- */
 const decryptText = (encryptedText, aesKey) => {
   try {
     if (!encryptedText || !encryptedText.includes(':')) {
@@ -190,10 +126,7 @@ const decryptText = (encryptedText, aesKey) => {
   }
 };
 
-/**
- * Legacy function for backward compatibility
- * Encrypts file with embedded IV (old format)
- */
+// Legacy function for backward compatibility
 const encryptFileLegacy = (buffer) => {
   try {
     const secret = process.env.ENCRYPTION_SECRET || 'your-32-character-secret-key!!';

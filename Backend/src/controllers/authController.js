@@ -6,9 +6,6 @@ const { isValidEmail, validatePassword, isValidRole } = require('../utils/valida
 const { processEncryptedUpload } = require('../utils/fileEncryptionService');
 const fs = require('fs').promises;
 
-/**
- * Register a new doctor
- */
 const registerDoctor = async (req, res) => {
   try {
     const { email, password, name, hospitalName } = req.body;
@@ -122,9 +119,7 @@ const registerDoctor = async (req, res) => {
   }
 };
 
-/**
- * Register a new hospital/admin
- */
+
 const registerHospital = async (req, res) => {
   try {
     const { 
