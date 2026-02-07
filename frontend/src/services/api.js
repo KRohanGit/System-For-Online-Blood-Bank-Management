@@ -90,13 +90,13 @@ export const authAPI = {
   },
 
   // Login
-  login: async (email, password) => {
+  login: async (email, password, role) => {
     return apiRequest('/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, role }),
     });
   },
 

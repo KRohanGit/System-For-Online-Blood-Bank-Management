@@ -210,6 +210,30 @@ function AdminDashboard() {
                           { hospital: 'Apollo', units: 1 }
                         ]
                       }}
+                      showViewDetails={true}
+                    />
+                  </div>
+
+                  {/* Second urgency request - AB- with lower score */}
+                  <div className="activity-item-modern" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '12px' }}>
+                    <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
+                      <div className="activity-content-modern">
+                        <p className="activity-title">Surgical Blood Requirement</p>
+                        <p className="activity-description">Apollo Hospital • Patient: Scheduled Surgery</p>
+                      </div>
+                      <span className="activity-time">45 min ago</span>
+                    </div>
+                    <UrgencyIndexCard 
+                      request={{
+                        bloodGroup: 'AB-',
+                        unitsRequired: 3,
+                        expiryHours: 72,
+                        nearbyStock: [
+                          { hospital: 'Central Bank', units: 4 },
+                          { hospital: 'City Hospital', units: 2 }
+                        ]
+                      }}
+                      showViewDetails={true}
                     />
                   </div>
                   
@@ -219,7 +243,7 @@ function AdminDashboard() {
                     </div>
                     <div className="activity-content-modern">
                       <p className="activity-title">Donor Response - AB+</p>
-                      <p className="activity-description">John Doe accepted donation</p>
+                      <p className="activity-description">Rohan accepted donation</p>
                     </div>
                     <div className="activity-meta">
                       <span className="activity-time">25 min ago</span>
@@ -366,6 +390,20 @@ function AdminDashboard() {
               <div className="action-content">
                 <h4 className="action-title">Donors</h4>
                 <p className="action-description">{stats.activeDonors} active donors</p>
+              </div>
+              <div className="action-arrow">→</div>
+            </button>
+
+            <button 
+              className="quick-action-card"
+              onClick={() => navigate('/admin/donor-management')}
+            >
+              <div className="action-icon-wrapper">
+                <span className="action-icon">�</span>
+              </div>
+              <div className="action-content">
+                <h4 className="action-title">Emergency Alerts</h4>
+                <p className="action-description">Send alerts to past donors</p>
               </div>
               <div className="action-arrow">→</div>
             </button>

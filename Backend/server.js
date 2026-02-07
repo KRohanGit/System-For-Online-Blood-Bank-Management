@@ -20,6 +20,10 @@ const geolocationRoutes = require('./src/routes/geolocationRoutes');
 const emergencyCoordinationRoutes = require('./src/routes/emergencyCoordinationRoutes');
 const clinicalAdvisoryRoutes = require('./src/routes/clinicalAdvisory');
 const auditTrailRoutes = require('./src/routes/auditTrail');
+const donationRoutes = require('./src/routes/donation.routes');
+const donorAuthRoutes = require('./src/routes/donorAuth.routes');
+const donorDashboardRoutes = require('./src/routes/donor.routes');
+const emergencyRoutes = require('./src/routes/emergency.routes');
 
 // Initialize Express app
 const app = express();
@@ -72,6 +76,10 @@ app.use('/api/geolocation', geolocationRoutes);
 app.use('/api/emergency-coordination', emergencyCoordinationRoutes);
 app.use('/api/clinical-advisory', clinicalAdvisoryRoutes);
 app.use('/api/audit-trail', auditTrailRoutes);
+app.use('/api/donations', donationRoutes);
+app.use('/api/donor-auth', donorAuthRoutes);
+app.use('/api/donor-dashboard', donorDashboardRoutes);
+app.use('/api/emergency', emergencyRoutes);
 
 // Root route
 app.get('/', (req, res) => {

@@ -13,7 +13,7 @@ function AuditLogs() {
       id: 1,
       action: 'Doctor Approved',
       performedBy: 'Admin User',
-      details: 'Approved Dr. Sarah Johnson registration',
+      details: 'Approved Dr. Gaveshna registration',
       timestamp: '2026-01-02 14:30:15',
       type: 'approval',
       ipAddress: '192.168.1.100'
@@ -40,7 +40,7 @@ function AuditLogs() {
       id: 4,
       action: 'Donor Registered',
       performedBy: 'Front Desk',
-      details: 'New donor registration: John Doe (AB+)',
+      details: 'New donor registration: Dinesh S (AB+)',
       timestamp: '2026-01-02 11:20:18',
       type: 'registration',
       ipAddress: '192.168.1.102'
@@ -58,7 +58,7 @@ function AuditLogs() {
       id: 6,
       action: 'Doctor Rejected',
       performedBy: 'Admin User',
-      details: 'Rejected Dr. James Wilson - Invalid license',
+      details: 'Rejected Dr. Gaveshna - Invalid license',
       timestamp: '2026-01-02 09:30:12',
       type: 'rejection',
       ipAddress: '192.168.1.100'
@@ -67,7 +67,7 @@ function AuditLogs() {
       id: 7,
       action: 'Inter-Hospital Request',
       performedBy: 'Emergency Dept',
-      details: 'Requested O- blood from St. Mary Medical Center',
+      details: 'Requested O- blood from Gitam Medical Center',
       timestamp: '2026-01-02 08:45:55',
       type: 'emergency',
       ipAddress: '192.168.1.110'
@@ -76,7 +76,7 @@ function AuditLogs() {
       id: 8,
       action: 'Donor Deactivated',
       performedBy: 'Admin User',
-      details: 'Deactivated donor: Michael Chen (medical reasons)',
+      details: 'Deactivated donor: Dinesh S (medical reasons)',
       timestamp: '2026-01-01 16:20:30',
       type: 'status-change',
       ipAddress: '192.168.1.100'

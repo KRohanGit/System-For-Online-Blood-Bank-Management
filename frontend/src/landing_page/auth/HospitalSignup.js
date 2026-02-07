@@ -293,7 +293,7 @@ function HospitalSignup() {
                   value={formData.adminName}
                   onChange={handleChange}
                   className={errors.adminName ? 'error' : ''}
-                  placeholder="John Smith"
+                  placeholder="Giri G"
                 />
                 {errors.adminName && <span className="error-message">{errors.adminName}</span>}
               </div>

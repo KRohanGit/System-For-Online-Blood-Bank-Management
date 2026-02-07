@@ -14,6 +14,7 @@ import BloodInventoryPage from './pages/admin/BloodInventoryPage';
 import BloodRequestsPage from './pages/admin/BloodRequestsPage';
 import EmergencyInterCloud from './pages/admin/EmergencyInterCloud';
 import DonorManagement from './pages/admin/DonorManagement';
+import UrgencyDetails from './pages/admin/UrgencyDetails';
 import AuditLogs from './pages/admin/AuditLogs';
 import Settings from './pages/admin/Settings';
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
@@ -44,6 +45,13 @@ import ScenarioDetails from './pages/emergency/ScenarioDetails';
 
 // Geolocation Intelligence
 import GeoIntelligence from './pages/public/GeoIntelligence';
+import DonorLogin from './pages/donor/DonorLogin';
+import ChangePassword from './pages/donor/ChangePassword';
+import DonorDashboardPage from './pages/donor/DonorDashboard';
+import DonationHistory from './pages/donor/DonationHistory';
+import Certificates from './pages/donor/Certificates';
+import EmergencyMessages from './pages/donor/EmergencyMessages';
+import DonorManagementCard from './components/DonorManagementCard';
 
 import './App.css';
 
@@ -69,12 +77,22 @@ function App() {
           <Route path="/admin/blood-requests" element={<BloodRequestsPage />} />
           <Route path="/admin/emergency" element={<EmergencyInterCloud />} />
           <Route path="/admin/donors" element={<DonorManagement />} />
+          <Route path="/admin/donor-management" element={<DonorManagementCard />} />
+          <Route path="/admin/urgency-details" element={<UrgencyDetails />} />
           <Route path="/admin/logs" element={<AuditLogs />} />
           <Route path="/admin/settings" element={<Settings />} />
           
           {/* Doctor Routes */}
           <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
           <Route path="/doctor/pending-approval" element={<VerificationPending />} />
+          
+          {/* Donor Routes */}
+          <Route path="/donor/login" element={<DonorLogin />} />
+          <Route path="/donor/change-password" element={<ChangePassword />} />
+          <Route path="/donor/dashboard" element={<DonorDashboardPage />} />
+          <Route path="/donor/history" element={<DonationHistory />} />
+          <Route path="/donor/certificates" element={<Certificates />} />
+          <Route path="/donor/messages" element={<EmergencyMessages />} />
           
           {/* Public User Routes */}
           <Route path="/public/register" element={<PublicUserRegister />} />

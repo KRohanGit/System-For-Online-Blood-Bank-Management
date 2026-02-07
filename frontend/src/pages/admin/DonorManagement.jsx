@@ -22,63 +22,55 @@ function DonorManagement() {
   const donors = [
     {
       id: 'D001',
-      name: 'John Smith',
-      email: 'john.smith@email.com',
-      phone: '+1 234-567-8901',
+      name: 'Rohan',
+      email: 'rohan.k@email.com',
+      phone: '+91 98765-43210',
       bloodGroup: 'O+',
       lastDonation: '2025-11-15',
       totalDonations: 8,
       status: 'active',
       eligibleDate: '2026-02-15',
-      address: '123 Main St, City'
+      address: '123 MG Road, Bangalore',
+      hasCredentials: false
     },
     {
       id: 'D002',
-      name: 'Emma Johnson',
-      email: 'emma.j@email.com',
-      phone: '+1 234-567-8902',
+      name: 'Dinesh',
+      email: 'dinesh.k@email.com',
+      phone: '+91 98765-43211',
       bloodGroup: 'A+',
       lastDonation: '2025-10-20',
       totalDonations: 12,
       status: 'active',
       eligibleDate: '2026-01-20',
-      address: '456 Oak Ave, City'
+      address: '456 Hitech City, Hyderabad',
+      hasCredentials: true
     },
     {
       id: 'D003',
-      name: 'Michael Chen',
-      email: 'm.chen@email.com',
-      phone: '+1 234-567-8903',
+      name: 'Gaveshna',
+      email: 'gaveshna.l@email.com',
+      phone: '+91 98765-43212',
       bloodGroup: 'B+',
       lastDonation: '2024-06-10',
       totalDonations: 5,
       status: 'inactive',
       eligibleDate: 'Eligible Now',
-      address: '789 Pine Rd, City'
+      address: '789 Anna Nagar, Chennai',
+      hasCredentials: false
     },
     {
       id: 'D004',
-      name: 'Sarah Williams',
-      email: 'sarah.w@email.com',
-      phone: '+1 234-567-8904',
+      name: 'Giri G',
+      email: 'giri.g@email.com',
+      phone: '+91 98765-43213',
       bloodGroup: 'AB+',
       lastDonation: '2025-12-01',
       totalDonations: 15,
       status: 'active',
       eligibleDate: '2026-03-01',
-      address: '321 Elm St, City'
-    },
-    {
-      id: 'D005',
-      name: 'David Brown',
-      email: 'd.brown@email.com',
-      phone: '+1 234-567-8905',
-      bloodGroup: 'O-',
-      lastDonation: '2025-12-20',
-      totalDonations: 20,
-      status: 'active',
-      eligibleDate: '2026-03-20',
-      address: '555 Maple Dr, City'
+      address: '321 Jubilee Hills, Hyderabad',
+      hasCredentials: true
     }
   ];
 
@@ -96,6 +88,11 @@ function DonorManagement() {
   const viewDonorDetails = (donor) => {
     setSelectedDonor(donor);
     setShowDetailModal(true);
+  };
+
+  const sendCredentials = (donor) => {
+    const tempPassword = Math.random().toString(36).slice(-8);
+    alert(`✅ Credentials sent to ${donor.name}\n\nEmail: ${donor.email}\nTemporary Password: ${tempPassword}\n\nDonor will be prompted to change password on first login.`);
   };
 
   const toggleDonorStatus = (donor) => {
@@ -277,6 +274,10 @@ function DonorManagement() {
                     <span className="detail-label">Phone:</span>
                     <span className="detail-value">{selectedDonor.phone}</span>
                   </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Credentials:</span>
+                    <span className="detail-value">{selectedDonor.hasCredentials ? '✅ Issued' : '❌ Not Issued'}</span>
+                  </div>
                   <div className="detail-item full-width">
                     <span className="detail-label">Address:</span>
                     <span className="detail-value">{selectedDonor.address}</span>
@@ -306,6 +307,17 @@ function DonorManagement() {
                 <button className="btn-secondary" onClick={() => setShowDetailModal(false)}>
                   Close
                 </button>
+                {!selectedDonor.hasCredentials && (
+                  <button 
+                    className="btn-primary"
+                    onClick={() => {
+                      sendCredentials(selectedDonor);
+                      setShowDetailModal(false);
+                    }}
+                  >
+                    Send Credentials
+                  </button>
+                )}
                 <button className="btn-primary">
                   View Full History
                 </button>

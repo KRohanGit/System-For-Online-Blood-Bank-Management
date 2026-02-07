@@ -74,7 +74,7 @@ function SignIn() {
       setSuccessMessage('');
       
       try {
-        const response = await authAPI.login(formData.email, formData.password);
+        const response = await authAPI.login(formData.email, formData.password, formData.role);
         
         // Save token
         if (response.data && response.data.token) {

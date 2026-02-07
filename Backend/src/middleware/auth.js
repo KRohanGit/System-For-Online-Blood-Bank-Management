@@ -18,7 +18,7 @@ const auth = async (req, res, next) => {
 
     let user;
     
-    if (decoded.role === 'PUBLIC_USER') {
+    if (decoded.role === 'PUBLIC_USER' || decoded.role === 'donor') {
       user = await PublicUser.findById(decoded.userId).select('-password');
     } else {
       user = await User.findById(decoded.userId).select('-password');

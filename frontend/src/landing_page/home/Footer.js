@@ -1,12 +1,14 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import ChatModal from '../../components/common/chat/ChatModal';
 import './Footer.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
 function Footer() {
   const sectionRef = useRef(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -40,12 +42,12 @@ function Footer() {
             <div className="contact-card">
               <div className="contact-icon">📞</div>
               <h4>Call Us</h4>
-              <a href="tel:+1234567890">+1 (234) 567-890</a>
+              <a href="tel:+1234567890">+91 1234567890</a>
             </div>
             <div className="contact-card">
               <div className="contact-icon">💬</div>
               <h4>Live Chat</h4>
-              <button className="chat-btn">Start Chat</button>
+              <button className="chat-btn" onClick={() => setIsChatOpen(true)}>Start Chat</button>
             </div>
           </div>
         </div>
@@ -57,7 +59,7 @@ function Footer() {
               <span>LifeLink Blood Bank</span>
             </div>
             <p className="footer-tagline">
-              Connecting lives through compassionate blood donation
+              We are Making a project that can save lives by connecting blood donors.
             </p>
           </div>
 
@@ -84,9 +86,10 @@ function Footer() {
         </div>
 
         <div className="copyright">
-          <p>&copy; 2025 LifeLink Blood Bank. All rights reserved.</p>
+          <p>&copy; 2025 Team Project(Life Link)</p>
         </div>
       </div>
+      <ChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </footer>
   );
 }

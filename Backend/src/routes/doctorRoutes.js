@@ -225,7 +225,7 @@ router.get('/adverse-reactions', auth, checkRole('doctor'), async (req, res) => 
     const sampleReactions = [
       {
         _id: '1',
-        donorName: 'Mike Johnson',
+        donorName: 'Rohan K',
         donationId: 'DON-001',
         reactionType: 'mild',
         symptoms: 'Dizziness',
@@ -324,7 +324,7 @@ router.get('/medical-notes', auth, checkRole('doctor'), async (req, res) => {
       {
         _id: '1',
         patientId: 'PAT-001',
-        patientName: 'John Doe',
+        patientName: 'Rohan K',
         noteType: 'screening',
         content: 'Patient cleared for donation. All vitals normal.',
         createdAt: new Date(),
@@ -333,7 +333,7 @@ router.get('/medical-notes', auth, checkRole('doctor'), async (req, res) => {
       {
         _id: '2',
         patientId: 'PAT-002',
-        patientName: 'Jane Smith',
+        patientName: 'Dinesh S',
         noteType: 'follow-up',
         content: 'Follow-up required after mild reaction.',
         createdAt: new Date(),
