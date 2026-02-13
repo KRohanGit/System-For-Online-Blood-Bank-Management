@@ -112,7 +112,7 @@ const createCertificate = async (req, res) => {
     const { userId, donorName, bloodGroup, donationDate, units, remarks } = req.body;
     const hospitalId = req.userId;
 
-    if (req.userRole !== 'HOSPITAL_ADMIN') {
+    if (String(req.userRole || '').toLowerCase() !== 'hospital_admin') {
       return res.status(403).json({
         success: false,
         message: 'Only hospitals can issue certificates'

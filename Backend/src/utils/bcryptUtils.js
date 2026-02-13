@@ -13,7 +13,7 @@ const hashPassword = async (plainPassword) => {
     
     return hashedPassword;
   } catch (error) {
-    console.error('❌ Bcrypt Hashing Error:', error.message);
+    console.error(' Bcrypt Hashing Error:', error.message);
     throw new Error('Failed to hash password');
   }
 };
@@ -28,7 +28,7 @@ const comparePassword = async (plainPassword, hashedPassword) => {
     
     return isMatch;
   } catch (error) {
-    console.error('❌ Bcrypt Comparison Error:', error.message);
+    console.error(' Bcrypt Comparison Error:', error.message);
     throw new Error('Failed to compare passwords');
   }
 };

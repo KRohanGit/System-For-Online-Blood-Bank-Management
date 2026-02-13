@@ -90,9 +90,6 @@ const ResponseModal = ({ event, onClose, onConfirm }) => {
         ) : (
           <div className={`eligibility-result ${eligibility?.eligible ? 'eligible' : 'not-eligible'}`}>
             <div className="eligibility-header">
-              <span className="eligibility-icon">
-                {eligibility?.eligible ? '✅' : '⚠️'}
-              </span>
               <h4>
                 {eligibility?.eligible 
                   ? 'You are eligible to donate!' 

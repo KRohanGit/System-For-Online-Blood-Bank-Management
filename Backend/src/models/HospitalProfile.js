@@ -77,12 +77,28 @@ const hospitalProfileSchema = new mongoose.Schema({
     ref: 'User',
     default: null
   },
-  // Location & Contact Information
   location: {
-    latitude: { type: Number, default: null },
-    longitude: { type: Number, default: null }
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: 'Point'
+    },
+    coordinates: {
+      type: [Number],
+      default: [0, 0]
+    }
   },
   address: {
+    type: String,
+    default: null,
+    trim: true
+  },
+  city: {
+    type: String,
+    default: null,
+    trim: true
+  },
+  state: {
     type: String,
     default: null,
     trim: true
@@ -91,12 +107,16 @@ const hospitalProfileSchema = new mongoose.Schema({
     type: String,
     default: null,
     trim: true
+  },
+  emergencySupport: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true
 });
 
-// Indexes for faster queries (userId and licenseNumber already have unique indexes)
 hospitalProfileSchema.index({ verificationStatus: 1 });
+hospitalProfileSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('HospitalProfile', hospitalProfileSchema);

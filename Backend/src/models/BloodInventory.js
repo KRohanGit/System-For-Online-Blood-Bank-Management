@@ -107,14 +107,21 @@ bloodInventorySchema.pre('save', function(next) {
 bloodInventorySchema.methods.reserve = function(reservedFor, reservedBy, priority) {
   this.status = 'Reserved';
   this.reservationInfo = { reservedFor, reservedBy, reservedAt: new Date(), priority };
-  this.lifecycle.push({ stage: 'Reserved', performedBy: reservedBy, notes: `Reserved for ${reservedFor}` });
+  // performedBy can be an ObjectId; reserve may also accept a display name in arguments
+  const performedByName = arguments[3] || null;
+  const lifecycleEntry = { stage: 'Reserved', performedBy: reservedBy, notes: `Reserved for ${reservedFor}` };
+  if (performedByName) lifecycleEntry.performedByName = performedByName;
+  this.lifecycle.push(lifecycleEntry);
   return this.save();
 };
 
 bloodInventorySchema.methods.issue = function(issuedTo, issuedBy, purpose) {
   this.status = 'Issued';
   this.issuanceInfo = { issuedTo, issuedBy, issuedAt: new Date(), purpose };
-  this.lifecycle.push({ stage: 'Issued', performedBy: issuedBy, notes: `Issued to ${issuedTo}` });
+  const performedByName = arguments[3] || null;
+  const lifecycleEntry = { stage: 'Issued', performedBy: issuedBy, notes: `Issued to ${issuedTo}` };
+  if (performedByName) lifecycleEntry.performedByName = performedByName;
+  this.lifecycle.push(lifecycleEntry);
   return this.save();
 };
 

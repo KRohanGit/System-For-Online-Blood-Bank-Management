@@ -23,13 +23,13 @@ async function verifyPasswords() {
     
     const users = await usersCollection.find({}).toArray();
 
-    console.log(`📊 Total users: ${users.length}\n`);
+    console.log(` Total users: ${users.length}\n`);
 
     users.forEach((user, index) => {
       console.log(`${index + 1}. ${user.email} (${user.role})`);
       console.log(`   ├─ isVerified: ${user.isVerified}`);
       if (user.password) {
-        console.log(`   ├─ Password stored: ✅ YES`);
+        console.log(`   ├─ Password stored:  YES`);
         console.log(`   ├─ Password hash: ${user.password.substring(0, 30)}...`);
         console.log(`   ├─ Hash length: ${user.password.length} characters`);
         console.log(`   └─ Algorithm: bcrypt (starts with $2a$ or $2b$)`);
@@ -54,10 +54,10 @@ async function verifyPasswords() {
     console.log('═══════════════════════════════════════════════════════════\n');
 
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error(' Error:', error);
   } finally {
     await mongoose.connection.close();
-    console.log('🔒 Connection closed\n');
+    console.log('Connection closed\n');
   }
 }
 

@@ -1,0 +1,171 @@
+.storage-capacity-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.storage-capacity-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.storage-capacity-modal .modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.storage-capacity-modal .close-btn {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.storage-capacity-modal .close-btn:hover {
+  color: #1f2937;
+}
+
+.storage-capacity-modal .modal-body {
+  padding: 24px;
+}
+
+.storage-capacity-modal .status-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 24px;
+}
+
+.storage-capacity-modal .status-badge.safe {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.storage-capacity-modal .status-badge.overflow-risk {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.storage-capacity-modal .capacity-grid {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.storage-capacity-modal .capacity-item {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+}
+
+.storage-capacity-modal .capacity-item.excess {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+.storage-capacity-modal .capacity-label {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.storage-capacity-modal .capacity-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.storage-capacity-modal .capacity-value.available {
+  color: #059669;
+}
+
+.storage-capacity-modal .capacity-value.danger {
+  color: #dc2626;
+}
+
+.storage-capacity-modal .overflow-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.storage-capacity-modal .overflow-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.storage-capacity-modal .storage-center-card {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.storage-capacity-modal .center-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0c4a6e;
+  margin-bottom: 12px;
+}
+
+.storage-capacity-modal .center-details {
+  display: grid;
+  gap: 8px;
+}
+
+.storage-capacity-modal .detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.storage-capacity-modal .detail-label {
+  font-size: 14px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.storage-capacity-modal .detail-value {
+  font-size: 14px;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.storage-capacity-modal .loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.storage-capacity-modal .error-message {
+  padding: 16px;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 8px;
+  text-align: center;
+}

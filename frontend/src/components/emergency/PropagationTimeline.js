@@ -58,12 +58,10 @@ const TimelinePhase = ({ label, timeframe, affectedCount, shortageRisk, summary 
         </div>
         <div className="phase-stats">
           <div className="stat">
-            <span className="stat-icon">🏥</span>
             <span className="stat-value">{affectedCount}</span>
             <span className="stat-label">Hospitals</span>
           </div>
           <div className="stat">
-            <span className="stat-icon">⚠️</span>
             <span className={`stat-value risk-${getRiskClass(shortageRisk)}`}>
               {shortageRisk}
             </span>

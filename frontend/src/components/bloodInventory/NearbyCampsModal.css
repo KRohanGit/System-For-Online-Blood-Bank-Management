@@ -1,0 +1,236 @@
+.nearby-camps-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.nearby-camps-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.nearby-camps-modal .modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.nearby-camps-modal .close-btn {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.nearby-camps-modal .close-btn:hover {
+  color: #1f2937;
+}
+
+.nearby-camps-modal .modal-body {
+  padding: 24px;
+}
+
+.nearby-camps-modal .loading-spinner,
+.nearby-camps-modal .error-message,
+.nearby-camps-modal .no-camps {
+  padding: 40px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.nearby-camps-modal .error-message {
+  color: #dc2626;
+  background: #fee2e2;
+  border-radius: 8px;
+}
+
+.nearby-camps-modal .no-camps p {
+  margin: 8px 0;
+}
+
+.nearby-camps-modal .camps-list {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 24px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.nearby-camps-modal .camp-card {
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nearby-camps-modal .camp-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.nearby-camps-modal .camp-card.selected {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.nearby-camps-modal .camp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.nearby-camps-modal .camp-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  flex: 1;
+}
+
+.nearby-camps-modal .distance-badge {
+  background: #3b82f6;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-left: 12px;
+}
+
+.nearby-camps-modal .camp-details {
+  margin-bottom: 12px;
+}
+
+.nearby-camps-modal .camp-details p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.nearby-camps-modal .venue {
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.nearby-camps-modal .blood-inventory {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.nearby-camps-modal .inventory-item {
+  background: #f3f4f6;
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nearby-camps-modal .blood-group {
+  font-weight: 600;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.nearby-camps-modal .units {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.nearby-camps-modal .request-section {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 20px;
+  border-top: 2px solid #e5e7eb;
+}
+
+.nearby-camps-modal .request-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.nearby-camps-modal .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.nearby-camps-modal .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nearby-camps-modal .form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.nearby-camps-modal .form-group input,
+.nearby-camps-modal .form-group select,
+.nearby-camps-modal .form-group textarea {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.nearby-camps-modal .form-group input:focus,
+.nearby-camps-modal .form-group select:focus,
+.nearby-camps-modal .form-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.nearby-camps-modal .form-group textarea {
+  resize: vertical;
+}
+
+.nearby-camps-modal .submit-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+}
+
+.nearby-camps-modal .submit-btn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.nearby-camps-modal .submit-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}

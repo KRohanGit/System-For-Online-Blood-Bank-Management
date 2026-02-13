@@ -43,7 +43,7 @@ async function checkAndEscalateRequests() {
       } else if (minutesElapsed >= ESCALATION_CONFIG.LEVEL_2 && request.escalationLevel < 2) {
         shouldEscalate = true;
         newLevel = 2;
-      } else if (minutesElapsed >= ESCALATION_CONFIG.LEVEL_1 && request.escalationLevel < 1) {
+      } else if (minutesElapsed >= ESCALATION_CONFIG.LEVEL_1 && request.escalationLevel < 1) {take 
         shouldEscalate = true;
         newLevel = 1;
       }

@@ -22,8 +22,9 @@ function BloodCampsPage() {
   
   // Check if user is logged in
   const isLoggedIn = !!localStorage.getItem('token');
-  const userRole = localStorage.getItem('role');
-  const isPublicUser = userRole === 'PUBLIC_USER';
+  const userRole = (localStorage.getItem('role') || '').toLowerCase();
+  const canOrganizeCamp = userRole === 'public_user' || userRole === 'hospital_admin';
+  const canBookCamp = userRole === 'public_user';
 
   // Fetch all camps on component mount
   useEffect(() => {
@@ -103,13 +104,13 @@ function BloodCampsPage() {
     if (!isLoggedIn) {
       // Redirect to login with return URL
       localStorage.setItem('returnUrl', '/blood-camps/organize');
-      alert('Please login as a Public User to organize a blood camp');
+      alert('Please login to organize a blood camp');
       navigate('/signin/public-user');
       return;
     }
 
-    if (!isPublicUser) {
-      alert('Only verified Public Users can organize blood camps');
+    if (!canOrganizeCamp) {
+      alert('Only verified Public Users or Hospital Admins can organize blood camps');
       return;
     }
 
@@ -129,7 +130,7 @@ function BloodCampsPage() {
       return;
     }
 
-    if (!isPublicUser) {
+    if (!canBookCamp) {
       alert('Only Public Users can book blood camps');
       return;
     }
@@ -178,7 +179,7 @@ function BloodCampsPage() {
             📍 {viewMode === 'nearby' ? 'Show All Camps' : 'Find Nearby Camps'}
           </button>
 
-          {isPublicUser && (
+          {canBookCamp && (
             <button 
               className="btn-outline"
               onClick={() => navigate('/my-bookings')}

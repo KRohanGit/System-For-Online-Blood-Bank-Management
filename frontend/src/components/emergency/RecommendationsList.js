@@ -14,7 +14,7 @@ const RecommendationsList = ({ recommendations, onApprove, onReject, canModify =
     <div className="recommendations-list">
       <h3>Preemptive Action Recommendations</h3>
       <p className="recommendations-note">
-        ⚠️ These are advisory recommendations only. Admin approval required before execution.
+        These are advisory recommendations only. Admin approval required before execution.
       </p>
 
       <div className="recommendations-grid">

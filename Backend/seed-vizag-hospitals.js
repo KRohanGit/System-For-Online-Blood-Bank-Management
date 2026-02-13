@@ -180,12 +180,12 @@ async function seedVizagHospitals() {
     }
 
     console.log('\n' + '='.repeat(60));
-    console.log('✅ All Vizag hospitals seeded successfully!');
+    console.log(' All Vizag hospitals seeded successfully!');
     console.log('='.repeat(60));
-    console.log('\n📋 Hospital Login Credentials:');
+    console.log('\n Hospital Login Credentials:');
     console.log('─'.repeat(60));
     vizagHospitals.forEach(h => {
-      console.log(`🏥 ${h.hospitalName}`);
+      console.log(` ${h.hospitalName}`);
       console.log(`   Email: ${h.email}`);
       console.log(`   Password: ${h.password}`);
       console.log('');
@@ -193,11 +193,11 @@ async function seedVizagHospitals() {
     console.log('─'.repeat(60));
 
   } catch (error) {
-    console.error('❌ Seeding failed:', error);
+    console.error(' Error: Seeding failed:', error);
     process.exit(1);
   } finally {
     await mongoose.connection.close();
-    console.log('🔌 Database connection closed');
+    console.log(' Database connection closed');
     process.exit(0);
   }
 }

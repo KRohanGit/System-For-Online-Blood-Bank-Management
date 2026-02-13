@@ -5,13 +5,14 @@ import Loader from '../../components/common/Loader';
 import UrgencyIndexCard from '../../components/common/UrgencyIndexCard';
 import GeoTimeHeatmap from '../../components/common/GeoTimeHeatmap';
 import WasteRiskIndicator from '../../components/bloodInventory/WasteRiskIndicator';
-import { doctorAPI } from '../../services/api';
+import { doctorAPI, authAPI } from '../../services/api';
 import '../../styles/admin.css';
 
 function AdminDashboard() {
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState('Admin');
   const [stats, setStats] = useState({
     totalBloodUnits: 450,
     lowStockAlerts: 3,
@@ -22,6 +23,18 @@ function AdminDashboard() {
   });
   const [pendingDoctors, setPendingDoctors] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Blood inventory quick reference data
+  const [bloodInventory, setBloodInventory] = useState([
+    { bloodGroup: 'A+', available: 45, reserved: 8, status: 'good' },
+    { bloodGroup: 'A-', available: 12, reserved: 3, status: 'low' },
+    { bloodGroup: 'B+', available: 38, reserved: 5, status: 'good' },
+    { bloodGroup: 'B-', available: 7, reserved: 2, status: 'critical' },
+    { bloodGroup: 'AB+', available: 15, reserved: 4, status: 'low' },
+    { bloodGroup: 'AB-', available: 5, reserved: 1, status: 'critical' },
+    { bloodGroup: 'O+', available: 62, reserved: 12, status: 'good' },
+    { bloodGroup: 'O-', available: 9, reserved: 3, status: 'low' }
+  ]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -37,6 +50,16 @@ function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      // Get current user profile to show admin name
+      try {
+        const profileResp = await authAPI.getProfile();
+        const profile = profileResp.data?.profile;
+        const email = profileResp.data?.email;
+        const displayName = profile?.adminName || profile?.fullName || email || 'Admin';
+        setUserName(displayName);
+      } catch (err) {
+        console.warn('Failed to fetch profile for dashboard header', err.message || err);
+      }
       
       // Fetch pending doctors
       const response = await doctorAPI.getPendingDoctors();
@@ -85,7 +108,7 @@ function AdminDashboard() {
           <div className="header-content">
             <div className="header-text">
               <h1 className="dashboard-title">
-                Welcome Back, Admin 👋
+                Welcome Back, {userName} 👋
               </h1>
               <p className="dashboard-subtitle">
                 {formatDate(currentTime)} • {formatTime(currentTime)}
@@ -160,7 +183,7 @@ function AdminDashboard() {
           <div className="dashboard-card inventory-card">
             <div className="card-header-modern">
               <div className="card-title-group">
-                <h3 className="card-title">Blood Inventory</h3>
+                <h3 className="card-title">Blood Inventory Quick View</h3>
               </div>
               <button 
                 className="btn-link-modern" 
@@ -170,7 +193,28 @@ function AdminDashboard() {
               </button>
             </div>
             <div className="card-body-modern">
-              <BloodStockChart />
+              <div className="blood-inventory-quick-grid">
+                {bloodInventory.map((stock) => (
+                  <div key={stock.bloodGroup} className={`blood-stock-mini-card status-${stock.status}`}>
+                    <div className="blood-group-badge">{stock.bloodGroup}</div>
+                    <div className="stock-info">
+                      <div className="stock-main">
+                        <span className="stock-available">{stock.available}</span>
+                        <span className="stock-label">units</span>
+                      </div>
+                      <div className="stock-reserved">
+                        <span className="reserved-count">{stock.reserved} reserved</span>
+                      </div>
+                    </div>
+                    <div className={`status-indicator status-${stock.status}`}>
+                      {stock.status === 'critical' && '🔴'}
+                      {stock.status === 'low' && '🟡'}
+                      {stock.status === 'good' && '🟢'}
+                      <span className="status-text">{stock.status}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -417,7 +461,7 @@ function AdminDashboard() {
               </div>
               <div className="action-content">
                 <h4 className="action-title">Crisis Propagation</h4>
-                <p className="action-description">AI-powered emergency intelligence</p>
+                <p className="action-description"> emergency intelligence</p>
               </div>
               <div className="action-arrow">→</div>
             </button>

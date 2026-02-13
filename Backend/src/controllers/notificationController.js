@@ -282,7 +282,7 @@ exports.deleteAllRead = async (req, res) => {
 exports.createTestNotification = async (req, res) => {
   try {
     const userId = req.userId;
-    const userModel = req.userRole === 'PUBLIC_USER' ? 'PublicUser' : 'User';
+    const userModel = String(req.userRole || '').toLowerCase() === 'public_user' ? 'PublicUser' : 'User';
 
     const notification = await Notification.createNotification({
       userId,

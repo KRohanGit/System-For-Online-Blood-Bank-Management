@@ -42,7 +42,7 @@ exports.getNearbyHospitals = async (req, res) => {
       longitude, 
       radius = 10, 
       emergencyOnly = false,
-      limit = 20 
+      limit = 50 
     } = req.query;
 
     if (!latitude || !longitude) {
@@ -54,7 +54,8 @@ exports.getNearbyHospitals = async (req, res) => {
 
     const lat = parseFloat(latitude);
     const lon = parseFloat(longitude);
-    const radiusInMeters = parseFloat(radius) * 1000;
+    const radiusInKm = parseFloat(radius);
+    const radiusInMeters = radiusInKm * 1000;
 
     if (isNaN(lat) || isNaN(lon)) {
       return res.status(400).json({
@@ -63,12 +64,9 @@ exports.getNearbyHospitals = async (req, res) => {
       });
     }
 
-    // Query hospitals from User model (HOSPITAL_ADMIN role)
     const query = {
-      role: 'HOSPITAL_ADMIN',
-      isActive: true,
       verificationStatus: 'approved',
-      'location.coordinates': {
+      location: {
         $near: {
           $geometry: {
             type: 'Point',
@@ -79,11 +77,14 @@ exports.getNearbyHospitals = async (req, res) => {
       }
     };
 
-    const hospitals = await User.find(query)
-      .select('hospitalName email phone location address city state emergencySupport')
-      .limit(parseInt(limit));
+    if (emergencyOnly === 'true' || emergencyOnly === true) {
+      query.emergencySupport = true;
+    }
 
-    // Calculate distance and enrich data
+    const hospitals = await HospitalProfile.find(query)
+      .limit(parseInt(limit))
+      .select('hospitalName address city state phone officialEmail location emergencySupport');
+
     const hospitalsWithDetails = hospitals.map(hospital => {
       const [hospLon, hospLat] = hospital.location.coordinates;
       const distance = calculateDistance(lat, lon, hospLat, hospLon);
@@ -91,11 +92,11 @@ exports.getNearbyHospitals = async (req, res) => {
       return {
         id: hospital._id,
         name: hospital.hospitalName,
-        address: hospital.address,
-        city: hospital.city,
-        state: hospital.state,
-        phone: hospital.phone,
-        email: hospital.email,
+        address: hospital.address || 'Address not available',
+        city: hospital.city || '',
+        state: hospital.state || '',
+        phone: hospital.phone || 'N/A',
+        email: hospital.officialEmail,
         location: {
           latitude: hospLat,
           longitude: hospLon
@@ -105,22 +106,14 @@ exports.getNearbyHospitals = async (req, res) => {
       };
     });
 
-    // Filter emergency hospitals if requested
-    const filteredHospitals = emergencyOnly 
-      ? hospitalsWithDetails.filter(h => h.emergencySupport)
-      : hospitalsWithDetails;
-
-    // Sort by distance
-    filteredHospitals.sort((a, b) => a.distance - b.distance);
-
     res.status(200).json({
       success: true,
       message: 'Nearby hospitals retrieved successfully',
       data: {
-        hospitals: filteredHospitals,
-        count: filteredHospitals.length,
+        hospitals: hospitalsWithDetails,
+        count: hospitalsWithDetails.length,
         userLocation: { latitude: lat, longitude: lon },
-        searchRadius: parseFloat(radius)
+        searchRadius: radiusInKm
       }
     });
 

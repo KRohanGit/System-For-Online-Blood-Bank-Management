@@ -28,19 +28,19 @@
 }
 
 .score-excellent {
-  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  background: #4caf50;
 }
 
 .score-good {
-  background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);
+  background: #2196f3;
 }
 
 .score-moderate {
-  background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
+  background: #ff9800;
 }
 
 .score-poor {
-  background: linear-gradient(135deg, #f44336 0%, #e57373 100%);
+  background: #f44336;
 }
 
 .score-value {
@@ -60,37 +60,48 @@
 
 .factors-grid {
   display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
+@media (max-width: 768px) {
+  .factors-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .factor-bar {
-  padding: 12px;
+  padding: 16px;
   background: #f9f9f9;
   border-radius: 6px;
+  min-height: 80px;
 }
 
 .factor-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.factor-icon {
-  font-size: 18px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 12px;
 }
 
 .factor-label {
-  flex: 1;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
-  color: #555;
+  color: #333;
+  flex: 1;
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.4;
 }
 
 .factor-value {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: #333;
+  min-width: 50px;
+  text-align: right;
+  flex-shrink: 0;
 }
 
 .factor-progress {

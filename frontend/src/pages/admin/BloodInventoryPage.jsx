@@ -14,10 +14,13 @@ import BloodUnitRow from '../../components/bloodInventory/BloodUnitRow';
 import FilterBar from '../../components/bloodInventory/FilterBar';
 import AddUnitForm from '../../components/bloodInventory/AddUnitForm';
 import Modal from '../../components/common/Modal';
+import Toast from '../../components/common/Toast';
 import LifecycleViewer from '../../components/bloodInventory/LifecycleViewer';
 import ExpiryWatch from '../../components/bloodInventory/ExpiryWatch';
 import EmergencyReleaseModal from '../../components/bloodInventory/EmergencyReleaseModal';
 import FIFOSuggestionsPanel from '../../components/bloodInventory/FIFOSuggestionsPanel';
+import StorageCapacityModal from '../../components/bloodInventory/StorageCapacityModal';
+import NearbyCampsModal from '../../components/bloodInventory/NearbyCampsModal';
 import '../../styles/blood-inventory.css';
 import '../../styles/stock-card.css';
 import '../../styles/blood-unit-row.css';
@@ -43,7 +46,16 @@ const BloodInventoryPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLifecycleModal, setShowLifecycleModal] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [showStorageModal, setShowStorageModal] = useState(false);
+  const [showCampsModal, setShowCampsModal] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
+  
+  // Toast notification state
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
 
   // Fetch stock overview on mount
   useEffect(() => {
@@ -60,8 +72,8 @@ const BloodInventoryPage = () => {
   const fetchStockOverview = async () => {
     try {
       setError(null);
-      const data = await getStockOverview();
-      setStockOverview(data.stockOverview || []);
+      const response = await getStockOverview();
+      setStockOverview(response.data?.overview || response.stockOverview || response.overview || []);
     } catch (error) {
       console.error('Failed to fetch stock overview:', error);
       setError('Failed to load stock overview. Using default view.');
@@ -83,9 +95,9 @@ const BloodInventoryPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAllUnits(filters);
-      setBloodUnits(data.units || []);
-      setTotalUnits(data.total || 0);
+      const response = await getAllUnits(filters);
+      setBloodUnits(response.data?.units || response.units || []);
+      setTotalUnits(response.data?.pagination?.totalUnits || response.total || 0);
     } catch (error) {
       console.error('Failed to fetch blood units:', error);
       setError('Failed to load blood units. Please check your connection and try again.');
@@ -99,13 +111,13 @@ const BloodInventoryPage = () => {
   const handleAddUnit = async (unitData) => {
     setLoading(true);
     try {
-      await addUnit(unitData);
+      const result = await addUnit(unitData);
       setShowAddModal(false);
-      fetchStockOverview();
-      fetchBloodUnits();
-      alert('Blood unit added successfully!');
+      await fetchStockOverview();
+      await fetchBloodUnits();
+      showToast(`Blood unit ${unitData.bloodGroup} added successfully!`, 'success');
     } catch (error) {
-      alert('Failed to add unit: ' + error.message);
+      showToast(`Failed to add unit: ${error.message}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -117,10 +129,10 @@ const BloodInventoryPage = () => {
 
     try {
       await reserveUnit(unitId, patientId);
-      fetchBloodUnits();
-      alert('Unit reserved successfully!');
+      await fetchBloodUnits();
+      showToast('Unit reserved successfully!', 'success');
     } catch (error) {
-      alert('Failed to reserve: ' + error.message);
+      showToast(`Failed to reserve: ${error.message}`, 'error');
     }
   };
 
@@ -130,11 +142,11 @@ const BloodInventoryPage = () => {
 
     try {
       await issueUnit(unitId, patientId);
-      fetchBloodUnits();
-      fetchStockOverview();
-      alert('Unit issued successfully!');
+      await fetchBloodUnits();
+      await fetchStockOverview();
+      showToast('Unit issued successfully!', 'success');
     } catch (error) {
-      alert('Failed to issue: ' + error.message);
+      showToast(`Failed to issue: ${error.message}`, 'error');
     }
   };
 
@@ -143,11 +155,11 @@ const BloodInventoryPage = () => {
 
     try {
       await deleteUnit(unitId);
-      fetchBloodUnits();
-      fetchStockOverview();
-      alert('Unit deleted successfully!');
+      await fetchBloodUnits();
+      await fetchStockOverview();
+      showToast('Unit deleted successfully!', 'success');
     } catch (error) {
-      alert('Failed to delete: ' + error.message);
+      showToast(`Failed to delete: ${error.message}`, 'error');
     }
   };
 
@@ -182,13 +194,25 @@ const BloodInventoryPage = () => {
             <p className="page-subtitle">Manage blood units, track inventory, and monitor stock levels</p>
           </div>
           <div className="header-actions">
-          <button 
+          <button
+            className="btn-secondary"
+            onClick={() => setShowStorageModal(true)}
+          >
+            Storage Capacity Details
+          </button>
+          <button
+            className="btn-secondary"
+            onClick={() => setShowCampsModal(true)}
+          >
+            Nearby Blood Camps
+          </button>
+          <button
             className="btn-emergency"
             onClick={() => setShowEmergencyModal(true)}
           >
             🚨 Emergency Release
           </button>
-          <button 
+          <button
             className="btn-primary"
             onClick={() => setShowAddModal(true)}
           >
@@ -237,7 +261,7 @@ const BloodInventoryPage = () => {
                 <StockCard
                   key={stock.bloodGroup}
                   bloodGroup={stock.bloodGroup}
-                  units={stock.availableUnits}
+                  units={stock.units || stock.availableUnits || 0}
                   status={stock.status}
                   expiringSoon={stock.expiringSoon}
                   lastUpdated={stock.lastUpdated}
@@ -368,10 +392,48 @@ const BloodInventoryPage = () => {
           onSuccess={() => {
             fetchStockOverview();
             fetchBloodUnits();
+            showToast('Emergency release successful!', 'success');
           }}
           onClose={() => setShowEmergencyModal(false)}
         />
       </Modal>
+
+      {/* Storage Capacity Modal */}
+      <Modal
+        isOpen={showStorageModal}
+        onClose={() => setShowStorageModal(false)}
+        title=""
+        size="medium"
+      >
+        <StorageCapacityModal
+          onClose={() => setShowStorageModal(false)}
+        />
+      </Modal>
+
+      {/* Nearby Camps Modal */}
+      <Modal
+        isOpen={showCampsModal}
+        onClose={() => setShowCampsModal(false)}
+        title=""
+        size="large"
+      >
+        <NearbyCampsModal
+          onClose={() => setShowCampsModal(false)}
+          onSuccess={(message) => {
+            setShowCampsModal(false);
+            showToast(message, 'success');
+          }}
+        />
+      </Modal>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </DashboardLayout>
   );
 };

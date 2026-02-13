@@ -40,12 +40,12 @@ app.use(express.urlencoded({ extended: true }));
 // Request logging middleware - ALWAYS ON
 app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
-  console.log(`\n🌐 [${timestamp}] ${req.method} ${req.path}`);
+  console.log(`\n [${timestamp}] ${req.method} ${req.path}`);
   if (req.body && Object.keys(req.body).length > 0) {
-    console.log('📦 Body:', JSON.stringify(req.body, null, 2));
+    console.log(' Body:', JSON.stringify(req.body, null, 2));
   }
   if (req.query && Object.keys(req.query).length > 0) {
-    console.log('🔍 Query:', req.query);
+    console.log(' Query:', req.query);
   }
   next();
 });
@@ -106,7 +106,7 @@ app.use((req, res) => {
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error('❌ Error:', err);
+  console.error(' Error:', err);
   
   res.status(err.status || 500).json({
     success: false,
@@ -129,18 +129,18 @@ const startServer = async () => {
     const PORT = process.env.PORT || 5000;
     
     app.listen(PORT, () => {
-      console.log('\n🚀 ═══════════════════════════════════════');
+      console.log('\n ═══════════════════════════════════════');
       console.log(`   LifeLink Backend Server Running`);
       console.log('   ═══════════════════════════════════════');
-      console.log(`   📍 URL: http://localhost:${PORT}`);
-      console.log(`   🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`   📅 Started: ${new Date().toLocaleString()}`);
-      console.log(`   🔔 Escalation Service: Active`);
-      console.log(`   📅 Started: ${new Date().toLocaleString()}`);
+      console.log(`    URL: http://localhost:${PORT}`);
+      console.log(`    Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`   Started: ${new Date().toLocaleString()}`);
+      console.log(`    Escalation Service: Active`);
+      console.log(`    Started: ${new Date().toLocaleString()}`);
       console.log('   ═══════════════════════════════════════\n');
     });
   } catch (error) {
-    console.error('❌ Failed to start server:', error);
+    console.error(' Error starting server:', error);
     process.exit(1);
   }
 };
@@ -150,14 +150,14 @@ startServer();
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-  console.error('❌ Unhandled Promise Rejection:', err);
+  console.error(' Error: Unhandled Promise Rejection:', err);
   // Close server & exit process
   process.exit(1);
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
-  console.error('❌ Uncaught Exception:', err);
+  console.error(' Error: Uncaught Exception:', err);
   process.exit(1);
 });
 

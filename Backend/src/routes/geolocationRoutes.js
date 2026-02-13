@@ -1,7 +1,7 @@
 /**
  * Geolocation Routes
  * 
- * Purpose: Handle all geolocation-based queries for blood bank management
+ * Purpose: To Handle all the geolocation-based queries for blood bank management
  * 
  * Endpoints:
  * - GET /api/geolocation/nearby-hospitals - Find hospitals near user

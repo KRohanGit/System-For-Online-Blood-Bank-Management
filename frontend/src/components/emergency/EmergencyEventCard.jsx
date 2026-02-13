@@ -25,12 +25,7 @@ const EmergencyEventCard = ({ event, onRespond }) => {
    * Get icon based on urgency level
    */
   const getUrgencyIcon = (level) => {
-    const icons = {
-      CRITICAL: '🚨',
-      HIGH: '⚠️',
-      MODERATE: '⏰'
-    };
-    return icons[level] || '📋';
+    return '';
   };
 
   /**
@@ -67,7 +62,6 @@ const EmergencyEventCard = ({ event, onRespond }) => {
         className="urgency-badge"
         style={{ backgroundColor: getUrgencyColor(event.urgencyLevel) }}
       >
-        <span className="urgency-icon">{getUrgencyIcon(event.urgencyLevel)}</span>
         <span className="urgency-text">{event.urgencyLevel}</span>
       </div>
 

@@ -65,13 +65,13 @@ const EmergencyDashboard = () => {
           className={`filter-btn ${filter === 'simulation' ? 'active' : ''}`}
           onClick={() => setFilter('simulation')}
         >
-          🔬 Simulations
+          Simulations
         </button>
         <button 
           className={`filter-btn ${filter === 'active' ? 'active' : ''}`}
           onClick={() => setFilter('active')}
         >
-          🚨 Active Emergencies
+          Active Emergencies
         </button>
       </div>
 
@@ -81,7 +81,7 @@ const EmergencyDashboard = () => {
         </div>
       ) : scenarios.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">📊</div>
+          <div className="empty-icon"></div>
           <h3>No scenarios found</h3>
           <p>Create your first emergency scenario to start analyzing crisis impact</p>
           <button 
@@ -128,12 +128,12 @@ const ScenarioCard = ({ scenario, onClick }) => {
           {incidentType.replace(/_/g, ' ')}
         </div>
         {isSimulation && (
-          <span className="sim-badge">🔬 SIM</span>
+          <span className="sim-badge">SIM</span>
         )}
       </div>
 
       <div className="card-location">
-        📍 {incidentLocation.areaName}, {incidentLocation.city}
+        {incidentLocation.areaName}, {incidentLocation.city}
       </div>
 
       <div className="card-stats">

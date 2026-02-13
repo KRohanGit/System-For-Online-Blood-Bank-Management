@@ -37,7 +37,7 @@ const BloodGroupMeter = ({ bloodGroup, available, demand, compact = false }) => 
       </div>
       {!compact && deficit > 0 && (
         <div className="meter-deficit">
-          ⚠️ Deficit: {deficit} units
+          Deficit: {deficit} units
         </div>
       )}
     </div>

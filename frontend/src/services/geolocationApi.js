@@ -143,8 +143,8 @@ export const formatDistance = (distance) => {
  * Default test locations for fallback
  */
 export const DEFAULT_LOCATIONS = {
-  hyderabad: { latitude: 17.4065, longitude: 78.4772, name: 'Hyderabad' },
   visakhapatnam: { latitude: 17.7231, longitude: 83.3012, name: 'Visakhapatnam' },
+  hyderabad: { latitude: 17.4065, longitude: 78.4772, name: 'Hyderabad' },
   bangalore: { latitude: 12.9716, longitude: 77.5946, name: 'Bangalore' },
   mumbai: { latitude: 19.0760, longitude: 72.8777, name: 'Mumbai' },
   delhi: { latitude: 28.6139, longitude: 77.2090, name: 'New Delhi' }

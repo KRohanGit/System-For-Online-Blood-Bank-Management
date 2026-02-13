@@ -1,0 +1,227 @@
+.emergency-request-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+  border-left: 4px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.emergency-request-card.urgency-critical {
+  border-left-color: #dc2626;
+  background: #fef2f2;
+}
+
+.emergency-request-card.urgency-high {
+  border-left-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.emergency-request-card.urgency-medium {
+  border-left-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.hospital-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.distance {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.urgency-badge span {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.urgency-badge .urgency-critical {
+  background: #dc2626;
+  color: white;
+}
+
+.urgency-badge .urgency-high {
+  background: #f59e0b;
+  color: white;
+}
+
+.urgency-badge .urgency-medium {
+  background: #3b82f6;
+  color: white;
+}
+
+.card-body {
+  margin-bottom: 16px;
+}
+
+.blood-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.blood-info > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.blood-info .label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.blood-info .value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.criticality,
+.required-within {
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.notes {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+.notes-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.notes p {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #374151;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.footer-info {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-accepted {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-dispatched {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-completed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.time-ago {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-accept,
+.btn-reject {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-accept {
+  background: #10b981;
+  color: white;
+}
+
+.btn-accept:hover {
+  background: #059669;
+}
+
+.btn-reject {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-reject:hover {
+  background: #dc2626;
+}
+
+@media (max-width: 768px) {
+  .blood-info {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .action-buttons {
+    width: 100%;
+  }
+
+  .btn-accept,
+  .btn-reject {
+    flex: 1;
+  }
+}

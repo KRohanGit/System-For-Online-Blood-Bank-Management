@@ -1,0 +1,60 @@
+.donation-history-table {
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.donation-history-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.donation-history-table th,
+.donation-history-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.donation-history-table th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.donation-history-table tr:hover {
+  background: #f9fafb;
+}
+
+.blood-group-cell {
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: #6b7280;
+}

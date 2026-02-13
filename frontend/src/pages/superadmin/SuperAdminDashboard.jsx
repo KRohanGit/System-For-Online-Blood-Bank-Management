@@ -19,13 +19,31 @@ const SuperAdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [approvingId, setApprovingId] = useState(null);
   const [error, setError] = useState(null);
+  const [adminName, setAdminName] = useState('Admin');
 
   useEffect(() => {
     fetchDashboardData();
+    fetchAdminName();
     // Refresh pending users every 10 seconds for live updates
     const interval = setInterval(fetchPendingUsers, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  const fetchAdminName = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:5000/api/auth/profile', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.success && response.data.data?.email) {
+        const email = response.data.data.email;
+        const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
+        setAdminName(name);
+      }
+    } catch (error) {
+      console.error('Error fetching admin name:', error);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -210,8 +228,8 @@ const SuperAdminDashboard = () => {
       <div className="dashboard-header">
         <div className="header-content">
           <div className="header-left">
-            <h1 className="dashboard-title">Central Admin Dashboard 🛡️</h1>
-            <p className="dashboard-subtitle">Platform Administration & User Management</p>
+            <h1 className="dashboard-title">Welcome, {adminName} 👋</h1>
+            <p className="dashboard-subtitle">Central Admin - Platform Administration & User Management</p>
           </div>
           <div className="header-actions">
             <button 

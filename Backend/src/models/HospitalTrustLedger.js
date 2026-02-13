@@ -270,8 +270,7 @@ const hospitalTrustLedgerSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes
-hospitalTrustLedgerSchema.index({ hospitalId: 1 }, { unique: true });
+// Indexes (hospitalId already indexed via unique: true in schema)
 hospitalTrustLedgerSchema.index({ 'trustScore.overall': -1 });
 hospitalTrustLedgerSchema.index({ reliabilityRating: 1 });
 hospitalTrustLedgerSchema.index({ 'networkContribution.networkRank': 1 });

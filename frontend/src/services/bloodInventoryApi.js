@@ -47,6 +47,21 @@ export const getStockOverview = async () => {
   return apiRequest('/blood-inventory/stock-overview');
 };
 
+export const getStorageCapacity = async () => {
+  return apiRequest('/blood-inventory/storage-capacity');
+};
+
+export const getNearbyCampsInventory = async (radius = 50) => {
+  return apiRequest(`/blood-inventory/nearby-camps?radius=${radius * 1000}`);
+};
+
+export const requestBloodFromCamp = async (campId, bloodGroup, units, reason) => {
+  return apiRequest('/blood-inventory/request-from-camp', {
+    method: 'POST',
+    body: JSON.stringify({ campId, bloodGroup, units, reason }),
+  });
+};
+
 export const addUnit = async (unitData) => {
   return apiRequest('/blood-inventory', {
     method: 'POST',

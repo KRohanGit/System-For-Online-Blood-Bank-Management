@@ -22,7 +22,7 @@ const generateRSAKeyPair = () => {
 
     return { publicKey, privateKey };
   } catch (error) {
-    console.error('❌ RSA Key Generation Error:', error.message);
+    console.error(' RSA Key Generation Error:', error.message);
     throw new Error('Failed to generate RSA key pair');
   }
 };
@@ -33,12 +33,12 @@ const getRSAKeys = () => {
     let privateKey = process.env.RSA_PRIVATE_KEY;
 
     if (!publicKey || !privateKey) {
-      console.warn('⚠️ RSA keys not found in environment. Generating new keys...');
+      console.warn(' RSA keys not found in environment. Generating new keys...');
       const keys = generateRSAKeyPair();
       publicKey = keys.publicKey;
       privateKey = keys.privateKey;
 
-      console.warn('⚠️ Add these keys to your .env file:');
+      console.warn(' Add these keys to your .env file:');
       console.log('RSA_PUBLIC_KEY="' + publicKey.replace(/\n/g, '\\n') + '"');
       console.log('RSA_PRIVATE_KEY="' + privateKey.replace(/\n/g, '\\n') + '"');
     } else {
@@ -48,7 +48,7 @@ const getRSAKeys = () => {
 
     return { publicKey, privateKey };
   } catch (error) {
-    console.error('❌ RSA Key Retrieval Error:', error.message);
+    console.error(' RSA Key Retrieval Error:', error.message);
     throw new Error('Failed to retrieve RSA keys');
   }
 };
@@ -75,7 +75,7 @@ const encryptAESKey = (aesKey, publicKey = null) => {
     // Return as Base64 string for easy storage
     return encryptedKey.toString('base64');
   } catch (error) {
-    console.error('❌ RSA Encryption Error:', error.message);
+    console.error(' RSA Encryption Error:', error.message);
     throw new Error('Failed to encrypt AES key with RSA');
   }
 };
@@ -104,7 +104,7 @@ const decryptAESKey = (encryptedAESKey, privateKey = null) => {
 
     return decryptedKey;
   } catch (error) {
-    console.error('❌ RSA Decryption Error:', error.message);
+    console.error(' RSA Decryption Error:', error.message);
     throw new Error('Failed to decrypt AES key with RSA');
   }
 };

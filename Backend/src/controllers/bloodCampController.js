@@ -61,6 +61,44 @@ exports.getAllCamps = async (req, res) => {
 };
 
 /**
+ * Get camps for a specific hospital (public)
+ * Route: GET /api/blood-camps/by-hospital/:hospitalId
+ */
+exports.getCampsByHospital = async (req, res) => {
+  try {
+    const { hospitalId } = req.params;
+
+    if (!hospitalId) {
+      return res.status(400).json({ success: false, message: 'hospitalId is required' });
+    }
+
+    // Match camps where organizer.affiliatedHospital or medicalSupport.coordinatingHospital equals hospitalId
+    const query = {
+      isActive: true,
+      $or: [
+        { 'organizer.affiliatedHospital': hospitalId },
+        { 'medicalSupport.coordinatingHospital': hospitalId },
+        { 'organizer.userId': hospitalId }
+      ]
+    };
+
+    // Only upcoming camps
+    // Some documents use schedule.date, some use dateTime - support both
+    query.$or = query.$or.concat([
+      { 'schedule.date': { $gt: new Date() } },
+      { dateTime: { $gt: new Date() } }
+    ]);
+
+    const camps = await BloodCamp.find(query).select('-__v').lean();
+
+    res.status(200).json({ success: true, data: { camps } });
+  } catch (error) {
+    console.error('Error getting camps by hospital:', error);
+    res.status(500).json({ success: false, message: 'Failed to retrieve camps', error: error.message });
+  }
+};
+
+/**
  * Get nearby blood camps using geospatial query
  * Access: Public (no authentication required)
  */
@@ -193,12 +231,13 @@ exports.getCampById = async (req, res) => {
 exports.createCamp = async (req, res) => {
   try {
     const userId = req.userId;
-    const userRole = req.userRole;
+    const userRoleRaw = req.userRole;
+    const userRole = String(userRoleRaw || '').toLowerCase();
 
-    console.log('Creating camp - User:', userId, 'Role:', userRole);
+    console.log('Creating camp - User:', userId, 'Role:', userRoleRaw);
 
-    // Verify user permissions
-    if (userRole === 'PUBLIC_USER') {
+    // Verify user permissions (case-insensitive)
+    if (userRole === 'public_user') {
       const publicUser = await PublicUser.findById(userId);
       
       if (!publicUser) {
@@ -214,7 +253,7 @@ exports.createCamp = async (req, res) => {
           message: 'Only verified users can organize blood camps'
         });
       }
-    } else if (userRole !== 'HOSPITAL_ADMIN') {
+    } else if (userRole !== 'hospital_admin') {
       return res.status(403).json({
         success: false,
         message: 'Only verified public users or hospital admins can organize blood camps'
@@ -244,7 +283,7 @@ exports.createCamp = async (req, res) => {
 
     // Get organizer details
     let organizer, organizerModel;
-    if (userRole === 'PUBLIC_USER') {
+    if (userRole === 'public_user') {
       organizer = await PublicUser.findById(userId);
       organizerModel = 'PublicUser';
     } else {

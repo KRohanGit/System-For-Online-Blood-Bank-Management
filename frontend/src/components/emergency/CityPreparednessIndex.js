@@ -34,29 +34,25 @@ const CityPreparednessIndex = ({ preparedness }) => {
         <FactorBar 
           label="Inventory Level"
           value={factors.inventoryLevel || 0}
-          icon="📦"
         />
         <FactorBar 
           label="Hospital Capacity"
           value={factors.hospitalCapacity || 0}
-          icon="🏥"
         />
         <FactorBar 
           label="Response Readiness"
           value={factors.responseReadiness || 0}
-          icon="⚡"
         />
         <FactorBar 
           label="Donor Availability"
           value={factors.donorAvailability || 0}
-          icon="🩸"
         />
       </div>
     </div>
   );
 };
 
-const FactorBar = ({ label, value, icon }) => {
+const FactorBar = ({ label, value }) => {
   const getBarColor = (value) => {
     if (value >= 75) return '#4caf50';
     if (value >= 50) return '#ff9800';
@@ -66,7 +62,6 @@ const FactorBar = ({ label, value, icon }) => {
   return (
     <div className="factor-bar">
       <div className="factor-header">
-        <span className="factor-icon">{icon}</span>
         <span className="factor-label">{label}</span>
         <span className="factor-value">{value}%</span>
       </div>

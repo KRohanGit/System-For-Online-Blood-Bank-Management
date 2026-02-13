@@ -45,7 +45,45 @@ exports.getAllUnits = async (req, res) => {
 // Add single blood unit
 exports.addUnit = async (req, res) => {
   try {
-    const hospitalId = req.user.hospitalProfileId;
+    let hospitalId = req.user && req.user.hospitalProfileId;
+    // If middleware didn't attach hospitalProfileId, try to resolve it here for robustness
+    if (!hospitalId && req.user && req.user._id) {
+      const HospitalProfile = require('../../models/HospitalProfile');
+      const profile = await HospitalProfile.findOne({ userId: req.user._id }).select('_id verificationStatus');
+      if (profile && profile.verificationStatus === 'approved') {
+        hospitalId = profile._id;
+        // also attach to req for downstream consistency
+        req.user.hospitalProfileId = hospitalId;
+        req.hospitalProfileId = hospitalId;
+      } else if (profile) {
+        return res.status(403).json({ success: false, message: `Hospital account is ${profile.verificationStatus}. Please wait for approval.` });
+      } else {
+        // In development, auto-create a minimal approved HospitalProfile to allow rapid testing
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('ℹ️ No hospital profile found — auto-creating a dev HospitalProfile');
+          const adminEmail = req.user.email || `${req.user._id}@example.com`;
+          const autoProfile = new HospitalProfile({
+            userId: req.user._id,
+            hospitalName: `Auto Hospital (${req.user._id.toString().slice(-6)})`,
+            officialEmail: adminEmail,
+            licenseNumber: `AUTO-${Date.now()}`,
+            licenseFilePath: '/tmp/auto-license.pdf',
+            adminName: req.user.email ? req.user.email.split('@')[0] : 'Admin',
+            adminEmail: adminEmail,
+            verificationStatus: 'approved',
+            createdAt: new Date(),
+            updatedAt: new Date()
+          });
+          await autoProfile.save();
+          hospitalId = autoProfile._id;
+          req.user.hospitalProfileId = hospitalId;
+          req.hospitalProfileId = hospitalId;
+          console.log(`✅ Auto-created HospitalProfile ${hospitalId} for user ${req.user.email}`);
+        } else {
+          return res.status(404).json({ success: false, message: 'Hospital profile not found. Please complete your registration.' });
+        }
+      }
+    }
     const { bloodGroup, storageType, volume, collectionDate, donorInfo, storageLocation, notes } = req.body;
 
     if (!bloodGroup) {
@@ -54,9 +92,12 @@ exports.addUnit = async (req, res) => {
 
     // Calculate expiry based on storage type
     let expiryDays = 35;
-    if (storageType === 'Platelets') expiryDays = 5;
-    else if (storageType === 'Plasma') expiryDays = 365;
-    else if (storageType === 'RBC') expiryDays = 42;
+    const normalizedStorageType = (storageType || 'Whole Blood');
+    // Accept common aliases (RBC -> Red Cells)
+    const storageTypeNormalizedForModel = (normalizedStorageType === 'RBC') ? 'Red Cells' : normalizedStorageType;
+    if (normalizedStorageType === 'Platelets') expiryDays = 5;
+    else if (normalizedStorageType === 'Plasma') expiryDays = 365;
+    else if (normalizedStorageType === 'RBC' || normalizedStorageType === 'Red Cells') expiryDays = 42;
 
     const expiryDate = new Date(collectionDate || Date.now());
     expiryDate.setDate(expiryDate.getDate() + expiryDays);
@@ -64,7 +105,7 @@ exports.addUnit = async (req, res) => {
     const newUnit = new BloodInventory({
       hospitalId,
       bloodGroup: bloodGroup.toUpperCase(),
-      storageType: storageType || 'Whole Blood',
+      storageType: storageTypeNormalizedForModel || 'Whole Blood',
       volume: volume || 450,
       collectionDate: collectionDate || Date.now(),
       expiryDate,
@@ -76,13 +117,17 @@ exports.addUnit = async (req, res) => {
         stage: 'Collected',
         timestamp: new Date(),
         performedBy: req.user.id,
+        performedByName: req.user.email || req.user.name || null,
         notes: 'Unit added to inventory'
       }]
     });
 
+    console.log('🔁 Adding blood unit', { hospitalId: hospitalId?.toString(), bloodGroup: bloodGroup && bloodGroup.toUpperCase(), storageType: storageTypeNormalizedForModel, performedBy: req.user && (req.user.email || req.user._id) });
     await newUnit.save();
+    console.log('✅ Blood unit saved successfully:', newUnit._id);
     res.status(201).json({ success: true, message: 'Unit added successfully', data: newUnit });
   } catch (error) {
+    console.error('❌ Error in addUnit:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -90,7 +135,43 @@ exports.addUnit = async (req, res) => {
 // Bulk add units from CSV
 exports.bulkAddUnits = async (req, res) => {
   try {
-    const hospitalId = req.user.hospitalProfileId;
+    let hospitalId = req.user && req.user.hospitalProfileId;
+    if (!hospitalId && req.user && req.user._id) {
+      const HospitalProfile = require('../../models/HospitalProfile');
+      const profile = await HospitalProfile.findOne({ userId: req.user._id }).select('_id verificationStatus');
+      if (profile && profile.verificationStatus === 'approved') {
+        hospitalId = profile._id;
+        req.user.hospitalProfileId = hospitalId;
+        req.hospitalProfileId = hospitalId;
+      } else if (profile) {
+        return res.status(403).json({ success: false, message: `Hospital account is ${profile.verificationStatus}. Please wait for approval.` });
+      } else {
+        // In development, auto-create a minimal approved HospitalProfile to allow rapid testing
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('ℹ️ No hospital profile found in bulkAddUnits — auto-creating a dev HospitalProfile');
+          const adminEmail = req.user.email || `${req.user._id}@example.com`;
+          const autoProfile = new HospitalProfile({
+            userId: req.user._id,
+            hospitalName: `Auto Hospital (${req.user._id.toString().slice(-6)})`,
+            officialEmail: adminEmail,
+            licenseNumber: `AUTO-${Date.now()}`,
+            licenseFilePath: '/tmp/auto-license.pdf',
+            adminName: req.user.email ? req.user.email.split('@')[0] : 'Admin',
+            adminEmail: adminEmail,
+            verificationStatus: 'approved',
+            createdAt: new Date(),
+            updatedAt: new Date()
+          });
+          await autoProfile.save();
+          hospitalId = autoProfile._id;
+          req.user.hospitalProfileId = hospitalId;
+          req.hospitalProfileId = hospitalId;
+          console.log(`✅ Auto-created HospitalProfile ${hospitalId} for user ${req.user.email}`);
+        } else {
+          return res.status(404).json({ success: false, message: 'Hospital profile not found. Please complete your registration.' });
+        }
+      }
+    }
     const { units } = req.body;
 
     if (!Array.isArray(units) || units.length === 0) {
@@ -107,20 +188,21 @@ exports.bulkAddUnits = async (req, res) => {
         let expiryDays = 35;
         if (unitData.storageType === 'Platelets') expiryDays = 5;
         else if (unitData.storageType === 'Plasma') expiryDays = 365;
+        else if (unitData.storageType === 'RBC' || unitData.storageType === 'Red Cells') expiryDays = 42;
 
         const expiryDate = new Date(unitData.collectionDate || Date.now());
         expiryDate.setDate(expiryDate.getDate() + expiryDays);
 
         const newUnit = new BloodInventory({
           hospitalId,
-          bloodGroup: unitData.bloodGroup.toUpperCase(),
+          bloodGroup: unitData.bloodGroup ? unitData.bloodGroup.toUpperCase() : undefined,
           storageType: unitData.storageType || 'Whole Blood',
           volume: unitData.volume || 450,
           collectionDate: unitData.collectionDate || Date.now(),
           expiryDate,
           storageLocation: unitData.storageLocation || {},
           status: 'Available',
-          lifecycle: [{ stage: 'Collected', timestamp: new Date(), performedBy: req.user.id }]
+          lifecycle: [{ stage: 'Collected', timestamp: new Date(), performedBy: req.user.id, performedByName: req.user.email || req.user.name || null }]
         });
 
         await newUnit.save();

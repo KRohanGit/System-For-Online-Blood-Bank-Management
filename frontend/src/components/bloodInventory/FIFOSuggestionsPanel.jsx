@@ -11,16 +11,21 @@ const FIFOSuggestionsPanel = ({ onIssue, onReserve, refresh }) => {
   const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
   useEffect(() => {
-    fetchSuggestions();
+    if (selectedBloodGroup) {
+      fetchSuggestions();
+    } else {
+      setSuggestions([]);
+    }
   }, [selectedBloodGroup, refresh]);
 
   const fetchSuggestions = async () => {
     setLoading(true);
     try {
-      const data = await getFIFOSuggestions(selectedBloodGroup);
-      setSuggestions(data.suggestions);
+      const response = await getFIFOSuggestions(selectedBloodGroup);
+      setSuggestions(response.data?.data || response.data || response.suggestions || []);
     } catch (error) {
       console.error('Failed to fetch FIFO suggestions:', error);
+      setSuggestions([]);
     } finally {
       setLoading(false);
     }

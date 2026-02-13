@@ -152,12 +152,12 @@ const EmergencyMobilization = () => {
       {/* Header */}
       <div className="emergency-header">
         <div className="header-content">
-          <h2>🚨 Emergency Blood Mobilization</h2>
+          <h2>Emergency Blood Mobilization</h2>
           <p>Help save lives during critical blood shortages</p>
         </div>
         {userLocation && (
           <div className="location-badge">
-            📍 {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
+            {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
           </div>
         )}
       </div>

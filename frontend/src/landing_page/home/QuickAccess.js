@@ -14,13 +14,6 @@ export default function QuickAccess() {
       color: '#e74c3c'
     },
     {
-      icon: '🏥',
-      title: 'Hospitals',
-      description: 'Find nearby blood banks and hospitals',
-      path: '/hospitals',
-      color: '#3498db'
-    },
-    {
       icon: '📅',
       title: 'Blood Camps',
       description: 'View and organize blood donation camps',

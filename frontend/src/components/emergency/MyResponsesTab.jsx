@@ -89,7 +89,7 @@ const MyResponsesTab = ({ responses }) => {
   return (
     <div className="my-responses-tab">
       <div className="responses-header">
-        <h3>📊 My Emergency Responses</h3>
+        <h3>My Emergency Responses</h3>
         <span className="responses-count">{responses.length} response{responses.length !== 1 ? 's' : ''}</span>
       </div>
 

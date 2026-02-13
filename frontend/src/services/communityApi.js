@@ -60,6 +60,9 @@ export const hospitalAPI = {
   
   getHospitalById: (id) =>
     axios.get(`${API_URL}/hospital/${id}`)
+  ,
+  getCampsByHospital: (hospitalId) =>
+    axios.get(`${API_URL}/blood-camps/by-hospital/${hospitalId}`)
 };
 
 export const geolocationHelper = {

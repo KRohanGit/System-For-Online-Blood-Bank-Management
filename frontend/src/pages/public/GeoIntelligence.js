@@ -51,7 +51,7 @@ function MapController({ center }) {
 const GeoIntelligence = () => {
   // Location state
   const [userLocation, setUserLocation] = useState(null);
-  const [mapCenter, setMapCenter] = useState([17.4065, 78.4772]); // Default: Hyderabad
+  const [mapCenter, setMapCenter] = useState([17.7231, 83.3012]);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState(null);
   
@@ -63,7 +63,7 @@ const GeoIntelligence = () => {
   
   // UI state
   const [activeTab, setActiveTab] = useState('overview');
-  const [searchRadius, setSearchRadius] = useState(30);
+  const [searchRadius, setSearchRadius] = useState(15);
   const [showEmergencyOnly, setShowEmergencyOnly] = useState(false);
   const [selectedMarker, setSelectedMarker] = useState(null);
 
@@ -122,7 +122,7 @@ const GeoIntelligence = () => {
    * Initial load with default location
    */
   useEffect(() => {
-    const defaultLocation = DEFAULT_LOCATIONS.hyderabad;
+    const defaultLocation = DEFAULT_LOCATIONS.visakhapatnam;
     setUserLocation(defaultLocation);
     fetchGeoData(defaultLocation.latitude, defaultLocation.longitude);
   }, []);

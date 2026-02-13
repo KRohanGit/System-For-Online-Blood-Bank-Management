@@ -15,7 +15,11 @@ const checkRole = (allowedRoles) => {
 
       const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
-      if (!roles.includes(req.userRole)) {
+      // Case-insensitive role comparison to tolerate different role casing
+      const rolesLower = roles.map(r => String(r).toLowerCase());
+      const userRoleLower = String(req.userRole).toLowerCase();
+
+      if (!rolesLower.includes(userRoleLower)) {
         console.log(`❌ Access denied: User role '${req.userRole}' not in allowed roles [${roles.join(', ')}]`);
         return res.status(403).json({ 
           success: false,
@@ -37,7 +41,8 @@ const checkRole = (allowedRoles) => {
 
 const checkVerified = (req, res, next) => {
   try {
-    if (req.userRole === 'PUBLIC_USER') {
+    const userRoleLower = String(req.userRole || '').toLowerCase();
+    if (userRoleLower === 'public_user') {
       if (!req.user.verificationStatus || req.user.verificationStatus !== 'verified') {
         console.log(`❌ Verification check failed: User ${req.user.email} is ${req.user.verificationStatus}`);
         return res.status(403).json({

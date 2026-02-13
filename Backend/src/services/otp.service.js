@@ -13,9 +13,10 @@ const validateOTP = async (otp, hash) => {
   return await bcrypt.compare(otp, hash);
 };
 
-const getOTPExpiry = () => {
+// Returns a Date object 'minutes' minutes from now. Default: 30 minutes.
+const getOTPExpiry = (minutes = 30) => {
   const expiry = new Date();
-  expiry.setHours(expiry.getHours() + 24);
+  expiry.setTime(expiry.getTime() + minutes * 60 * 1000);
   return expiry;
 };
 

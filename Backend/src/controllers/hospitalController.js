@@ -1,5 +1,8 @@
 const HospitalProfile = require('../models/HospitalProfile');
 const User = require('../models/User');
+const PublicUser = require('../models/PublicUser');
+const DonorCredential = require('../models/DonorCredential');
+const bcrypt = require('bcrypt');
 
 /**
  * Get hospital's own profile
@@ -115,7 +118,7 @@ const getVerificationStatus = async (req, res) => {
  */
 const createDonorAccount = async (req, res) => {
   try {
-    const { email, password, donorName } = req.body;
+    const { email, password, donorName, phone, bloodGroup } = req.body;
 
     // Validate required fields
     if (!email || !password || !donorName) {
@@ -125,32 +128,78 @@ const createDonorAccount = async (req, res) => {
       });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
-      return res.status(400).json({
+    // Get hospital admin's hospital ID
+    const hospitalProfile = await HospitalProfile.findOne({ userId: req.user._id });
+    if (!hospitalProfile) {
+      return res.status(404).json({
         success: false,
-        message: 'Email already registered'
+        message: 'Hospital profile not found'
       });
     }
 
-    // Create donor user
-    const user = new User({
-      email: email.toLowerCase(),
-      password,
-      role: 'donor',
-      isVerified: true // Donors created by admin are auto-verified
+    const hospitalId = hospitalProfile._id;
+
+    // Check if donor already exists
+    const existingDonor = await PublicUser.findOne({ 
+      email: email.toLowerCase()
     });
 
-    await user.save();
+    if (existingDonor) {
+      return res.status(400).json({
+        success: false,
+        message: 'A donor with this email already exists'
+      });
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create PublicUser (donor)
+    const donor = new PublicUser({
+      fullName: donorName,
+      email: email.toLowerCase(),
+      phone: phone || '0000000000', // Placeholder if not provided
+      password: hashedPassword,
+      bloodGroup: bloodGroup || 'O+',
+      role: 'PUBLIC_USER',
+      verificationStatus: 'verified' // Pre-verified by hospital
+    });
+
+    await donor.save();
+
+    // Generate OTP for donor credential
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+    const otpHash = await bcrypt.hash(otp, 10);
+    const otpExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    // Create DonorCredential
+    const credential = new DonorCredential({
+      donorId: donor._id,
+      hospitalId: req.user._id, // Hospital admin user ID
+      email: donor.email,
+      otpHash,
+      otpExpiry,
+      isVerified: true, // Pre-verified by hospital
+      isOtpUsed: false,
+      mustChangePassword: true
+    });
+
+    await credential.save();
 
     res.status(201).json({
       success: true,
       message: 'Donor account created successfully',
       data: {
-        id: user._id,
-        email: user.email,
-        role: user.role
+        id: donor._id,
+        email: donor.email,
+        donorName: donor.fullName,
+        role: donor.role,
+        credentials: {
+          email: donor.email,
+          password: password, // Return plain password once for hospital to share with donor
+          otp: otp,
+          mustChangePassword: true
+        }
       }
     });
 
@@ -158,7 +207,8 @@ const createDonorAccount = async (req, res) => {
     console.error('Create donor error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create donor account'
+      message: 'Failed to create donor account',
+      error: error.message
     });
   }
 };

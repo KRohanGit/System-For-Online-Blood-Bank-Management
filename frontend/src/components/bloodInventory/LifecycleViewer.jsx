@@ -64,9 +64,9 @@ const LifecycleViewer = ({ unit, onClose }) => {
                 </span>
               </div>
 
-              {event.performedBy && (
+              {(event.performedByName || event.performedBy) && (
                 <p className="timeline-user">
-                  By: {event.performedBy.name || event.performedBy}
+                  By: {event.performedByName || (event.performedBy && event.performedBy.email) || event.performedBy}
                 </p>
               )}
 

@@ -16,12 +16,22 @@ function EmergencyInterCloud() {
   const navigate = useNavigate();
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showMatchesModal, setShowMatchesModal] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [matchingHospitals, setMatchingHospitals] = useState([]);
   const [activeRequests, setActiveRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  const [messageForm, setMessageForm] = useState({
+    recipientHospital: '',
+    messageType: 'URGENT_REQUEST',
+    subject: '',
+    message: '',
+    bloodGroup: '',
+    unitsNeeded: ''
+  });
   
   const [emergencyRequest, setEmergencyRequest] = useState({
     bloodGroup: '',
@@ -155,6 +165,42 @@ function EmergencyInterCloud() {
     }
   };
 
+  const handleMessageInputChange = (e) => {
+    const { name, value } = e.target;
+    setMessageForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    try {
+      // TODO: Implement actual API call when backend is ready
+      console.log('Sending message:', messageForm);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setSuccess(`Message sent successfully to ${messageForm.recipientHospital}!`);
+      setShowMessageModal(false);
+      
+      // Reset form
+      setMessageForm({
+        recipientHospital: '',
+        messageType: 'URGENT_REQUEST',
+        subject: '',
+        message: '',
+        bloodGroup: '',
+        unitsNeeded: ''
+      });
+    } catch (err) {
+      setError(err.message || 'Failed to send message');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getSeverityColor = (severity) => {
     const colors = {
       'CRITICAL': 'red',
@@ -244,12 +290,20 @@ function EmergencyInterCloud() {
             <h1>🚨 Emergency Inter-Hospital Coordination</h1>
             <p>Real-time blood availability and emergency request management</p>
           </div>
-          <button 
-            className="btn-emergency"
-            onClick={() => setShowRequestModal(true)}
-          >
-            🚨 New Emergency Request
-          </button>
+          <div className="header-actions">
+            <button 
+              className="btn-primary"
+              onClick={() => setShowMessageModal(true)}
+            >
+              ✉️ Send Message
+            </button>
+            <button 
+              className="btn-emergency"
+              onClick={() => setShowRequestModal(true)}
+            >
+              🚨 New Emergency Request
+            </button>
+          </div>
         </div>
 
         {/* Alert Messages */}
@@ -546,6 +600,7 @@ function EmergencyInterCloud() {
               
               <div className="modal-actions">
                 <button 
+                  type="button"
                   className="btn-primary"
                   onClick={() => setShowMatchesModal(false)}
                 >
@@ -553,6 +608,129 @@ function EmergencyInterCloud() {
                 </button>
               </div>
             </div>
+          </Modal>
+        )}
+
+        {/* Send Message Modal */}
+        {showMessageModal && (
+          <Modal
+            title="✉️ Send Message to Partner Hospital"
+            onClose={() => setShowMessageModal(false)}
+          >
+            <form onSubmit={handleSendMessage} className="emergency-form">
+              <div className="form-section">
+                <h4>Message Details</h4>
+                
+                <div className="form-group">
+                  <label>Recipient Hospital *</label>
+                  <select
+                    name="recipientHospital"
+                    value={messageForm.recipientHospital}
+                    onChange={handleMessageInputChange}
+                    required
+                  >
+                    <option value="">Select Hospital</option>
+                    {nearbyHospitals.map(hospital => (
+                      <option key={hospital.id} value={hospital.name}>
+                        {hospital.name} ({hospital.distance})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Message Type *</label>
+                  <select
+                    name="messageType"
+                    value={messageForm.messageType}
+                    onChange={handleMessageInputChange}
+                    required
+                  >
+                    <option value="URGENT_REQUEST">🚨 Urgent Blood Request</option>
+                    <option value="INQUIRY">❓ Availability Inquiry</option>
+                    <option value="COORDINATION">🤝 Coordination</option>
+                    <option value="UPDATE">📢 Status Update</option>
+                    <option value="THANKS">🙏 Acknowledgment/Thanks</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Subject *</label>
+                  <input
+                    type="text"
+                    name="subject"
+                    value={messageForm.subject}
+                    onChange={handleMessageInputChange}
+                    placeholder="Brief subject of your message"
+                    required
+                  />
+                </div>
+
+                {(messageForm.messageType === 'URGENT_REQUEST' || messageForm.messageType === 'INQUIRY') && (
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Blood Group</label>
+                      <select
+                        name="bloodGroup"
+                        value={messageForm.bloodGroup}
+                        onChange={handleMessageInputChange}
+                      >
+                        <option value="">Select Blood Group</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Units Needed</label>
+                      <input
+                        type="number"
+                        name="unitsNeeded"
+                        value={messageForm.unitsNeeded}
+                        onChange={handleMessageInputChange}
+                        min="1"
+                        placeholder="Number of units"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label>Message *</label>
+                  <textarea
+                    name="message"
+                    value={messageForm.message}
+                    onChange={handleMessageInputChange}
+                    placeholder="Enter your message here..."
+                    rows="5"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-actions">
+                <button 
+                  type="button" 
+                  className="btn-secondary"
+                  onClick={() => setShowMessageModal(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn-primary"
+                  disabled={loading}
+                >
+                  {loading ? 'Sending...' : '✉️ Send Message'}
+                </button>
+              </div>
+            </form>
           </Modal>
         )}
       </div>

@@ -155,41 +155,7 @@ const DoctorDashboard = () => {
                 <ClinicalDecisionLogCard />
               </div>
 
-              {/* Quick Actions Section */}
-              <div className="quick-actions-section">
-                <h3>Quick Actions</h3>
-                <div className="quick-actions-grid">
-                  <button 
-                    className="quick-action-btn validation-btn"
-                    onClick={() => setActiveTab('validations')}
-                  >
-                    <span className="action-label">Blood Unit Validation</span>
-                    {overview?.pending?.validations > 0 && (
-                      <span className="action-badge">{overview.pending.validations}</span>
-                    )}
-                  </button>
-                  
-                  <button 
-                    className="quick-action-btn consults-btn"
-                    onClick={() => setActiveTab('consults')}
-                  >
-                    <span className="action-label">Emergency Consults</span>
-                    {overview?.pending?.consults > 0 && (
-                      <span className="action-badge">{overview.pending.consults}</span>
-                    )}
-                  </button>
-                  
-                  <button 
-                    className="quick-action-btn camps-btn"
-                    onClick={() => setActiveTab('camps')}
-                  >
-                    <span className="action-label">Camp Oversight</span>
-                    {overview?.pending?.camps > 0 && (
-                      <span className="action-badge">{overview.pending.camps}</span>
-                    )}
-                  </button>
-                </div>
-              </div>
+              {/* Quick Actions removed to avoid duplication with navbar */}
             </div>
           </div>
         );

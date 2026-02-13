@@ -1434,6 +1434,146 @@
   color: var(--gray-900);
 }
 
+/* Blood Inventory Quick View Grid */
+.blood-inventory-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.blood-stock-mini-card {
+  background: var(--white);
+  border: 2px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.blood-stock-mini-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.blood-stock-mini-card.status-critical {
+  border-color: #fee2e2;
+  background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+}
+
+.blood-stock-mini-card.status-low {
+  border-color: #fef3c7;
+  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+}
+
+.blood-stock-mini-card.status-good {
+  border-color: #d1fae5;
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+}
+
+.blood-stock-mini-card .blood-group-badge {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--blood-red);
+  text-align: center;
+  padding: 4px 8px;
+  background: var(--gray-50);
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.blood-stock-mini-card .stock-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.blood-stock-mini-card .stock-main {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  justify-content: center;
+}
+
+.blood-stock-mini-card .stock-available {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.blood-stock-mini-card .stock-label {
+  font-size: 12px;
+  color: var(--gray-500);
+  font-weight: 500;
+}
+
+.blood-stock-mini-card .stock-reserved {
+  text-align: center;
+}
+
+.blood-stock-mini-card .reserved-count {
+  font-size: 11px;
+  color: var(--gray-600);
+  background: var(--gray-100);
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.blood-stock-mini-card .status-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: capitalize;
+}
+
+.blood-stock-mini-card .status-indicator.status-critical {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.blood-stock-mini-card .status-indicator.status-low {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.blood-stock-mini-card .status-indicator.status-good {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.blood-stock-mini-card .status-text {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+  .blood-inventory-quick-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .blood-inventory-quick-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .blood-inventory-quick-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .blood-group-stock {
   display: flex;
   align-items: center;

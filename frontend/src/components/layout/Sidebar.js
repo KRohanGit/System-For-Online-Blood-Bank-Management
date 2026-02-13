@@ -16,10 +16,7 @@ export default function Sidebar({ isOpen, onClose }) {
             <span className="icon">💬</span>
             <span>Community</span>
           </Link>
-          <Link to="/hospitals" className="sidebar-link" onClick={onClose}>
-            <span className="icon">🏥</span>
-            <span>Hospitals</span>
-          </Link>
+          
           <Link to="/organize-camp" className="sidebar-link" onClick={onClose}>
             <span className="icon">📅</span>
             <span>Organize Camp</span>

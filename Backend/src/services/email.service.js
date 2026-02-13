@@ -1,12 +1,18 @@
 const sendDonorCredentialEmail = async (email, hospitalName, otp) => {
+  // Development-only logging. Replace with a real email/SMS provider in production.
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('sendDonorCredentialEmail called in production: implement an email provider');
+    return false;
+  }
+
   console.log(`
     ========================================
-    DONOR CREDENTIAL EMAIL
+    DEV DONOR CREDENTIAL EMAIL (DO NOT LOG OTPS IN PROD)
     ========================================
     To: ${email}
     Hospital: ${hospitalName}
     OTP: ${otp}
-    Valid for: 24 hours
+    Valid for: 30 minutes
     ========================================
   `);
   return true;

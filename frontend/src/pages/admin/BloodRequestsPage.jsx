@@ -61,7 +61,7 @@ function BloodRequestsPage() {
         },
         {
           id: 4,
-          patientName: 'Sunita Reddy',
+          patientName: 'Giri',
           bloodGroup: 'AB-',
           units: 2,
           urgency: 'Emergency',
@@ -73,7 +73,7 @@ function BloodRequestsPage() {
         },
         {
           id: 5,
-          patientName: 'Vikram Singh',
+          patientName: 'Dinesh Kumar',
           bloodGroup: 'O-',
           units: 4,
           urgency: 'Urgent',

@@ -14,7 +14,7 @@ exports.reserveUnit = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Unit not available' });
     }
 
-    await unit.reserve(reservedFor, req.user.id, priority);
+    await unit.reserve(reservedFor, req.user.id, priority, req.user.email || req.user.name);
     res.json({ success: true, message: 'Unit reserved', data: unit });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -35,7 +35,7 @@ exports.issueUnit = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Unit cannot be issued' });
     }
 
-    await unit.issue(issuedTo, req.user.id, purpose);
+    await unit.issue(issuedTo, req.user.id, purpose, req.user.email || req.user.name);
     res.json({ success: true, message: 'Unit issued', data: unit });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

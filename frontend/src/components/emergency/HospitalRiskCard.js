@@ -16,12 +16,7 @@ const HospitalRiskCard = ({ hospital, onClick, compact = false }) => {
   } = hospital;
 
   const getImpactIcon = () => {
-    switch (impactLevel) {
-      case 'primary': return '🎯';
-      case 'secondary': return '⚡';
-      case 'tertiary': return '📍';
-      default: return '🏥';
-    }
+    return '';
   };
 
   const totalAvailable = Object.values(availableUnits || {}).reduce((sum, val) => sum + val, 0);

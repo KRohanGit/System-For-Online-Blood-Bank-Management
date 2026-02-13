@@ -18,10 +18,11 @@ const ExpiryWatch = () => {
   const fetchExpiringUnits = async () => {
     setLoading(true);
     try {
-      const data = await getExpiringUnits();
-      setExpiringData(data.expiringUnits);
+      const response = await getExpiringUnits();
+      setExpiringData(response.data?.categorized || response.categorized || { critical: [], urgent: [], warning: [] });
     } catch (error) {
       console.error('Failed to fetch expiring units:', error);
+      setExpiringData({ critical: [], urgent: [], warning: [] });
     } finally {
       setLoading(false);
     }

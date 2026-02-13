@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import StatusBadge from '../../components/common/StatusBadge';
 import Modal from '../../components/common/Modal';
@@ -90,9 +91,46 @@ function DonorManagement() {
     setShowDetailModal(true);
   };
 
-  const sendCredentials = (donor) => {
-    const tempPassword = Math.random().toString(36).slice(-8);
-    alert(`✅ Credentials sent to ${donor.name}\n\nEmail: ${donor.email}\nTemporary Password: ${tempPassword}\n\nDonor will be prompted to change password on first login.`);
+  const sendCredentials = async (donor) => {
+    try {
+      const token = localStorage.getItem('token');
+      const tempPassword = `Donor@${Math.random().toString(36).slice(-6)}`;
+      
+      // Call backend API to create donor account
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/hospitals/create-donor-account`,
+        {
+          email: donor.email,
+          password: tempPassword,
+          donorName: donor.name,
+          phone: donor.phone,
+          bloodGroup: donor.bloodGroup
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (response.data.success) {
+        const { credentials } = response.data.data;
+        
+        alert(
+          `Donor Account Created Successfully!\n\n` +
+          `Email: ${credentials.email}\n` +
+          `Password: ${credentials.password}\n` +
+          `OTP: ${credentials.otp}\n\n` +
+          `IMPORTANT: Share these credentials with the donor.\n` +
+          `They can login at: http://localhost:3000/donor/login\n` +
+          `Donor will be prompted to change password on first login.`
+        );
+        
+        // Update local state to show credentials are issued
+        donor.hasCredentials = true;
+      }
+    } catch (error) {
+      console.error('Send credentials error:', error);
+      alert(`Error: ${error.response?.data?.message || 'Failed to create donor account'}`);
+    }
   };
 
   const toggleDonorStatus = (donor) => {
@@ -109,7 +147,7 @@ function DonorManagement() {
     // TODO: Replace with actual API call
     // await donorAPI.create(newDonor);
     
-    alert(`✅ Donor ${newDonor.name} added successfully!`);
+    alert(`✓ Donor ${newDonor.name} added successfully!`);
     setShowAddModal(false);
     setNewDonor({
       name: '',
@@ -276,7 +314,7 @@ function DonorManagement() {
                   </div>
                   <div className="detail-item">
                     <span className="detail-label">Credentials:</span>
-                    <span className="detail-value">{selectedDonor.hasCredentials ? '✅ Issued' : '❌ Not Issued'}</span>
+                    <span className="detail-value">{selectedDonor.hasCredentials ? 'Issued' : 'Not Issued'}</span>
                   </div>
                   <div className="detail-item full-width">
                     <span className="detail-label">Address:</span>

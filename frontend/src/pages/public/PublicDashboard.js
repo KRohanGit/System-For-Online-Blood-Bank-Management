@@ -55,14 +55,6 @@ export default function PublicDashboard() {
       gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
     },
     {
-      icon: '🏥',
-      title: 'Hospitals',
-      description: 'Find blood banks',
-      action: () => navigate('/hospitals'),
-      color: '#2ecc71',
-      gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)'
-    },
-    {
       icon: '🩸',
       title: 'Blood Camps',
       description: 'Donation events',

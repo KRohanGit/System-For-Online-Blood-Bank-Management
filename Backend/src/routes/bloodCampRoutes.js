@@ -46,6 +46,9 @@ router.get('/nearby', bloodCampController.getNearbyCamps);
  */
 router.get('/:id', bloodCampController.getCampById);
 
+// Get camps for a specific hospital (public)
+router.get('/by-hospital/:hospitalId', bloodCampController.getCampsByHospital);
+
 // ============= PROTECTED ROUTES (Authentication required) =============
 
 /**

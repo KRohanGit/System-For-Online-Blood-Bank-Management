@@ -12,7 +12,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import DoctorApprovals from './pages/admin/DoctorApprovals';
 import BloodInventoryPage from './pages/admin/BloodInventoryPage';
 import BloodRequestsPage from './pages/admin/BloodRequestsPage';
-import EmergencyInterCloud from './pages/admin/EmergencyInterCloud';
+import EmergencyInterHospitalCoordination from './pages/admin/EmergencyInterHospitalCoordination';
 import DonorManagement from './pages/admin/DonorManagement';
 import UrgencyDetails from './pages/admin/UrgencyDetails';
 import AuditLogs from './pages/admin/AuditLogs';
@@ -75,7 +75,7 @@ function App() {
           <Route path="/admin/approvals" element={<DoctorApprovals />} />
           <Route path="/admin/blood-inventory" element={<BloodInventoryPage />} />
           <Route path="/admin/blood-requests" element={<BloodRequestsPage />} />
-          <Route path="/admin/emergency" element={<EmergencyInterCloud />} />
+          <Route path="/admin/emergency" element={<EmergencyInterHospitalCoordination />} />
           <Route path="/admin/donors" element={<DonorManagement />} />
           <Route path="/admin/donor-management" element={<DonorManagementCard />} />
           <Route path="/admin/urgency-details" element={<UrgencyDetails />} />
