@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import config from '../../config/config';
 
 function TestSuperAdmin() {
   const [token, setToken] = useState(null);
@@ -10,7 +11,7 @@ function TestSuperAdmin() {
 
     if (storedToken) {
       // Test API call
-      fetch('http://localhost:5000/api/superadmin/stats', {
+      fetch(`${config.API_URL}/superadmin/stats`, {
         headers: {
           'Authorization': `Bearer ${storedToken}`
         }

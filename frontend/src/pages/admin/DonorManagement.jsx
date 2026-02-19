@@ -120,7 +120,7 @@ function DonorManagement() {
           `Password: ${credentials.password}\n` +
           `OTP: ${credentials.otp}\n\n` +
           `IMPORTANT: Share these credentials with the donor.\n` +
-          `They can login at: http://localhost:3000/donor/login\n` +
+          `They can login at: ${window.location.origin}/donor/login\n` +
           `Donor will be prompted to change password on first login.`
         );
         

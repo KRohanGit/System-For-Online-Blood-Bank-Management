@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import config from '../../config/config';
 import '../../styles/superadmin.css';
 
 const SuperAdminDashboard = () => {
@@ -32,7 +33,7 @@ const SuperAdminDashboard = () => {
   const fetchAdminName = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/auth/profile', {
+      const response = await axios.get(`${config.API_URL}/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success && response.data.data?.email) {
@@ -65,7 +66,7 @@ const SuperAdminDashboard = () => {
     try {
       const token = localStorage.getItem('token');
       console.log('📤 Frontend: Fetching stats...');
-      const response = await axios.get('http://localhost:5000/api/superadmin/stats', {
+      const response = await axios.get(`${config.API_URL}/superadmin/stats`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -81,7 +82,7 @@ const SuperAdminDashboard = () => {
     try {
       const token = localStorage.getItem('token');
       console.log('📤 Frontend: Fetching pending users...');
-      const response = await axios.get('http://localhost:5000/api/superadmin/users/pending', {
+      const response = await axios.get(`${config.API_URL}/superadmin/users/pending`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log('📥 Frontend: Received response:', response.data);
@@ -101,7 +102,7 @@ const SuperAdminDashboard = () => {
   const fetchRecentActivity = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/superadmin/activity?limit=8', {
+      const response = await axios.get(`${config.API_URL}/superadmin/activity?limit=8`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -121,8 +122,8 @@ const SuperAdminDashboard = () => {
     try {
       const token = localStorage.getItem('token');
       const endpoint = role === 'PUBLIC_USER' 
-        ? `http://localhost:5000/api/superadmin/public-users/${userId}/approve`
-        : `http://localhost:5000/api/superadmin/users/${userId}/approve`;
+        ? `${config.API_URL}/superadmin/public-users/${userId}/approve`
+        : `${config.API_URL}/superadmin/users/${userId}/approve`;
       
       const response = await axios.put(
         endpoint,
@@ -157,14 +158,14 @@ const SuperAdminDashboard = () => {
       if (role === 'PUBLIC_USER') {
         // For PUBLIC_USER, use PUT method to update status to rejected
         response = await axios.put(
-          `http://localhost:5000/api/superadmin/public-users/${userId}/reject`,
+          `${config.API_URL}/superadmin/public-users/${userId}/reject`,
           { reason },
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         // For regular users, use DELETE to remove
         response = await axios.delete(
-          `http://localhost:5000/api/superadmin/users/${userId}/reject`,
+          `${config.API_URL}/superadmin/users/${userId}/reject`,
           {
             headers: { Authorization: `Bearer ${token}` },
             data: { reason }

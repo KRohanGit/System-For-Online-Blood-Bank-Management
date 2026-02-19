@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { authAPI } from '../../services/api';
+import config from '../../config/config';
 
 function TestHospitalRegistration() {
   const [result, setResult] = useState(null);
@@ -35,7 +36,7 @@ function TestHospitalRegistration() {
   const testAPIConnection = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/health');
+      const response = await fetch(`${config.API_BASE_URL}/health`);
       const data = await response.json();
       console.log('🏥 Backend health check:', data);
       setResult({ success: true, health: data });

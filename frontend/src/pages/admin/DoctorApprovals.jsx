@@ -171,7 +171,7 @@ function DoctorApprovals() {
 
   const viewCertificate = (doctor) => {
     if (doctor.certificateFilePath) {
-      const fileUrl = `http://localhost:5000/${doctor.certificateFilePath}`;
+      const fileUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/${doctor.certificateFilePath}`;
       window.open(fileUrl, '_blank');
     } else {
       alert('No certificate available');

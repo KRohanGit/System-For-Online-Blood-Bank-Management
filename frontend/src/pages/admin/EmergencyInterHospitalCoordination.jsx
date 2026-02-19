@@ -3,6 +3,7 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import EmergencyRequestCard from '../../components/emergency/EmergencyRequestCard';
 import NewEmergencyRequestModal from '../../components/emergency/NewEmergencyRequestModal';
 import SendMessageModal from '../../components/emergency/SendMessageModal';
+import config from '../../config/config';
 import './EmergencyInterHospitalCoordination.css';
 
 const EmergencyInterHospitalCoordination = () => {
@@ -23,7 +24,7 @@ const EmergencyInterHospitalCoordination = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/emergency-coordination/requests', {
+      const response = await fetch(`${config.API_URL}/emergency-coordination/requests`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -49,7 +50,7 @@ const EmergencyInterHospitalCoordination = () => {
   const loadNearbyHospitals = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/emergency-coordination/nearby-hospitals', {
+      const response = await fetch(`${config.API_URL}/emergency-coordination/nearby-hospitals`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -67,7 +68,7 @@ const EmergencyInterHospitalCoordination = () => {
   const handleCreateRequest = async (formData) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/emergency-coordination/requests', {
+      const response = await fetch(`${config.API_URL}/emergency-coordination/requests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +94,7 @@ const EmergencyInterHospitalCoordination = () => {
   const handleSendMessage = async (formData) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/emergency-coordination/messages', {
+      const response = await fetch(`${config.API_URL}/emergency-coordination/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,7 +119,7 @@ const EmergencyInterHospitalCoordination = () => {
   const handleAcceptRequest = async (requestId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/emergency-coordination/requests/${requestId}/respond`, {
+      const response = await fetch(`${config.API_URL}/emergency-coordination/requests/${requestId}/respond`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -146,7 +147,7 @@ const EmergencyInterHospitalCoordination = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/emergency-coordination/requests/${requestId}/respond`, {
+      const response = await fetch(`${config.API_URL}/emergency-coordination/requests/${requestId}/respond`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import config from '../../config/config';
 
 function TestSuperAdminAPI() {
   const [result, setResult] = useState(null);
@@ -19,7 +20,7 @@ function TestSuperAdminAPI() {
     try {
       console.log('📤 Fetching pending users with token:', token.substring(0, 20) + '...');
       
-      const response = await fetch('http://localhost:5000/api/superadmin/users/pending', {
+      const response = await fetch(`${config.API_URL}/superadmin/users/pending`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -50,7 +51,7 @@ function TestSuperAdminAPI() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/superadmin/stats', {
+      const response = await fetch(`${config.API_URL}/superadmin/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
