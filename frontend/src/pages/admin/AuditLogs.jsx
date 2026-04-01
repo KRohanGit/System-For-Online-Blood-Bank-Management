@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import config from '../../config/config';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import '../../styles/admin.css';
 
@@ -7,99 +9,67 @@ function AuditLogs() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
   const [dateRange, setDateRange] = useState('today');
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const logs = [
-    {
-      id: 1,
-      action: 'Doctor Approved',
-      performedBy: 'Admin User',
-      details: 'Approved Dr. Gaveshna registration',
-      timestamp: '2026-01-02 14:30:15',
-      type: 'approval',
-      ipAddress: '192.168.1.100'
-    },
-    {
-      id: 2,
-      action: 'Emergency Triggered',
-      performedBy: 'System Auto',
-      details: 'Critical blood request for O- (3 units)',
-      timestamp: '2026-01-02 13:45:22',
-      type: 'emergency',
-      ipAddress: 'System'
-    },
-    {
-      id: 3,
-      action: 'Blood Issued',
-      performedBy: 'Nurse Station',
-      details: 'Issued 5 units of A+ blood to Surgery Dept',
-      timestamp: '2026-01-02 12:15:40',
-      type: 'inventory',
-      ipAddress: '192.168.1.105'
-    },
-    {
-      id: 4,
-      action: 'Donor Registered',
-      performedBy: 'Front Desk',
-      details: 'New donor registration: Dinesh S (AB+)',
-      timestamp: '2026-01-02 11:20:18',
-      type: 'registration',
-      ipAddress: '192.168.1.102'
-    },
-    {
-      id: 5,
-      action: 'Stock Updated',
-      performedBy: 'Admin User',
-      details: 'Added 10 units of B+ to inventory',
-      timestamp: '2026-01-02 10:05:33',
-      type: 'inventory',
-      ipAddress: '192.168.1.100'
-    },
-    {
-      id: 6,
-      action: 'Doctor Rejected',
-      performedBy: 'Admin User',
-      details: 'Rejected Dr. Gaveshna - Invalid license',
-      timestamp: '2026-01-02 09:30:12',
-      type: 'rejection',
-      ipAddress: '192.168.1.100'
-    },
-    {
-      id: 7,
-      action: 'Inter-Hospital Request',
-      performedBy: 'Emergency Dept',
-      details: 'Requested O- blood from Gitam Medical Center',
-      timestamp: '2026-01-02 08:45:55',
-      type: 'emergency',
-      ipAddress: '192.168.1.110'
-    },
-    {
-      id: 8,
-      action: 'Donor Deactivated',
-      performedBy: 'Admin User',
-      details: 'Deactivated donor: Dinesh S (medical reasons)',
-      timestamp: '2026-01-01 16:20:30',
-      type: 'status-change',
-      ipAddress: '192.168.1.100'
-    },
-    {
-      id: 9,
-      action: 'Settings Updated',
-      performedBy: 'Admin User',
-      details: 'Changed notification preferences',
-      timestamp: '2026-01-01 15:10:22',
-      type: 'settings',
-      ipAddress: '192.168.1.100'
-    },
-    {
-      id: 10,
-      action: 'Report Generated',
-      performedBy: 'Admin User',
-      details: 'Generated monthly blood inventory report',
-      timestamp: '2026-01-01 14:00:00',
-      type: 'report',
-      ipAddress: '192.168.1.100'
+  const API_URL = config?.API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+  useEffect(() => {
+    fetchLogs();
+  }, [filter, dateRange]);
+
+  const fetchLogs = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const params = {};
+      if (filter !== 'all') params.action = filter;
+      if (dateRange === 'today') {
+        params.startDate = new Date().toISOString().split('T')[0];
+      } else if (dateRange === 'week') {
+        const d = new Date();
+        d.setDate(d.getDate() - 7);
+        params.startDate = d.toISOString().split('T')[0];
+      } else if (dateRange === 'month') {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 1);
+        params.startDate = d.toISOString().split('T')[0];
+      }
+
+      const response = await axios.get(`${API_URL}/audit-trail/logs`, {
+        params,
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = response.data;
+      const fetchedLogs = data.data?.logs || data.logs || data.data || [];
+      setLogs(fetchedLogs.map((log, idx) => ({
+        id: log._id || idx + 1,
+        action: log.action || log.eventType || 'System Event',
+        performedBy: log.performedBy?.name || log.performedBy?.email || log.userId || 'System',
+        details: log.details || log.description || log.message || '',
+        timestamp: log.timestamp || log.createdAt || '',
+        type: log.category || log.type || mapActionToType(log.action),
+        ipAddress: log.ipAddress || log.metadata?.ipAddress || 'N/A'
+      })));
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      // Show empty state rather than crash
+      setLogs([]);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const mapActionToType = (action) => {
+    if (!action) return 'settings';
+    const a = action.toLowerCase();
+    if (a.includes('approv')) return 'approval';
+    if (a.includes('reject')) return 'rejection';
+    if (a.includes('emergency')) return 'emergency';
+    if (a.includes('blood') || a.includes('inventory') || a.includes('stock')) return 'inventory';
+    if (a.includes('register') || a.includes('donor')) return 'registration';
+    return 'settings';
+  };
 
   const filteredLogs = logs.filter(log => 
     filter === 'all' ? true : log.type === filter

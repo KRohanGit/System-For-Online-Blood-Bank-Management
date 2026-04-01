@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { getCurrentLocation } from '../../services/geolocationApi';
+import config from '../../config/config';
 import './CivicAlertFeed.css';
 
 const CivicAlertFeed = () => {
+  const API_URL = config?.API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState(null);
@@ -58,7 +60,7 @@ const CivicAlertFeed = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `/api/public/alerts?lat=${userLocation.lat}&lng=${userLocation.lng}&radius=${radius * 1000}`,
+        `${API_URL}/public/alerts?lat=${userLocation.lat}&lng=${userLocation.lng}&radius=${radius * 1000}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setAlerts(response.data.data || []);

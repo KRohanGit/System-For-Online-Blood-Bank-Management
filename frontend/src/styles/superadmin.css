@@ -558,6 +558,78 @@
   font-weight: 500;
 }
 
+.documents-review {
+  margin-top: 12px;
+  border-top: 1px solid var(--sa-gray-100);
+  padding-top: 12px;
+}
+
+.documents-title {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sa-gray-700);
+}
+
+.documents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.document-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--sa-gray-50);
+  border: 1px solid var(--sa-gray-200);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.document-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.document-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sa-gray-800);
+}
+
+.document-file {
+  font-size: 12px;
+  color: var(--sa-gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.btn-view-document {
+  border: none;
+  border-radius: 7px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(135deg, var(--sa-info), #2563eb);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.btn-view-document:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn-view-document:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Approval Actions */
 .approval-actions {
   display: flex;
@@ -740,6 +812,85 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
+.secure-documents-section {
+  margin-bottom: 32px;
+}
+
+.secure-doc-upload-form {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr auto;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.secure-doc-upload-form select,
+.secure-doc-upload-form input {
+  border: 1px solid var(--sa-gray-300);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.secure-doc-upload-form button {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: white;
+  background: linear-gradient(135deg, var(--sa-primary), var(--sa-primary-dark));
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secure-doc-upload-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secure-doc-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.secure-doc-card {
+  border: 1px solid var(--sa-gray-200);
+  border-radius: 12px;
+  background: var(--sa-gray-50);
+  padding: 16px;
+}
+
+.secure-doc-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.secure-doc-top h3 {
+  margin: 0;
+  color: var(--sa-gray-900);
+  font-size: 16px;
+}
+
+.secure-doc-top p {
+  margin: 6px 0 0;
+  color: var(--sa-gray-500);
+  font-size: 13px;
+}
+
+.secure-doc-ai-text {
+  margin: 12px 0;
+  color: var(--sa-gray-700);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.secure-doc-fields {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
 .quick-actions-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -818,6 +969,304 @@
   line-height: 1.5;
 }
 
+/* Alert Styles */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.alert-error {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.alert svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.alert-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  margin-left: auto;
+  padding: 0;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.alert-close:hover {
+  opacity: 1;
+}
+
+/* Nearby Blood Camps Section */
+.blood-camps-section {
+  margin-top: 32px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.location-badge {
+  display: inline-block;
+  background: var(--sa-primary);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 12px;
+}
+
+.btn-refresh {
+  padding: 8px 16px;
+  background: var(--sa-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-refresh:hover:not(:disabled) {
+  background: var(--sa-primary-dark);
+  transform: translateY(-2px);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--sa-gray-600);
+  text-align: center;
+}
+
+.loading-state .spinner {
+  margin-bottom: 16px;
+}
+
+.loading-state p {
+  font-size: 14px;
+  color: var(--sa-gray-600);
+  margin: 0;
+}
+
+.blood-camps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.blood-camp-card {
+  background: white;
+  border: 1px solid var(--sa-gray-200);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.blood-camp-card:hover {
+  border-color: var(--sa-primary);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
+  transform: translateY(-4px);
+}
+
+.camp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(129, 140, 248, 0.05));
+  border-bottom: 1px solid var(--sa-gray-100);
+}
+
+.camp-title h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sa-gray-900);
+  line-height: 1.4;
+}
+
+.camp-status {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--sa-warning);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.distance-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--sa-info);
+  color: var(--sa-info);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.distance-badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+.camp-description {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--sa-gray-100);
+}
+
+.camp-description p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--sa-gray-600);
+  line-height: 1.6;
+}
+
+.camp-organizer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--sa-gray-50);
+  border-bottom: 1px solid var(--sa-gray-100);
+}
+
+.organizer-icon {
+  font-size: 28px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid var(--sa-gray-200);
+}
+
+.organizer-info {
+  flex: 1;
+}
+
+.organizer-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sa-gray-900);
+}
+
+.organizer-type {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--sa-gray-500);
+}
+
+.organizer-contact {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--sa-info);
+  font-weight: 500;
+}
+
+.camp-details {
+  padding: 12px 16px;
+  flex: 1;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  color: var(--sa-gray-600);
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.detail-value {
+  color: var(--sa-gray-900);
+  font-weight: 500;
+  flex: 1;
+}
+
+.camp-actions {
+  padding: 12px 16px;
+  border-top: 1px solid var(--sa-gray-100);
+  background: var(--sa-gray-50);
+}
+
+.btn-view-camp {
+  width: 100%;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, var(--sa-primary), var(--sa-primary-dark));
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-view-camp:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+}
+
+.doc-filename {
+  font-size: 12px;
+  color: var(--sa-gray-500);
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.doc-meta {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--sa-gray-500);
+  font-weight: 400;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .content-grid {
@@ -826,6 +1275,10 @@
 
   .activity-section {
     grid-column: 1;
+  }
+  
+  .blood-camps-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   }
 }
 
@@ -866,7 +1319,38 @@
     grid-template-columns: 1fr;
   }
 
+  .secure-doc-upload-form {
+    grid-template-columns: 1fr;
+  }
+
   .approval-actions {
     flex-direction: column;
+  }
+
+  .blood-camps-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .location-badge {
+    margin-left: 0;
+    align-self: flex-start;
+  }
+
+  .btn-refresh {
+    width: 100%;
+  }
+
+  .camp-header {
+    flex-direction: column;
+  }
+
+  .distance-badge {
+    align-self: flex-start;
   }
 }

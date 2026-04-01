@@ -69,3 +69,7 @@ public_key*
 *.backup
 *.bak
 *.old
+node_modules
+venv/
+**/venv/
+ml-service/venv/

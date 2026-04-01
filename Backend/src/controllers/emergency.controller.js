@@ -7,7 +7,7 @@ const { sendEmergencyAlertEmail } = require('../services/email.service');
 
 const sendEmergencyAlert = async (req, res) => {
   try {
-    const { bloodGroup, message } = req.body;
+    const { bloodGroup, message, specificDonorId } = req.body;
     const hospitalId = req.user._id;
 
     if (!bloodGroup || !message) {
@@ -52,10 +52,11 @@ const sendEmergencyAlert = async (req, res) => {
 
     const verifiedDonorIds = verifiedCredentials.map(c => c.donorId);
 
-    const donors = await PublicUser.find({
-      _id: { $in: verifiedDonorIds },
-      bloodGroup: bloodGroup
-    });
+    // If specificDonorId is provided, only alert that one donor
+    const donorQuery = specificDonorId
+      ? { _id: specificDonorId, bloodGroup: bloodGroup }
+      : { _id: { $in: verifiedDonorIds }, bloodGroup: bloodGroup };
+    const donors = await PublicUser.find(donorQuery);
 
     const hospitalProfile = await HospitalProfile.findOne({ userId: hospitalId });
     const hospitalName = hospitalProfile?.hospitalName || 'Hospital';

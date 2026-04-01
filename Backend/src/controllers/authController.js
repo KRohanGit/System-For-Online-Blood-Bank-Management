@@ -4,6 +4,7 @@ const HospitalProfile = require('../models/HospitalProfile');
 const { generateToken } = require('../utils/jwt');
 const { isValidEmail, validatePassword, isValidRole } = require('../utils/validation');
 const { processEncryptedUpload } = require('../utils/fileEncryptionService');
+const { broadcast } = require('../services/realtime/socketService');
 const fs = require('fs').promises;
 
 const registerDoctor = async (req, res) => {
@@ -54,6 +55,7 @@ const registerDoctor = async (req, res) => {
 
     // Create user
     const user = new User({
+      name,
       email: email.toLowerCase(),
       password,
       role: 'doctor',
@@ -87,7 +89,8 @@ const registerDoctor = async (req, res) => {
     // Generate token
     const token = generateToken({
       userId: user._id,
-      role: user.role
+      role: user.role,
+      name: user.name
     });
 
     res.status(201).json({
@@ -97,6 +100,7 @@ const registerDoctor = async (req, res) => {
         token,
         user: {
           id: user._id,
+          name: user.name,
           email: user.email,
           role: user.role,
           isVerified: user.isVerified
@@ -128,7 +132,14 @@ const registerHospital = async (req, res) => {
       licenseNumber, 
       adminName, 
       adminEmail, 
-      password 
+      password,
+      address,
+      city,
+      state,
+      pincode,
+      phone,
+      latitude,
+      longitude
     } = req.body;
 
     // Validate required fields
@@ -136,6 +147,13 @@ const registerHospital = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'All fields are required'
+      });
+    }
+
+    if (!address || !city || !phone || !pincode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Address, city, pincode and phone are required'
       });
     }
 
@@ -184,6 +202,7 @@ const registerHospital = async (req, res) => {
 
     // Create user
     const user = new User({
+      name: adminName,
       email: adminEmail.toLowerCase(),
       password,
       role: 'hospital_admin',
@@ -202,28 +221,72 @@ const registerHospital = async (req, res) => {
     });
 
     // Create hospital profile with encryption metadata
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid latitude and longitude are required'
+      });
+    }
+
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      return res.status(400).json({
+        success: false,
+        message: 'Coordinates are out of valid range'
+      });
+    }
+
+    if (lat === 0 && lng === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Coordinates [0, 0] are not allowed'
+      });
+    }
+
     const hospitalProfile = new HospitalProfile({
       userId: user._id,
       hospitalName,
       officialEmail: officialEmail.toLowerCase(),
       licenseNumber,
-      licenseFilePath: req.file.path, // Keep original path for backward compatibility
+      licenseFilePath: req.file.path,
       encryptedLicenseData: encryptionPackage.encryptedFileData,
       encryptedAESKey: encryptionPackage.encryptedAESKey,
       encryptionIV: encryptionPackage.encryptionIV,
       encryptionMetadata: encryptionPackage.encryptionMetadata,
       adminName,
       adminEmail: adminEmail.toLowerCase(),
-      verificationStatus: 'pending'
+      verificationStatus: 'pending',
+      address: address || '',
+      city: city || '',
+      state: state || '',
+      pincode: pincode || '',
+      phone: phone || '',
+      location: {
+        type: 'Point',
+        coordinates: [lng, lat]
+      }
     });
 
     await hospitalProfile.save();
     console.log('✅ Hospital profile created for:', adminName);
 
+    broadcast('hospital.created', {
+      hospitalId: hospitalProfile._id,
+      userId: user._id,
+      hospitalName: hospitalProfile.hospitalName,
+      coordinates: hospitalProfile.location.coordinates,
+      city: hospitalProfile.city,
+      state: hospitalProfile.state,
+      timestamp: new Date().toISOString()
+    });
+
     // Generate token
     const token = generateToken({
       userId: user._id,
-      role: user.role
+      role: user.role,
+      name: user.name
     });
 
     res.status(201).json({
@@ -233,6 +296,7 @@ const registerHospital = async (req, res) => {
         token,
         user: {
           id: user._id,
+          name: user.name,
           email: user.email,
           role: user.role,
           isVerified: user.isVerified
@@ -310,7 +374,8 @@ const login = async (req, res) => {
     // Generate token
     const token = generateToken({
       userId: user._id,
-      role: user.role
+      role: user.role,
+      name: user.name
     });
 
     // Get role-specific profile
@@ -329,6 +394,7 @@ const login = async (req, res) => {
         token,
         user: {
           id: user._id,
+          name: user.name,
           email: user.email,
           role: user.role,
           isVerified: user.isVerified
@@ -389,6 +455,7 @@ const getProfile = async (req, res) => {
       success: true,
       data: {
         id: user._id,
+        name: user.name,
         email: user.email,
         role: user.role,
         isVerified: user.isVerified,
@@ -450,6 +517,7 @@ const registerDonor = async (req, res) => {
 
     // Create user (donors are automatically verified)
     const user = new User({
+      name,
       email: email.toLowerCase(),
       password,
       role: 'donor',
@@ -461,7 +529,8 @@ const registerDonor = async (req, res) => {
     // Generate token
     const token = generateToken({
       userId: user._id,
-      role: user.role
+      role: user.role,
+      name: user.name
     });
 
     res.status(201).json({
@@ -471,6 +540,7 @@ const registerDonor = async (req, res) => {
         token,
         user: {
           id: user._id,
+          name: user.name,
           email: user.email,
           role: user.role,
           isVerified: user.isVerified

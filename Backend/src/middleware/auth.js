@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const PublicUser = require('../models/PublicUser');
+const { isTokenRevoked } = require('../services/auth/tokenBlacklist');
 
 const auth = async (req, res, next) => {
   try {
@@ -14,12 +15,25 @@ const auth = async (req, res, next) => {
     }
 
     const token = authHeader.replace('Bearer ', '');
+
+    if (isTokenRevoked(token)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token has been revoked.'
+      });
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     let user;
     
-    if (decoded.role === 'PUBLIC_USER' || decoded.role === 'donor') {
+    if (decoded.role === 'PUBLIC_USER') {
       user = await PublicUser.findById(decoded.userId).select('-password');
+    } else if (decoded.role === 'donor') {
+      user = await PublicUser.findById(decoded.userId).select('-password');
+      if (!user) {
+        user = await User.findById(decoded.userId).select('-password');
+      }
     } else {
       user = await User.findById(decoded.userId).select('-password');
     }
@@ -64,3 +78,4 @@ const auth = async (req, res, next) => {
 
 module.exports = auth;
 module.exports.protect = auth;
+module.exports.authenticateToken = auth;

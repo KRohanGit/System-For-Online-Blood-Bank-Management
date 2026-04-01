@@ -104,7 +104,12 @@ exports.cancelAppointment = async (req, res) => {
 
 exports.getHospitalAppointments = async (req, res) => {
   try {
-    const appointments = await DonationAppointment.find({ hospitalId: req.user.hospitalId })
+    const query = { hospitalId: req.user.hospitalId };
+    // Support status filtering via query params
+    if (req.query.status && req.query.status !== 'all') {
+      query.status = req.query.status;
+    }
+    const appointments = await DonationAppointment.find(query)
       .sort({ scheduledDate: 1 })
       .lean();
     

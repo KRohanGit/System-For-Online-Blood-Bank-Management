@@ -17,7 +17,7 @@ const validatePassword = (password) => {
 };
 
 const isValidRole = (role) => {
-  const validRoles = ['doctor', 'admin', 'donor', 'public_user'];
+  const validRoles = ['doctor', 'hospital_admin', 'super_admin', 'donor', 'public_user'];
   return validRoles.includes(role?.toLowerCase());
 };
 

@@ -14,7 +14,7 @@ const EmergencyMessages = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/emergency/messages`,
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/emergency/messages`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setMessages(response.data.data);
@@ -29,7 +29,7 @@ const EmergencyMessages = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/emergency/messages/${messageId}/read`,
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/emergency/messages/${messageId}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -52,7 +52,7 @@ const EmergencyMessages = () => {
         <div style={{ marginTop: '20px' }}>
           {messages.map((msg) => (
             <div
-              key={msg.id}
+              key={msg._id || msg.id}
               style={{
                 border: msg.readStatus ? '1px solid #ccc' : '2px solid #000',
                 padding: '15px',
@@ -68,7 +68,7 @@ const EmergencyMessages = () => {
               <p style={{ margin: '10px 0' }}>{msg.message}</p>
               {!msg.readStatus && (
                 <button
-                  onClick={() => markAsRead(msg.id)}
+                  onClick={() => markAsRead(msg._id || msg.id)}
                   style={{ padding: '5px 15px' }}
                 >
                   Mark as Read

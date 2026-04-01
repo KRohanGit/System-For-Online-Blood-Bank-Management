@@ -7,6 +7,7 @@ const DonorLayout = ({ children }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     localStorage.removeItem('donorInfo');
     navigate('/donor/login');
   };

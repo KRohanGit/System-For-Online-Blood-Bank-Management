@@ -14,7 +14,7 @@ const BloodCamp = require('../models/BloodCamp');
  */
 exports.getDoctorOverview = async (req, res) => {
   try {
-    const doctorId = req.user.userId;
+    const doctorId = req.userId || req.user?._id;
 
     // Get doctor profile
     const profile = await DoctorProfile.findOne({ userId: doctorId });
@@ -28,9 +28,9 @@ exports.getDoctorOverview = async (req, res) => {
     // Create default availability if not exists
     if (!availability) {
       availability = {
-        availabilityStatus: 'on_call',
+        availabilityStatus: 'off_duty',
         emergencyTier: 'tier2_urgent',
-        activeConsults: 2
+        activeConsults: 0
       };
     }
 
@@ -55,57 +55,28 @@ exports.getDoctorOverview = async (req, res) => {
     .limit(5)
     .select('consultId consultType urgencyLevel medicalQuery createdAt requestingHospitalName');
 
-    // Add dummy data if no real data exists
-    if (emergencyAlerts.length === 0) {
-      emergencyAlerts = [
-        {
-          consultId: 'EC-DEMO-001',
-          consultType: 'emergency_transfusion',
-          urgencyLevel: 'critical',
-          medicalQuery: 'NH-16 accident casualties. Multiple patients with massive hemorrhage. Require immediate O-, B+ units. Current stock critically low.',
-          createdAt: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
-          requestingHospitalName: 'King George Hospital (KGH), Visakhapatnam'
-        },
-        {
-          consultId: 'EC-DEMO-002',
-          consultType: 'blood_safety',
-          urgencyLevel: 'urgent',
-          medicalQuery: 'Post-transfusion reaction in ICU patient. Fever 102°F, rash developing. Need immediate consultation.',
-          createdAt: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
-          requestingHospitalName: 'Apollo Hospital, Visakhapatnam'
-        }
-      ];
-    }
-
-    // Add dummy pending counts if all are zero
-    const dummyPending = {
-      validations: pendingValidations || 5,
-      consults: pendingConsults || 3,
-      advisories: activeAdvisories || 2,
-      camps: upcomingCamps || 1
-    };
-
     res.json({
       success: true,
       data: {
         profile: {
           name: profile.fullName,
-          registrationNumber: profile.medicalRegistrationNumber || 'MED-2024-12345',
-          specialization: profile.specialization || 'Hematology',
+          registrationNumber: profile.medicalRegistrationNumber || null,
+          specialization: profile.specialization || null,
           affiliatedHospitals: profile.affiliatedHospitals && profile.affiliatedHospitals.length > 0 
             ? profile.affiliatedHospitals 
-            : [
-                { hospitalName: 'King George Hospital (KGH)', city: 'Visakhapatnam', isPrimary: true },
-                { hospitalName: 'Apollo Hospital Visakhapatnam', city: 'Visakhapatnam', isPrimary: false },
-                { hospitalName: 'GITAM Institute of Medical Sciences', city: 'Visakhapatnam', isPrimary: false }
-              ]
+            : []
         },
         availability: {
-          status: availability.availabilityStatus || availability.status,
-          emergencyTier: availability.emergencyTier,
-          activeConsults: availability.activeConsults
+          status: availability?.availabilityStatus || availability?.status || 'off_duty',
+          emergencyTier: availability?.emergencyTier || null,
+          activeConsults: availability?.activeConsults || 0
         },
-        pending: dummyPending,
+        pending: {
+          validations: pendingValidations,
+          consults: pendingConsults,
+          advisories: activeAdvisories,
+          camps: upcomingCamps
+        },
         emergencyAlerts
       }
     });
@@ -120,13 +91,13 @@ exports.getDoctorOverview = async (req, res) => {
  */
 exports.getBloodUnitsForValidation = async (req, res) => {
   try {
-    const doctorId = req.user.userId;
+    const doctorId = req.userId || req.user?._id;
     const { status = 'Quarantined', page = 1, limit = 10 } = req.query;
 
     const skip = (page - 1) * limit;
 
     // Get units that need validation
-    let units = await BloodInventory.find({
+    const units = await BloodInventory.find({
       status,
       _id: {
         $nin: await DoctorMedicalValidation.distinct('targetId', {
@@ -141,99 +112,7 @@ exports.getBloodUnitsForValidation = async (req, res) => {
     .limit(parseInt(limit))
     .populate('hospitalId', 'hospitalName location');
 
-    let total = await BloodInventory.countDocuments({ status });
-
-    // Add dummy data if no real units exist
-    if (units.length === 0) {
-      units = [
-        {
-          _id: 'dummy-unit-1',
-          bloodUnitId: 'VZG-BU-001',
-          bloodGroup: 'O+',
-          storageType: 'Whole Blood',
-          volume: 450,
-          collectionDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          expiryDate: new Date(Date.now() + 33 * 24 * 60 * 60 * 1000),
-          status: 'Quarantined',
-          hospitalId: {
-            hospitalName: 'King George Hospital (KGH)',
-            location: { city: 'Visakhapatnam', state: 'Andhra Pradesh' }
-          },
-          donorInfo: {
-            donorBloodGroup: 'O+'
-          }
-        },
-        {
-          _id: 'dummy-unit-2',
-          bloodUnitId: 'VZG-BU-002',
-          bloodGroup: 'A+',
-          storageType: 'Plasma',
-          volume: 250,
-          collectionDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          expiryDate: new Date(Date.now() + 34 * 24 * 60 * 60 * 1000),
-          status: 'Quarantined',
-          hospitalId: {
-            hospitalName: 'Apollo Hospital Visakhapatnam',
-            location: { city: 'Visakhapatnam', state: 'Andhra Pradesh' }
-          },
-          donorInfo: {
-            donorBloodGroup: 'A+'
-          }
-        },
-        {
-          _id: 'dummy-unit-3',
-          bloodUnitId: 'VZG-BU-003',
-          bloodGroup: 'B-',
-          storageType: 'Red Cells',
-          volume: 350,
-          collectionDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-          expiryDate: new Date(Date.now() + 32 * 24 * 60 * 60 * 1000),
-          status: 'Quarantined',
-          hospitalId: {
-            hospitalName: 'GITAM Institute of Medical Sciences',
-            location: { city: 'Visakhapatnam', state: 'Andhra Pradesh' }
-          },
-          donorInfo: {
-            donorBloodGroup: 'B-'
-          }
-        },
-        {
-          _id: 'dummy-unit-4',
-          bloodUnitId: 'VZG-BU-004',
-          bloodGroup: 'AB+',
-          storageType: 'Platelets',
-          volume: 200,
-          collectionDate: new Date(Date.now() - 0.5 * 24 * 60 * 60 * 1000),
-          expiryDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
-          status: 'Quarantined',
-          hospitalId: {
-            hospitalName: 'Seven Hills Hospital',
-            location: { city: 'Visakhapatnam', state: 'Andhra Pradesh' }
-          },
-          donorInfo: {
-            donorBloodGroup: 'AB+'
-          }
-        },
-        {
-          _id: 'dummy-unit-5',
-          bloodUnitId: 'VZG-BU-005',
-          bloodGroup: 'O-',
-          storageType: 'Whole Blood',
-          volume: 450,
-          collectionDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
-          expiryDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // Expiring soon
-          status: 'Quarantined',
-          hospitalId: {
-            hospitalName: 'Care Hospital Visakhapatnam',
-            location: { city: 'Visakhapatnam', state: 'Andhra Pradesh' }
-          },
-          donorInfo: {
-            donorBloodGroup: 'O-'
-          }
-        }
-      ];
-      total = 5;
-    }
+    const total = await BloodInventory.countDocuments({ status });
 
     res.json({
       success: true,
@@ -257,7 +136,7 @@ exports.getBloodUnitsForValidation = async (req, res) => {
  */
 exports.validateBloodUnit = async (req, res) => {
   try {
-    const doctorId = req.user.userId;
+    const doctorId = req.userId || req.user?._id;
     const { unitId } = req.params;
     const {
       validationStatus,
@@ -361,7 +240,7 @@ exports.validateBloodUnit = async (req, res) => {
  */
 exports.getBloodRequestsForReview = async (req, res) => {
   try {
-    const doctorId = req.user.userId;
+    const doctorId = req.userId || req.user?._id;
     const { status = 'Scheduled', urgency, page = 1, limit = 10 } = req.query;
 
     const skip = (page - 1) * limit;
@@ -400,7 +279,7 @@ exports.getBloodRequestsForReview = async (req, res) => {
  */
 exports.reviewBloodRequestUrgency = async (req, res) => {
   try {
-    const doctorId = req.user.userId;
+    const doctorId = req.userId || req.user?._id;
     const { requestId } = req.params;
     const {
       validatedUrgency,
@@ -473,94 +352,19 @@ exports.reviewBloodRequestUrgency = async (req, res) => {
  */
 exports.getEmergencyConsults = async (req, res) => {
   try {
-    const doctorId = req.user.userId;
+    const doctorId = req.userId || req.user?._id;
     const { status = 'pending', page = 1, limit = 10 } = req.query;
 
     const skip = (page - 1) * limit;
 
-    let consults = await EmergencyConsult.find({ doctorId, status })
+    const consults = await EmergencyConsult.find({ doctorId, status })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))
       .populate('requestingHospitalId', 'hospitalName location')
       .populate('requestedBy', 'name email');
 
-    let total = await EmergencyConsult.countDocuments({ doctorId, status });
-
-    // Add dummy data if no real consults exist
-    if (consults.length === 0) {
-      consults = [
-        {
-          _id: 'dummy-consult-1',
-          consultId: 'VZG-EC-001',
-          requestingHospitalName: 'King George Hospital (KGH), Visakhapatnam',
-          consultType: 'emergency_transfusion',
-          urgencyLevel: 'critical',
-          patientContext: {
-            ageRange: '45-50',
-            gender: 'Male',
-            bloodGroupRequired: 'O-',
-            estimatedUnitsNeeded: 4,
-            clinicalCondition: 'NH-16 highway accident victim. Multiple trauma with severe internal bleeding. BP: 85/55, HR: 125'
-          },
-          medicalQuery: 'Multiple casualties from NH-16 accident. Patient requires massive transfusion protocol. Current O- stock critically low. Requesting guidance on alternative products and emergency procurement.',
-          createdAt: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
-          status: 'pending'
-        },
-        {
-          _id: 'dummy-consult-2',
-          consultId: 'VZG-EC-002',
-          requestingHospitalName: 'Apollo Hospital, Visakhapatnam',
-          consultType: 'blood_safety',
-          urgencyLevel: 'urgent',
-          patientContext: {
-            ageRange: '28-35',
-            gender: 'Female',
-            bloodGroupRequired: 'A+',
-            estimatedUnitsNeeded: 2,
-            clinicalCondition: 'Post-partum hemorrhage, Hb dropped from 11 to 7 g/dL'
-          },
-          medicalQuery: 'Patient developed fever 2 hours post-transfusion (temp 101.5°F). Mild urticaria noted. Need advice on investigation protocol and whether to continue transfusion.',
-          createdAt: new Date(Date.now() - 65 * 60 * 1000), // 65 minutes ago
-          status: 'pending'
-        },
-        {
-          _id: 'dummy-consult-3',
-          consultId: 'VZG-EC-003',
-          requestingHospitalName: 'GITAM Medical College Hospital',
-          consultType: 'adverse_reaction',
-          urgencyLevel: 'urgent',
-          patientContext: {
-            ageRange: '60-65',
-            gender: 'Male',
-            bloodGroupRequired: 'B+',
-            estimatedUnitsNeeded: 1,
-            clinicalCondition: 'Leukemia patient receiving chemotherapy'
-          },
-          medicalQuery: 'Patient developed dyspnea and hives 15 minutes into transfusion. Transfusion stopped. Vitals: BP 130/85, SpO2 94%. Requesting immediate management consultation.',
-          createdAt: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
-          status: 'pending'
-        },
-        {
-          _id: 'dummy-consult-4',
-          consultId: 'VZG-EC-004',
-          requestingHospitalName: 'Seven Hills Hospital, Visakhapatnam',
-          consultType: 'massive_hemorrhage',
-          urgencyLevel: 'critical',
-          patientContext: {
-            ageRange: '38-42',
-            gender: 'Female',
-            bloodGroupRequired: 'AB+',
-            estimatedUnitsNeeded: 6,
-            clinicalCondition: 'Ruptured ectopic pregnancy, active bleeding in OT'
-          },
-          medicalQuery: 'URGENT: Patient on OT table with massive hemorrhage. Already received 4 units AB+. BP 90/60, unstable. Need protocol for continued transfusion support.',
-          createdAt: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
-          status: 'pending'
-        }
-      ];
-      total = 4;
-    }
+    const total = await EmergencyConsult.countDocuments({ doctorId, status });
 
     res.json({
       success: true,
@@ -584,7 +388,7 @@ exports.getEmergencyConsults = async (req, res) => {
  */
 exports.respondToConsult = async (req, res) => {
   try {
-    const doctorId = req.user.userId;
+    const doctorId = req.userId || req.user?._id;
     const { consultId } = req.params;
     const { action, declineReason, medicalAdvisory } = req.body;
 
@@ -667,7 +471,7 @@ exports.respondToConsult = async (req, res) => {
  */
 exports.updateAvailability = async (req, res) => {
   try {
-    const doctorId = req.user.userId;
+    const doctorId = req.userId || req.user?._id;
     const { availabilityStatus, emergencyTier, specializations } = req.body;
 
     let availability = await DoctorAvailability.findOne({ doctorId });
@@ -707,7 +511,7 @@ exports.updateAvailability = async (req, res) => {
  */
 exports.getCampsForOversight = async (req, res) => {
   try {
-    const doctorId = req.user.userId;
+    const doctorId = req.userId || req.user?._id;
     const { phase = 'upcoming', page = 1, limit = 10 } = req.query;
 
     const skip = (page - 1) * limit;
@@ -724,7 +528,7 @@ exports.getCampsForOversight = async (req, res) => {
       dateQuery = { endDate: { $lt: new Date() } };
     }
 
-    let camps = await BloodCamp.find({
+    const camps = await BloodCamp.find({
       'medicalOversight.assignedDoctors': doctorId,
       ...dateQuery
     })
@@ -733,75 +537,10 @@ exports.getCampsForOversight = async (req, res) => {
     .limit(parseInt(limit))
     .populate('organizedBy', 'name email');
 
-    let total = await BloodCamp.countDocuments({
+    const total = await BloodCamp.countDocuments({
       'medicalOversight.assignedDoctors': doctorId,
       ...dateQuery
     });
-
-    // Add dummy data if no real camps exist
-    if (camps.length === 0) {
-      camps = [
-        {
-          _id: 'dummy-camp-1',
-          campName: 'Corporate Blood Donation Drive - TCS Visakhapatnam',
-          startDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
-          endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-          venue: {
-            name: 'TCS SEZ Campus',
-            address: 'TCS SEZ, Rushikonda, Madhurawada',
-            city: 'Visakhapatnam',
-            state: 'Andhra Pradesh',
-            type: 'Indoor'
-          },
-          expectedDonors: 150,
-          capacity: 200,
-          medicalOversight: {
-            preCampApproval: false,
-            postCampApproval: false
-          }
-        },
-        {
-          _id: 'dummy-camp-2',
-          campName: 'Community Blood Camp - Rotary Club Vizag',
-          startDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000), // 12 days from now
-          endDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000),
-          venue: {
-            name: 'Rotary Club Community Hall',
-            address: 'MVP Colony, Sector 1',
-            city: 'Visakhapatnam',
-            state: 'Andhra Pradesh',
-            type: 'Indoor'
-          },
-          expectedDonors: 100,
-          capacity: 120,
-          medicalOversight: {
-            preCampApproval: false,
-            postCampApproval: false
-          }
-        },
-        {
-          _id: 'dummy-camp-3',
-          campName: 'University Blood Donation Camp - GITAM',
-          startDate: new Date(Date.now() + 18 * 24 * 60 * 60 * 1000), // 18 days from now
-          endDate: new Date(Date.now() + 18 * 24 * 60 * 60 * 1000),
-          venue: {
-            name: 'GITAM University Student Center',
-            address: 'GITAM Campus, Rushikonda',
-            city: 'Visakhapatnam',
-            state: 'Andhra Pradesh',
-            type: 'Indoor'
-          },
-          expectedDonors: 250,
-          capacity: 300,
-          medicalOversight: {
-            preCampApproval: true,
-            preCampApprovedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-            postCampApproval: false
-          }
-        }
-      ];
-      total = 3;
-    }
 
     res.json({
       success: true,
@@ -825,7 +564,7 @@ exports.getCampsForOversight = async (req, res) => {
  */
 exports.submitCampOversight = async (req, res) => {
   try {
-    const doctorId = req.user.userId;
+    const doctorId = req.userId || req.user?._id;
     const { campId } = req.params;
     const {
       oversightPhase,
@@ -904,7 +643,7 @@ exports.submitCampOversight = async (req, res) => {
  */
 exports.submitClinicalAdvisory = async (req, res) => {
   try {
-    const doctorId = req.user.userId;
+    const doctorId = req.userId || req.user?._id;
     const {
       advisoryType,
       severityLevel,
@@ -952,7 +691,7 @@ exports.submitClinicalAdvisory = async (req, res) => {
  */
 exports.getClinicalAdvisories = async (req, res) => {
   try {
-    const doctorId = req.user.userId;
+    const doctorId = req.userId || req.user?._id;
     const { reviewStatus, page = 1, limit = 10 } = req.query;
 
     const skip = (page - 1) * limit;
@@ -989,7 +728,7 @@ exports.getClinicalAdvisories = async (req, res) => {
  */
 exports.getAuditTrail = async (req, res) => {
   try {
-    const doctorId = req.user.userId;
+    const doctorId = req.userId || req.user?._id;
     const { validationType, startDate, endDate, page = 1, limit = 20 } = req.query;
 
     const skip = (page - 1) * limit;

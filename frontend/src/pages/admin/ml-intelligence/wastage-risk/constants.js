@@ -1,0 +1,103 @@
+export const BLOOD_TYPES = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
+
+export const COMPONENTS = ['red_cells', 'platelets', 'plasma', 'cryo'];
+
+export const WARD_LOCATIONS = ['main_bank', 'icu', 'or', 'emergency', 'ward_a', 'ward_b'];
+
+export const WASTAGE_RISK_ROLES = {
+  BLOOD_BANK_QUALITY_MANAGER: 'BLOOD_BANK_QUALITY_MANAGER',
+  HOSPITAL_ADMINISTRATOR: 'HOSPITAL_ADMINISTRATOR',
+  SUPPLY_CHAIN_MANAGER: 'SUPPLY_CHAIN_MANAGER',
+  BLOOD_BANK_COORDINATOR: 'BLOOD_BANK_COORDINATOR',
+  MEDICAL_DIRECTOR: 'MEDICAL_DIRECTOR',
+  IT_ADMIN: 'IT_ADMIN',
+};
+
+export const WASTAGE_FEATURE_KEYS = {
+  SURVIVAL_ANALYSIS: 'SURVIVAL_ANALYSIS',
+  UNIT_LEVEL_DETAIL: 'UNIT_LEVEL_DETAIL',
+  FIFO_COMPLIANCE: 'FIFO_COMPLIANCE',
+  FIFO_WARD_BREAKDOWN: 'FIFO_WARD_BREAKDOWN',
+  FIFO_STAFF_PATTERNS: 'FIFO_STAFF_PATTERNS',
+  REDISTRIBUTION_VIEW: 'REDISTRIBUTION_VIEW',
+  REDISTRIBUTION_ACTIONS: 'REDISTRIBUTION_ACTIONS',
+  DONOR_FLOW: 'DONOR_FLOW',
+  OVER_ORDERING: 'OVER_ORDERING',
+  FINANCIAL_FULL: 'FINANCIAL_FULL',
+  FINANCIAL_SUMMARY: 'FINANCIAL_SUMMARY',
+  WEEKLY_REPORT_GENERATE: 'WEEKLY_REPORT_GENERATE',
+  WEEKLY_REPORT_VIEW: 'WEEKLY_REPORT_VIEW',
+  WEEKLY_REPORT_COMMIT: 'WEEKLY_REPORT_COMMIT',
+  EXPORT: 'EXPORT',
+};
+
+export const WASTE_RISK_THRESHOLDS = {
+  LOW_MIN: 0.7,
+  MEDIUM_MIN: 0.4,
+  HIGH_MIN: 0.2,
+};
+
+export const BLOOD_TYPE_DEMAND_RATE = {
+  'O-': 0.42,
+  'O+': 0.38,
+  'A+': 0.31,
+  'A-': 0.19,
+  'B+': 0.22,
+  'B-': 0.14,
+  'AB+': 0.18,
+  'AB-': 0.09,
+};
+
+export const LOCATION_FACTOR = {
+  or: 1.4,
+  icu: 1.3,
+  emergency: 1.35,
+  ward_a: 0.9,
+  ward_b: 0.85,
+  main_bank: 0.6,
+};
+
+export const BLOOD_UNIT_BASE_COST_USD = {
+  'O-': 320,
+  'O+': 220,
+  'A-': 280,
+  'A+': 210,
+  'B-': 290,
+  'B+': 200,
+  'AB-': 380,
+  'AB+': 230,
+};
+
+export const COMPONENT_COST_ADJUSTMENT = {
+  platelets_surcharge: 180,
+  plasma_discount: 0.6,
+};
+
+export const COMPONENT_SHELF_LIFE_DAYS = {
+  red_cells: 42,
+  platelets: 5,
+  plasma: 365,
+  cryo: 365,
+};
+
+export const RARE_TYPES = new Set(['AB-', 'B-', 'A-']);
+
+export const FIFO_VIOLATION_SEVERITY = {
+  MINOR: 'minor_violation',
+  MODERATE: 'moderate_violation',
+  SERIOUS: 'serious_violation',
+};
+
+export const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+export const WASTAGE_AUDIT_EVENTS = {
+  WASTE_REPORT_GENERATED: 'WASTE_REPORT_GENERATED',
+  WASTE_REPORT_VIEWED: 'WASTE_REPORT_VIEWED',
+  TRANSFER_ACCEPTED: 'TRANSFER_ACCEPTED',
+  TRANSFER_REJECTED: 'TRANSFER_REJECTED',
+  QUALITY_ACTION_COMMITTED: 'QUALITY_ACTION_COMMITTED',
+  QUALITY_ACTION_COMPLETED: 'QUALITY_ACTION_COMPLETED',
+  STAFF_PATTERN_DEANONYMISED: 'STAFF_PATTERN_DEANONYMISED',
+  OPTIMAL_ORDER_APPLIED: 'OPTIMAL_ORDER_APPLIED',
+  REPORT_EXPORTED: 'REPORT_EXPORTED',
+};

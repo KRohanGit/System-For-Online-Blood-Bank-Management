@@ -25,7 +25,8 @@ function MyBookingsPage() {
   // Check authentication
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const role = user.role || localStorage.getItem('role');
 
     if (!token || role !== 'PUBLIC_USER') {
       alert('Please login as a Public User to view bookings');

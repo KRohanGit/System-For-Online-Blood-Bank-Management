@@ -23,13 +23,12 @@ const DonorDashboard = () => {
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
-      const API_URL = process.env.REACT_APP_API_URL;
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-      // Fetch dashboard, history, and certificates in parallel
       const [dashboardRes, historyRes, certificatesRes] = await Promise.all([
-        axios.get(`${API_URL}/api/donor-dashboard/dashboard`, { headers }),
-        axios.get(`${API_URL}/api/donor-dashboard/history`, { headers }),
-        axios.get(`${API_URL}/api/donor-dashboard/certificates`, { headers })
+        axios.get(`${API_URL}/donor-dashboard/dashboard`, { headers }),
+        axios.get(`${API_URL}/donor-dashboard/history`, { headers }),
+        axios.get(`${API_URL}/donor-dashboard/certificates`, { headers })
       ]);
 
       setDashboard(dashboardRes.data.data);

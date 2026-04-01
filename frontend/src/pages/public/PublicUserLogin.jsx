@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../../services/publicUserApi';
 import './PublicUserLogin.css';
 
@@ -91,7 +91,7 @@ const PublicUserLogin = () => {
           </button>
 
           <p className="register-link">
-            Don't have an account? <a href="/public/register">Register here</a>
+            Don't have an account? <Link to="/public/register">Register here</Link>
           </p>
         </form>
       </div>

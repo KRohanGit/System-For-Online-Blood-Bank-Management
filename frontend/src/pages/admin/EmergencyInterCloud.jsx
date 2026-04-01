@@ -40,7 +40,7 @@ function EmergencyInterCloud() {
     medicalJustification: '',
     patientDetails: {
       age: '',
-      gender: 'MALE',
+      gender: 'Male',
       diagnosis: '',
       bloodPressure: '',
       hemoglobin: ''
@@ -117,7 +117,7 @@ function EmergencyInterCloud() {
         medicalJustification: '',
         patientDetails: {
           age: '',
-          gender: 'MALE',
+          gender: 'Male',
           diagnosis: '',
           bloodPressure: '',
           hemoglobin: ''
@@ -488,9 +488,9 @@ function EmergencyInterCloud() {
                       onChange={handlePatientDetailsChange}
                       required
                     >
-                      <option value="MALE">Male</option>
-                      <option value="FEMALE">Female</option>
-                      <option value="OTHER">Other</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
                     </select>
                   </div>
                 </div>

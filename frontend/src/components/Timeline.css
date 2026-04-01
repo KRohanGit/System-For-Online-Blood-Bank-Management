@@ -1,0 +1,179 @@
+.timeline {
+  padding: 20px 0;
+}
+
+.timeline-container {
+  position: relative;
+  padding: 20px 0;
+}
+
+.timeline-container::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, #d32f2f, #2196F3, #4CAF50);
+}
+
+.timeline-item {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.timeline-marker {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 3px solid #2196F3;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 2px;
+}
+
+.timeline-content {
+  flex: 1;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.timeline-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.timeline-time {
+  font-size: 12px;
+  color: #999;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.timeline-description {
+  margin: 8px 0;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.timeline-location {
+  margin: 8px 0;
+  font-size: 13px;
+  color: #1976d2;
+  background: #e3f2fd;
+  padding: 6px 10px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.timeline-location strong {
+  font-weight: 600;
+}
+
+.timeline-details {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f9f9f9;
+  border-left: 3px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.detail-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.detail-row strong {
+  color: #666;
+  min-width: 100px;
+}
+
+.detail-row span {
+  color: #333;
+  word-break: break-word;
+}
+
+.timeline-blockchain {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: #e8f5e9;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #2e7d32;
+}
+
+.timeline-blockchain code {
+  font-family: 'Courier New', monospace;
+  background: white;
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: #1565c0;
+}
+
+.timeline-empty {
+  text-align: center;
+  padding: 40px 20px;
+  background: #f9f9f9;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  color: #999;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .timeline-item {
+    gap: 12px;
+  }
+
+  .timeline-container::before {
+    left: 10px;
+  }
+
+  .timeline-marker {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+    border-width: 2px;
+  }
+
+  .timeline-header {
+    flex-direction: column;
+  }
+
+  .timeline-time {
+    display: block;
+    margin-top: 4px;
+  }
+
+  .timeline-content {
+    padding: 12px;
+  }
+}

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import config from '../../config/config';
 import './DonationReadinessAdvisor.css';
 
 const DonationReadinessAdvisor = () => {
+  const API_URL = config?.API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
   const [formData, setFormData] = useState({
     // Existing parameters
     age: '',
@@ -44,7 +46,7 @@ const DonationReadinessAdvisor = () => {
   const fetchHistory = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/public/donation-readiness-history', {
+      const response = await axios.get(`${API_URL}/public/donation-readiness-history`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setHistory(response.data.data || []);
@@ -68,7 +70,7 @@ const DonationReadinessAdvisor = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        '/api/public/donation-readiness-check',
+        `${API_URL}/public/donation-readiness-check`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );

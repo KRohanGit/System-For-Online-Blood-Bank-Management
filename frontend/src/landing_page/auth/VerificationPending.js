@@ -88,8 +88,8 @@ function VerificationPending() {
           <Link to="/" className="btn-primary">
             Back to Home
           </Link>
-          <Link to="/support" className="btn-secondary">
-            Contact Support
+          <Link to="/community" className="btn-secondary">
+            Community and Help
           </Link>
         </div>
 

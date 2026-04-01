@@ -19,52 +19,14 @@ const DonorManagementCard = () => {
   const fetchDonors = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/donations/donors`, {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/donations/donors`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDonors(response.data.data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching donors:', error);
-      const dummyDonors = [
-        {
-          donorId: '1',
-          donorName: 'Rohan K',
-          email: 'rohan.k@email.com',
-          bloodGroup: 'O+',
-          lastDonationDate: '2025-11-15',
-          credentialStatus: 'Verified',
-          emergencyContactEnabled: true
-        },
-        {
-          donorId: '2',
-          donorName: 'Dinesh S',
-          email: 'dinesh.S@email.com',
-          bloodGroup: 'A+',
-          lastDonationDate: '2025-10-20',
-          credentialStatus: 'Verified',
-          emergencyContactEnabled: true
-        },
-        {
-          donorId: '3',
-          donorName: 'Gaveshna L',
-          email: 'gaveshna.L@email.com',
-          bloodGroup: 'B+',
-          lastDonationDate: '2024-06-10',
-          credentialStatus: 'Issued',
-          emergencyContactEnabled: false
-        },
-        {
-          donorId: '4',
-          donorName: 'Giri. G',
-          email: 'giri.G@email.com',
-          bloodGroup: 'AB+',
-          lastDonationDate: '2025-12-01',
-          credentialStatus: 'Verified',
-          emergencyContactEnabled: true
-        }
-      ];
-      setDonors(dummyDonors);
+      setDonors([]);
       setLoading(false);
     }
   };
@@ -79,7 +41,7 @@ const DonorManagementCard = () => {
       setSending(true);
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/emergency/send`,
+        `${process.env.REACT_APP_API_URL}/emergency/send`,
         {
           bloodGroup: selectedBloodGroup,
           message: emergencyMessage
@@ -126,9 +88,8 @@ const DonorManagementCard = () => {
       setSendingIndividual(prev => ({ ...prev, [donor.donorId]: true }));
       const token = localStorage.getItem('token');
       
-      // Simulating individual alert send - you can create a specific API endpoint for this
       await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/emergency/send`,
+        `${process.env.REACT_APP_API_URL}/emergency/send`,
         {
           bloodGroup: donor.bloodGroup,
           message: alertMessage,

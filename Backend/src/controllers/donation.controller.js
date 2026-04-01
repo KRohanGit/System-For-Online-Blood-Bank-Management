@@ -130,12 +130,16 @@ const getDonations = async (req, res) => {
 const getDonorsByHospital = async (req, res) => {
   try {
     const hospitalId = req.user._id;
+    const hospitalProfile = await HospitalProfile.findOne({ userId: hospitalId }).select('_id').lean();
+    const hospitalIds = hospitalProfile
+      ? [hospitalId, hospitalProfile._id]
+      : [hospitalId];
 
-    const credentials = await DonorCredential.find({ hospitalId })
-      .populate('donorId', 'fullName email bloodGroup');
+    const credentials = await DonorCredential.find({ hospitalId: { $in: hospitalIds } })
+      .populate('donorId', 'fullName email phone bloodGroup');
 
     const donations = await Donation.aggregate([
-      { $match: { hospitalId: hospitalId, status: 'COMPLETED' } },
+      { $match: { hospitalId: { $in: hospitalIds }, status: 'COMPLETED' } },
       { $group: {
         _id: '$donorId',
         lastDonationDate: { $max: '$donationDate' }
@@ -148,13 +152,22 @@ const getDonorsByHospital = async (req, res) => {
     });
 
     const donorList = credentials.map(cred => ({
+      _id: cred.donorId._id,
+      id: cred.donorId._id.toString(),
       donorId: cred.donorId._id,
       donorName: cred.donorId.fullName,
+      name: cred.donorId.fullName,
       email: cred.donorId.email,
+      phone: cred.donorId.phone || '',
       bloodGroup: cred.donorId.bloodGroup,
+      lastDonation: donorMap[cred.donorId._id.toString()] || null,
       lastDonationDate: donorMap[cred.donorId._id.toString()] || null,
+      totalDonations: 0,
+      body: {},
+      status: cred.isVerified ? 'active' : 'inactive',
       credentialStatus: cred.isVerified ? 'Verified' : 'Issued',
-      emergencyContactEnabled: cred.isVerified
+      emergencyContactEnabled: cred.isVerified,
+      hasCredentials: true
     }));
 
     res.status(200).json({

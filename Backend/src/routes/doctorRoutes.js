@@ -14,7 +14,8 @@ const {
 const DonationAppointment = require('../models/DonationAppointment');
 const BloodInventory = require('../models/BloodInventory');
 const BloodCamp = require('../models/BloodCamp');
-const CampBooking = require('../models/CampBooking');
+const EmergencyRequest = require('../models/EmergencyRequest');
+const Notification = require('../models/Notification');
 
 /**
  * @route   GET /api/doctor/profile
@@ -221,20 +222,25 @@ router.post('/blood-units/:id/validate', auth, checkRole('doctor'), async (req, 
 
 router.get('/adverse-reactions', auth, checkRole('doctor'), async (req, res) => {
   try {
-    // Sample data for testing
-    const sampleReactions = [
-      {
-        _id: '1',
-        donorName: 'Rohan K',
-        donationId: 'DON-001',
-        reactionType: 'mild',
-        symptoms: 'Dizziness',
-        reportedDate: new Date(),
-        status: 'monitoring',
-        severity: 'low'
-      }
-    ];
-    res.json(sampleReactions);
+    const reactions = await DonationAppointment.find({
+      status: 'adverse_reaction'
+    })
+      .populate('userId', 'fullName email phone')
+      .sort({ updatedAt: -1 })
+      .limit(50)
+      .lean();
+
+    const mapped = reactions.map(r => ({
+      _id: r._id,
+      donorName: r.userInfo?.name || r.userId?.fullName || 'Unknown',
+      donationId: r._id,
+      reactionType: r.notes || 'unknown',
+      symptoms: r.notes || '',
+      reportedDate: r.updatedAt,
+      status: 'monitoring',
+      severity: 'low'
+    }));
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -290,20 +296,24 @@ router.post('/camps/:id/validate', auth, checkRole('doctor'), async (req, res) =
 
 router.get('/emergency-requests', auth, checkRole('doctor'), async (req, res) => {
   try {
-    // Sample data for testing
-    const sampleEmergencies = [
-      {
-        _id: '1',
-        patientName: 'Emergency Patient',
-        bloodGroup: 'O-',
-        unitsNeeded: 5,
-        requestDate: new Date(),
-        status: 'critical',
-        hospitalName: 'Emergency Hospital',
-        reason: 'Major trauma'
-      }
-    ];
-    res.json(sampleEmergencies);
+    const emergencies = await EmergencyRequest.find({
+      lifecycleStatus: { $in: ['CREATED', 'MEDICAL_VERIFICATION_PENDING', 'PARTNER_HOSPITAL_SEARCH'] }
+    })
+      .sort({ urgencyScore: -1, createdAt: -1 })
+      .limit(50)
+      .lean();
+
+    const mapped = emergencies.map(e => ({
+      _id: e._id,
+      patientName: e.patientInfo?.diagnosis || 'Emergency Patient',
+      bloodGroup: e.bloodGroup,
+      unitsNeeded: e.unitsRequired,
+      requestDate: e.createdAt,
+      status: e.severityLevel?.toLowerCase() || 'high',
+      hospitalName: e.requestingHospitalName || 'Hospital',
+      reason: e.patientInfo?.diagnosis || 'Emergency'
+    }));
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -319,28 +329,24 @@ router.post('/emergency-requests/:id/fast-track', auth, checkRole('doctor'), asy
 
 router.get('/medical-notes', auth, checkRole('doctor'), async (req, res) => {
   try {
-    // Sample data for testing
-    const sampleNotes = [
-      {
-        _id: '1',
-        patientId: 'PAT-001',
-        patientName: 'Rohan K',
-        noteType: 'screening',
-        content: 'Patient cleared for donation. All vitals normal.',
-        createdAt: new Date(),
-        createdBy: req.user.id
-      },
-      {
-        _id: '2',
-        patientId: 'PAT-002',
-        patientName: 'Dinesh S',
-        noteType: 'follow-up',
-        content: 'Follow-up required after mild reaction.',
-        createdAt: new Date(),
-        createdBy: req.user.id
-      }
-    ];
-    res.json(sampleNotes);
+    const notes = await DonationAppointment.find({
+      notes: { $exists: true, $ne: '' }
+    })
+      .populate('userId', 'fullName email')
+      .sort({ updatedAt: -1 })
+      .limit(50)
+      .lean();
+
+    const mapped = notes.map(n => ({
+      _id: n._id,
+      patientId: n.userId?._id || n._id,
+      patientName: n.userInfo?.name || n.userId?.fullName || 'Unknown',
+      noteType: n.status === 'completed' ? 'follow-up' : 'screening',
+      content: n.notes || '',
+      createdAt: n.updatedAt || n.createdAt,
+      createdBy: req.user.id
+    }));
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -356,26 +362,54 @@ router.post('/medical-notes', auth, checkRole('doctor'), async (req, res) => {
 
 router.get('/alerts', auth, checkRole('doctor'), async (req, res) => {
   try {
-    // Sample data for testing
-    const sampleAlerts = [
-      {
-        _id: '1',
-        type: 'emergency',
-        priority: 'high',
-        message: 'Emergency blood request for O- blood type',
-        createdAt: new Date(),
-        read: false
-      },
-      {
-        _id: '2',
-        type: 'screening',
-        priority: 'medium',
-        message: '5 donors pending screening today',
-        createdAt: new Date(),
-        read: false
+    const alerts = await Notification.find({
+      userId: req.user._id
+    })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    if (alerts.length === 0) {
+      const emergencyCount = await EmergencyRequest.countDocuments({
+        lifecycleStatus: { $in: ['CREATED', 'MEDICAL_VERIFICATION_PENDING'] }
+      });
+      const pendingDonors = await DonationAppointment.countDocuments({
+        status: 'scheduled',
+        scheduledDate: { $gte: new Date() }
+      });
+      const dynamicAlerts = [];
+      if (emergencyCount > 0) {
+        dynamicAlerts.push({
+          _id: 'alert_emergency',
+          type: 'emergency',
+          priority: 'high',
+          message: emergencyCount + ' emergency blood request(s) pending review',
+          createdAt: new Date(),
+          read: false
+        });
       }
-    ];
-    res.json(sampleAlerts);
+      if (pendingDonors > 0) {
+        dynamicAlerts.push({
+          _id: 'alert_screening',
+          type: 'screening',
+          priority: 'medium',
+          message: pendingDonors + ' donor(s) pending screening',
+          createdAt: new Date(),
+          read: false
+        });
+      }
+      return res.json(dynamicAlerts);
+    }
+
+    const mapped = alerts.map(a => ({
+      _id: a._id,
+      type: a.type || 'info',
+      priority: a.priority || 'medium',
+      message: a.message,
+      createdAt: a.createdAt,
+      read: a.isRead || false
+    }));
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

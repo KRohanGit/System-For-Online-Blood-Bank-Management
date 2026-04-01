@@ -4,6 +4,12 @@ import EmergencyRequestCard from '../../components/emergency/EmergencyRequestCar
 import NewEmergencyRequestModal from '../../components/emergency/NewEmergencyRequestModal';
 import SendMessageModal from '../../components/emergency/SendMessageModal';
 import config from '../../config/config';
+import {
+  createEmergencyRequest,
+  getEmergencyRequests,
+  acceptEmergencyRequest,
+  declineEmergencyRequest
+} from '../../services/emergencyCoordinationApi';
 import './EmergencyInterHospitalCoordination.css';
 
 const EmergencyInterHospitalCoordination = () => {
@@ -23,22 +29,15 @@ const EmergencyInterHospitalCoordination = () => {
   const loadEmergencyRequests = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${config.API_URL}/emergency-coordination/requests`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        // Backend returns { requests } (flat list). Older shape used { incoming, outgoing }.
-        if (Array.isArray(data.requests)) {
-          // For now show all returned requests as incoming to surface seeded demo data
-          setIncomingRequests(data.requests);
-          setOutgoingRequests([]);
-        } else {
-          setIncomingRequests(data.incoming || []);
-          setOutgoingRequests(data.outgoing || []);
-        }
+      const data = await getEmergencyRequests();
+
+      // Backend returns { requests } (flat list). Older shape used { incoming, outgoing }.
+      if (Array.isArray(data.requests)) {
+        setIncomingRequests(data.requests);
+        setOutgoingRequests([]);
+      } else {
+        setIncomingRequests(data.incoming || []);
+        setOutgoingRequests(data.outgoing || []);
       }
     } catch (error) {
       console.error('Error loading emergency requests:', error);
@@ -49,17 +48,12 @@ const EmergencyInterHospitalCoordination = () => {
 
   const loadNearbyHospitals = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${config.API_URL}/emergency-coordination/nearby-hospitals`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        // backend may return an array or an object with `hospitals`
-        if (Array.isArray(data)) setNearbyHospitals(data);
-        else setNearbyHospitals(data.hospitals || []);
-      }
+      // Reuse existing hospital listing endpoint for partner selection in modals.
+      const response = await fetch(`${config.API_URL}/hospital/list`);
+      if (!response.ok) return;
+
+      const data = await response.json();
+      setNearbyHospitals(data.hospitals || []);
     } catch (error) {
       console.error('Error loading nearby hospitals:', error);
     }
@@ -67,24 +61,24 @@ const EmergencyInterHospitalCoordination = () => {
 
   const handleCreateRequest = async (formData) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${config.API_URL}/emergency-coordination/requests`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+      const severityLevel = formData.urgencyLevel === 'MEDIUM' ? 'MODERATE' : formData.urgencyLevel;
+      const requestPayload = {
+        bloodGroup: formData.bloodGroup,
+        unitsRequired: Number(formData.unitsRequired),
+        severityLevel,
+        medicalJustification: `${formData.patientCriticality || 'Emergency case'}${formData.notes ? ` - ${formData.notes}` : ''}`,
+        patientDetails: {
+          age: 30,
+          gender: 'Male',
+          diagnosis: formData.patientCriticality || 'Emergency transfusion required'
         },
-        body: JSON.stringify(formData)
-      });
+        requiredBy: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()
+      };
 
-      if (response.ok) {
-        setShowNewRequestModal(false);
-        loadEmergencyRequests();
-        alert('Emergency request created successfully');
-      } else {
-        const error = await response.json();
-        alert(error.message || 'Failed to create request');
-      }
+      await createEmergencyRequest(requestPayload);
+      setShowNewRequestModal(false);
+      loadEmergencyRequests();
+      alert('Emergency request created successfully');
     } catch (error) {
       console.error('Error creating request:', error);
       alert('Failed to create emergency request');
@@ -93,23 +87,9 @@ const EmergencyInterHospitalCoordination = () => {
 
   const handleSendMessage = async (formData) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${config.API_URL}/emergency-coordination/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        setShowMessageModal(false);
-        alert('Message sent successfully');
-      } else {
-        const error = await response.json();
-        alert(error.message || 'Failed to send message');
-      }
+      console.log('Inter-hospital message payload:', formData);
+      setShowMessageModal(false);
+      alert('Messaging endpoint is not enabled yet in backend; use emergency requests for coordination.');
     } catch (error) {
       console.error('Error sending message:', error);
       alert('Failed to send message');
@@ -118,23 +98,13 @@ const EmergencyInterHospitalCoordination = () => {
 
   const handleAcceptRequest = async (requestId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${config.API_URL}/emergency-coordination/requests/${requestId}/respond`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ action: 'ACCEPT' })
+      await acceptEmergencyRequest(requestId, {
+        unitsCommitted: 1,
+        estimatedDeliveryTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+        notes: 'Accepted from coordination dashboard'
       });
-
-      if (response.ok) {
-        loadEmergencyRequests();
-        alert('Request accepted successfully');
-      } else {
-        const error = await response.json();
-        alert(error.message || 'Failed to accept request');
-      }
+      loadEmergencyRequests();
+      alert('Request accepted successfully');
     } catch (error) {
       console.error('Error accepting request:', error);
       alert('Failed to accept request');
@@ -146,23 +116,9 @@ const EmergencyInterHospitalCoordination = () => {
     if (!reason) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${config.API_URL}/emergency-coordination/requests/${requestId}/respond`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ action: 'REJECT', reason })
-      });
-
-      if (response.ok) {
-        loadEmergencyRequests();
-        alert('Request rejected');
-      } else {
-        const error = await response.json();
-        alert(error.message || 'Failed to reject request');
-      }
+      await declineEmergencyRequest(requestId, reason);
+      loadEmergencyRequests();
+      alert('Request rejected');
     } catch (error) {
       console.error('Error rejecting request:', error);
       alert('Failed to reject request');

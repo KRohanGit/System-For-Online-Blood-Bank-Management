@@ -103,7 +103,7 @@ function BloodCampsPage() {
   const handleOrganizeCamp = () => {
     if (!isLoggedIn) {
       // Redirect to login with return URL
-      localStorage.setItem('returnUrl', '/blood-camps/organize');
+      localStorage.setItem('returnUrl', '/organize-camp');
       alert('Please login to organize a blood camp');
       navigate('/signin/public-user');
       return;
@@ -115,7 +115,7 @@ function BloodCampsPage() {
     }
 
     // Navigate to organize camp page
-    navigate('/blood-camps/organize');
+    navigate('/organize-camp');
   };
 
   /**
@@ -182,7 +182,7 @@ function BloodCampsPage() {
           {canBookCamp && (
             <button 
               className="btn-outline"
-              onClick={() => navigate('/my-bookings')}
+              onClick={() => navigate('/appointments/my-appointments')}
             >
               My Bookings
             </button>

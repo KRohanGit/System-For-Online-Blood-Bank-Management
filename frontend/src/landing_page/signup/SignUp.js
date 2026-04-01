@@ -65,7 +65,7 @@ function SignUp() {
         <div className="roles-grid">
           <div 
             className="role-card super-admin"
-            onClick={() => handleRoleSelect('super-admin')}
+            onClick={() => navigate('/signin')}
           >
             <div className="role-icon">👑</div>
             <h2>Super Admin</h2>

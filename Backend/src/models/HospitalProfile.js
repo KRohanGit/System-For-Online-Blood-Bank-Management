@@ -85,7 +85,19 @@ const hospitalProfileSchema = new mongoose.Schema({
     },
     coordinates: {
       type: [Number],
-      default: [0, 0]
+      required: [true, 'Hospital coordinates are required'],
+      validate: {
+        validator: function(coords) {
+          return Array.isArray(coords) &&
+            coords.length === 2 &&
+            Number.isFinite(coords[0]) &&
+            Number.isFinite(coords[1]) &&
+            !(coords[0] === 0 && coords[1] === 0) &&
+            coords[0] >= -180 && coords[0] <= 180 &&
+            coords[1] >= -90 && coords[1] <= 90;
+        },
+        message: 'Coordinates must be valid [longitude, latitude] and cannot be [0, 0]'
+      }
     }
   },
   address: {
@@ -99,6 +111,11 @@ const hospitalProfileSchema = new mongoose.Schema({
     trim: true
   },
   state: {
+    type: String,
+    default: null,
+    trim: true
+  },
+  pincode: {
     type: String,
     default: null,
     trim: true

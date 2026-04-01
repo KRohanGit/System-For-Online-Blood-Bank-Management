@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { register } from '../../services/publicUserApi';
 import './PublicUserRegister.css';
 
@@ -309,7 +309,7 @@ const PublicUserRegister = () => {
           </button>
 
           <p className="login-link">
-            Already have an account? <a href="/public/login">Login here</a>
+            Already have an account? <Link to="/public/login">Login here</Link>
           </p>
         </form>
       </div>

@@ -38,7 +38,7 @@ const ChangePassword = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/donor-auth/change-password`,
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/donor-auth/change-password`,
         { newPassword: formData.newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );

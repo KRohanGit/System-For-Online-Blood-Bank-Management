@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import DashboardLayout from '../../components/layout/DashboardLayout';
+import config from '../../config/config';
+import TopNavbar from '../../components/layout/TopNavbar';
 import StatusBadge from '../../components/common/StatusBadge';
 import Modal from '../../components/common/Modal';
 import '../../styles/admin.css';
@@ -12,6 +13,9 @@ function DonorManagement() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedDonor, setSelectedDonor] = useState(null);
+  const [donors, setDonors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [newDonor, setNewDonor] = useState({
     name: '',
     email: '',
@@ -20,64 +24,63 @@ function DonorManagement() {
     address: ''
   });
 
-  const donors = [
-    {
-      id: 'D001',
-      name: 'Rohan',
-      email: 'rohan.k@email.com',
-      phone: '+91 98765-43210',
-      bloodGroup: 'O+',
-      lastDonation: '2025-11-15',
-      totalDonations: 8,
-      status: 'active',
-      eligibleDate: '2026-02-15',
-      address: '123 MG Road, Bangalore',
-      hasCredentials: false
-    },
-    {
-      id: 'D002',
-      name: 'Dinesh',
-      email: 'dinesh.k@email.com',
-      phone: '+91 98765-43211',
-      bloodGroup: 'A+',
-      lastDonation: '2025-10-20',
-      totalDonations: 12,
-      status: 'active',
-      eligibleDate: '2026-01-20',
-      address: '456 Hitech City, Hyderabad',
-      hasCredentials: true
-    },
-    {
-      id: 'D003',
-      name: 'Gaveshna',
-      email: 'gaveshna.l@email.com',
-      phone: '+91 98765-43212',
-      bloodGroup: 'B+',
-      lastDonation: '2024-06-10',
-      totalDonations: 5,
-      status: 'inactive',
-      eligibleDate: 'Eligible Now',
-      address: '789 Anna Nagar, Chennai',
-      hasCredentials: false
-    },
-    {
-      id: 'D004',
-      name: 'Giri G',
-      email: 'giri.g@email.com',
-      phone: '+91 98765-43213',
-      bloodGroup: 'AB+',
-      lastDonation: '2025-12-01',
-      totalDonations: 15,
-      status: 'active',
-      eligibleDate: '2026-03-01',
-      address: '321 Jubilee Hills, Hyderabad',
-      hasCredentials: true
-    }
-  ];
+  const API_URL = config?.API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-  const filteredDonors = donors.filter(donor => 
-    filter === 'all' ? true : donor.status === filter
-  );
+  const formatDate = (value) => {
+    if (!value) return 'N/A';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return 'N/A';
+    return parsed.toLocaleDateString();
+  };
+
+  useEffect(() => {
+    fetchDonors();
+  }, []);
+
+  const fetchDonors = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/donations/donors`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = response.data;
+      const donorList = data.data?.donors || data.donors || data.data || [];
+      setDonors(donorList.map(d => ({
+        id: d.id || d._id || d.donorId,
+        _id: d._id || d.id,
+        name: d.name || d.donorName || d.fullName || d.email,
+        email: d.email || '',
+        phone: d.phone || '',
+        bloodGroup: d.bloodGroup || 'Unknown',
+        lastDonation: d.lastDonation || d.lastDonationDate || '',
+        totalDonations: d.totalDonations || d.donationCount || 0,
+        status: d.status || 'active',
+        eligibleDate: d.eligibleDate || d.nextEligibleDate || '',
+        address: d.address || d.city || '',
+        hasCredentials: d.hasCredentials || true
+      })));
+    } catch (error) {
+      console.error('Error fetching donors:', error);
+      setDonors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredDonors = donors
+    .filter((donor) => (filter === 'all' ? true : donor.status === filter))
+    .filter((donor) => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        String(donor.id || '').toLowerCase().includes(q) ||
+        String(donor.name || '').toLowerCase().includes(q) ||
+        String(donor.email || '').toLowerCase().includes(q) ||
+        String(donor.phone || '').toLowerCase().includes(q) ||
+        String(donor.bloodGroup || '').toLowerCase().includes(q)
+      );
+    });
 
   const stats = {
     total: donors.length,
@@ -94,106 +97,261 @@ function DonorManagement() {
   const sendCredentials = async (donor) => {
     try {
       const token = localStorage.getItem('token');
-      const tempPassword = `Donor@${Math.random().toString(36).slice(-6)}`;
+
+      // Check if this is resending (donor already has credentials) or new send
+      const isResending = donor.hasCredentials;
       
-      // Call backend API to create donor account
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/hospitals/create-donor-account`,
-        {
-          email: donor.email,
-          password: tempPassword,
-          donorName: donor.name,
-          phone: donor.phone,
-          bloodGroup: donor.bloodGroup
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      let response;
+      if (isResending) {
+        // Resend credentials to existing donor
+        response = await axios.post(
+          `${API_URL}/hospital/donor/${donor.id}/resend-credentials`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+      } else {
+        // Create new donor account
+        const tempPassword = `Donor@${Math.random().toString(36).slice(-6)}`;
+        response = await axios.post(
+          `${API_URL}/hospital/donor`,
+          {
+            email: donor.email,
+            password: tempPassword,
+            donorName: donor.name,
+            phone: donor.phone,
+            bloodGroup: donor.bloodGroup
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+      }
 
       if (response.data.success) {
-        const { credentials } = response.data.data;
+        const { credentials, emailSent, emailMode } = response.data.data;
+        const isTestMode = emailMode === 'ethereal';
         
         alert(
-          `Donor Account Created Successfully!\n\n` +
+          (isResending ? '🔄 Credentials Resent Successfully!' : '✓ Donor Account Created Successfully!') + '\n\n' +
           `Email: ${credentials.email}\n` +
-          `Password: ${credentials.password}\n` +
-          `OTP: ${credentials.otp}\n\n` +
-          `IMPORTANT: Share these credentials with the donor.\n` +
-          `They can login at: ${window.location.origin}/donor/login\n` +
-          `Donor will be prompted to change password on first login.`
+          `OTP: ${credentials.otp}\n` +
+          `Valid for: 15 minutes\n\n` +
+          (emailSent 
+            ? isTestMode
+              ? `📧 Email generated in TEST mode (Ethereal).\n` +
+                `It will not arrive in real mailbox until SMTP is configured.`
+              : `📧 Credentials email sent successfully!\n` +
+                `Donor will receive login OTP in their mailbox.`
+            : `⚠ Email delivery status: Pending\n` +
+              `Please share credentials manually if needed.`
+          ) +
+          `\n\nDonor will be prompted to change password on first login.`
         );
         
         // Update local state to show credentials are issued
         donor.hasCredentials = true;
+        fetchDonors(); // Refresh donor list
       }
     } catch (error) {
       console.error('Send credentials error:', error);
-      alert(`Error: ${error.response?.data?.message || 'Failed to create donor account'}`);
+      const errorCode = error.response?.data?.code;
+      const errorMsg = error.response?.data?.message;
+      
+      if (errorCode === 'EMAIL_EXISTS') {
+        alert(`⚠ Account Already Exists\n\nAn account with this email already exists.\n\nPlease use "Resend Credentials" instead.`);
+      } else if (errorCode === 'PHONE_EXISTS') {
+        alert(`⚠ Phone Number Already Registered\n\nAn account with this phone already exists.`);
+      } else {
+        alert(`Error: ${errorMsg || 'Failed to send credentials'}`);
+      }
     }
   };
 
-  const toggleDonorStatus = (donor) => {
+  const toggleDonorStatus = async (donor) => {
     const newStatus = donor.status === 'active' ? 'inactive' : 'active';
-    alert(`Donor ${donor.name} status changed to ${newStatus}`);
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Call backend to update donor status
+      const response = await axios.put(
+        `${API_URL}/hospital/donor/${donor.id}/status`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      if (response.status === 200) {
+        // Update local state only for THIS donor
+        setDonors(prev => prev.map(d => 
+          String(d.id) === String(donor.id) ? { ...d, status: newStatus } : d
+        ));
+        alert(`✓ Donor ${donor.name} status changed to ${newStatus}`);
+      }
+    } catch (error) {
+      console.error('Error toggling donor status:', error);
+      alert(`✗ Failed to update donor status: ${error.response?.data?.message || error.message}`);
+      // Refresh to show current state
+      fetchDonors();
+    }
   };
 
-  const handleAddDonor = () => {
+  const deleteDonor = async (donor) => {
+    const confirmed = window.confirm(
+      `Delete donor ${donor.name}?\n\nThis will remove donor access for this hospital.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/hospital/donor/${donor.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      alert(`✓ Donor ${donor.name} deleted successfully`);
+      if (selectedDonor && String(selectedDonor.id) === String(donor.id)) {
+        setShowDetailModal(false);
+        setSelectedDonor(null);
+      }
+      fetchDonors();
+    } catch (error) {
+      console.error('Error deleting donor:', error);
+      alert(`✗ Failed to delete donor: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
+  const handleAddDonor = async () => {
     if (!newDonor.name || !newDonor.email || !newDonor.phone || !newDonor.bloodGroup) {
       alert('Please fill in all required fields');
       return;
     }
 
-    // TODO: Replace with actual API call
-    // await donorAPI.create(newDonor);
-    
-    alert(`✓ Donor ${newDonor.name} added successfully!`);
-    setShowAddModal(false);
-    setNewDonor({
-      name: '',
-      email: '',
-      phone: '',
-      bloodGroup: '',
-      address: ''
-    });
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newDonor.email)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    // Validate phone format
+    if (newDonor.phone.length < 10) {
+      alert('Phone number must be at least 10 digits');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const tempPassword = `Donor@${Math.random().toString(36).slice(-6)}`;
+      const response = await axios.post(`${API_URL}/hospital/donor`, {
+        email: newDonor.email,
+        password: tempPassword,
+        donorName: newDonor.name,
+        phone: newDonor.phone,
+        bloodGroup: newDonor.bloodGroup
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const { emailSent, emailMode } = response.data.data;
+      const isTestMode = emailMode === 'ethereal';
+      alert(
+        `✓ Donor ${newDonor.name} added successfully!\n\n` +
+        `Email: ${newDonor.email}\n` +
+        `Temporary Password: ${tempPassword}\n\n` +
+        (emailSent 
+          ? isTestMode
+            ? `📧 Email generated in TEST mode (Ethereal).\n` +
+              `It will not arrive in real mailbox until SMTP is configured.`
+            : `📧 Credentials email sent successfully!\n` +
+              `Donor will receive login OTP in their mailbox.`
+          : `⚠ Email delivery status: Pending\n` +
+            `Please share credentials manually if needed.`
+        )
+      );
+      setShowAddModal(false);
+      setNewDonor({ name: '', email: '', phone: '', bloodGroup: '', address: '' });
+      fetchDonors();
+    } catch (error) {
+      console.error('Error adding donor:', error);
+      const errorCode = error.response?.data?.code;
+      const errorMsg = error.response?.data?.message;
+      
+      if (errorCode === 'EMAIL_EXISTS') {
+        alert(`⚠ Account Already Exists\n\nAn account with email \"${newDonor.email}\" already exists in the system.\n\nPlease use a different email address or contact support.`);
+      } else if (errorCode === 'PHONE_EXISTS') {
+        alert(`⚠ Phone Number Already Registered\n\nAn account with phone \"${newDonor.phone}\" already exists in the system.\n\nPlease use a different phone number.`);
+      } else {
+        alert(`Error: ${errorMsg || 'Failed to add donor'}`);
+      }
+    }
   };
 
   return (
-    <DashboardLayout>
-      <div className="donor-management">
+    <div className="donor-management-page">
+      <TopNavbar toggleSidebar={() => {}} hospitalName="Hospital Admin - Donor Management" />
+      
+      <div className="donor-management-container">
         <div className="page-header">
           <button className="back-button" onClick={() => navigate('/admin/dashboard')}>
-            ← Back
+            ← Back to Dashboard
           </button>
           <div className="page-title-section">
-            <h1>Donor Management</h1>
+            <h1>🩸 Donor Management</h1>
             <p>Manage donor registrations and donation history</p>
           </div>
           <button 
-            className="btn-primary"
+            className="btn-primary btn-lg"
             onClick={() => setShowAddModal(true)}
           >
             + Add New Donor
           </button>
         </div>
 
-        {/* Stats */}
-        <div className="stats-grid-sm">
-          <div className="stat-card-sm">
-            <h4>Total Donors</h4>
-            <p className="stat-value-lg">{stats.total}</p>
+        {/* Enhanced Stats Cards */}
+        <div className="stats-grid-enhanced">
+          <div className="stat-card-enhanced">
+            <div className="stat-icon">👥</div>
+            <div className="stat-content">
+              <p className="stat-label">Total Donors</p>
+              <h3 className="stat-value">{stats.total}</h3>
+            </div>
+            <div className="stat-trend">
+              <span className="trend-positive">↑ 0%</span>
+            </div>
           </div>
-          <div className="stat-card-sm">
-            <h4>Active Donors</h4>
-            <p className="stat-value-lg text-green">{stats.active}</p>
+
+          <div className="stat-card-enhanced stat-card-success">
+            <div className="stat-icon">✓</div>
+            <div className="stat-content">
+              <p className="stat-label">Active Donors</p>
+              <h3 className="stat-value">{stats.active}</h3>
+            </div>
+            <div className="stat-trend">
+              <span className="trend-positive">Available</span>
+            </div>
           </div>
-          <div className="stat-card-sm">
-            <h4>Inactive Donors</h4>
-            <p className="stat-value-lg text-red">{stats.inactive}</p>
+
+          <div className="stat-card-enhanced stat-card-danger">
+            <div className="stat-icon">⏸</div>
+            <div className="stat-content">
+              <p className="stat-label">Inactive Donors</p>
+              <h3 className="stat-value">{stats.inactive}</h3>
+            </div>
+            <div className="stat-trend">
+              <span className="trend-neutral">Paused</span>
+            </div>
           </div>
-          <div className="stat-card-sm">
-            <h4>Total Donations</h4>
-            <p className="stat-value-lg">{stats.totalDonations}</p>
+
+          <div className="stat-card-enhanced stat-card-info">
+            <div className="stat-icon">🩹</div>
+            <div className="stat-content">
+              <p className="stat-label">Total Donations</p>
+              <h3 className="stat-value">{stats.totalDonations}</h3>
+            </div>
+            <div className="stat-trend">
+              <span className="trend-neutral">lifetime</span>
+            </div>
           </div>
         </div>
 
@@ -219,11 +377,33 @@ function DonorManagement() {
               Inactive ({stats.inactive})
             </button>
           </div>
-          <input type="search" placeholder="Search donors..." className="search-input" />
+          <input
+            type="search"
+            placeholder="Search by name, blood group, email, phone, donor ID..."
+            className="search-input"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
 
         {/* Donors Table */}
         <div className="data-table-container">
+          {loading ? (
+            <div className="empty-state" style={{ padding: '32px 16px' }}>
+              <div className="empty-icon">⏳</div>
+              <p className="empty-text">Loading donors...</p>
+            </div>
+          ) : null}
+
+          {!loading && filteredDonors.length === 0 ? (
+            <div className="empty-state" style={{ padding: '32px 16px' }}>
+              <div className="empty-icon">🔍</div>
+              <p className="empty-text">No donors found</p>
+              <p className="empty-subtext">Try changing filters or search keywords</p>
+            </div>
+          ) : null}
+
+          {!loading && filteredDonors.length > 0 ? (
           <table className="data-table">
             <thead>
               <tr>
@@ -251,9 +431,9 @@ function DonorManagement() {
                     </div>
                   </td>
                   <td><span className="blood-group-badge">{donor.bloodGroup}</span></td>
-                  <td>{new Date(donor.lastDonation).toLocaleDateString()}</td>
+                  <td>{formatDate(donor.lastDonation)}</td>
                   <td><strong>{donor.totalDonations}</strong></td>
-                  <td>{donor.eligibleDate}</td>
+                  <td>{formatDate(donor.eligibleDate)}</td>
                   <td><StatusBadge status={donor.status} /></td>
                   <td>
                     <div className="action-buttons">
@@ -263,11 +443,23 @@ function DonorManagement() {
                       >
                         View
                       </button>
+                      <button
+                        className="btn-sm btn-primary"
+                        onClick={() => sendCredentials(donor)}
+                      >
+                        {donor.hasCredentials ? 'Resend' : 'Send'}
+                      </button>
                       <button 
                         className={`btn-sm ${donor.status === 'active' ? 'btn-danger' : 'btn-success'}`}
                         onClick={() => toggleDonorStatus(donor)}
                       >
                         {donor.status === 'active' ? 'Deactivate' : 'Activate'}
+                      </button>
+                      <button
+                        className="btn-sm btn-danger"
+                        onClick={() => deleteDonor(donor)}
+                      >
+                        Delete
                       </button>
                     </div>
                   </td>
@@ -275,6 +467,7 @@ function DonorManagement() {
               ))}
             </tbody>
           </table>
+          ) : null}
         </div>
 
         {/* Donor Detail Modal */}
@@ -332,11 +525,11 @@ function DonorManagement() {
                   </div>
                   <div className="detail-item">
                     <span className="detail-label">Last Donation:</span>
-                    <span className="detail-value">{new Date(selectedDonor.lastDonation).toLocaleDateString()}</span>
+                    <span className="detail-value">{formatDate(selectedDonor.lastDonation)}</span>
                   </div>
                   <div className="detail-item">
                     <span className="detail-label">Next Eligible:</span>
-                    <span className="detail-value">{selectedDonor.eligibleDate}</span>
+                    <span className="detail-value">{formatDate(selectedDonor.eligibleDate)}</span>
                   </div>
                 </div>
               </div>
@@ -356,8 +549,31 @@ function DonorManagement() {
                     Send Credentials
                   </button>
                 )}
-                <button className="btn-primary">
+                {selectedDonor.hasCredentials && (
+                  <button 
+                    className="btn-primary"
+                    onClick={() => {
+                      sendCredentials(selectedDonor);
+                      setShowDetailModal(false);
+                    }}
+                  >
+                    🔄 Resend Credentials
+                  </button>
+                )}
+                <button 
+                  className="btn-primary"
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    navigate('/admin/blood-requests');
+                  }}
+                >
                   View Full History
+                </button>
+                <button
+                  className="btn-danger"
+                  onClick={() => deleteDonor(selectedDonor)}
+                >
+                  Delete Donor
                 </button>
               </div>
             </div>
@@ -462,7 +678,7 @@ function DonorManagement() {
           </div>
         </Modal>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
 

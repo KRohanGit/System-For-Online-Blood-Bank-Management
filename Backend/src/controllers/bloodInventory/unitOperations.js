@@ -1,4 +1,5 @@
 const BloodInventory = require('../../models/BloodInventory');
+const eventBus = require('../../services/realtime/eventBus');
 
 // Reserve a blood unit for a patient
 exports.reserveUnit = async (req, res) => {
@@ -15,6 +16,16 @@ exports.reserveUnit = async (req, res) => {
     }
 
     await unit.reserve(reservedFor, req.user.id, priority, req.user.email || req.user.name);
+    const payload = {
+      hospitalId: unit.hospitalId,
+      bloodGroup: unit.bloodGroup,
+      action: 'reserve_unit',
+      units: 1,
+      reason: 'reservation',
+      modifiedBy: req.user?.id || req.user?._id
+    };
+    eventBus.publish('inventory:updated', payload);
+    eventBus.publish('inventory_updated', payload);
     res.json({ success: true, message: 'Unit reserved', data: unit });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -36,6 +47,16 @@ exports.issueUnit = async (req, res) => {
     }
 
     await unit.issue(issuedTo, req.user.id, purpose, req.user.email || req.user.name);
+    const payload = {
+      hospitalId: unit.hospitalId,
+      bloodGroup: unit.bloodGroup,
+      action: 'issue_unit',
+      units: 1,
+      reason: purpose || 'issuance',
+      modifiedBy: req.user?.id || req.user?._id
+    };
+    eventBus.publish('inventory:updated', payload);
+    eventBus.publish('inventory_updated', payload);
     res.json({ success: true, message: 'Unit issued', data: unit });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

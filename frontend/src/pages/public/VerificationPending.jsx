@@ -6,8 +6,8 @@ const VerificationPending = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('publicUserToken');
-    localStorage.removeItem('publicUser');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     navigate('/public/login');
   };
 

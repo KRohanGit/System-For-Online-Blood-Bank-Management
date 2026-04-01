@@ -442,8 +442,8 @@ const GeoIntelligence = () => {
                       <p><strong>⏱️ Est. Travel Time:</strong> ~{Math.round(hospital.distance * 2)} mins</p>
                     </div>
                     <div className="card-actions">
-                      <button className="btn-secondary">View Details</button>
-                      <button className="btn-primary">Get Directions</button>
+                      <button className="btn-secondary" onClick={() => setSelectedMarker(hospital)}>View Details</button>
+                      <button className="btn-primary" onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${hospital.location.latitude},${hospital.location.longitude}`, '_blank')}>Get Directions</button>
                     </div>
                   </div>
                 ))}
@@ -487,8 +487,12 @@ const GeoIntelligence = () => {
                       <p><strong>📊 Capacity:</strong> {camp.availability.booked}/{camp.availability.total} booked</p>
                     </div>
                     <div className="card-actions">
-                      <button className="btn-secondary">View Details</button>
-                      <button className="btn-primary">Book Slot</button>
+                      <button className="btn-secondary" onClick={() => setSelectedMarker(camp)}>View Details</button>
+                      <button className="btn-primary" onClick={() => {
+                        const token = localStorage.getItem('token');
+                        if (!token) { alert('Please login to book a slot'); return; }
+                        window.location.href = `/blood-camps/${camp.id || camp._id}`;
+                      }}>Book Slot</button>
                     </div>
                   </div>
                 ))}

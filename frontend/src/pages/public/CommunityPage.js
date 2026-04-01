@@ -18,6 +18,12 @@ export default function CommunityPage() {
   const [userLocation, setUserLocation] = useState(null);
   const [searchRadius, setSearchRadius] = useState(50);
   const [likedPosts, setLikedPosts] = useState(new Set());
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [newPost, setNewPost] = useState({
+    title: '', content: '', type: 'general', bloodGroup: '', urgency: 'low',
+    contactPhone: '', contactEmail: ''
+  });
   
   const isLoggedIn = !!localStorage.getItem('token');
 
@@ -110,7 +116,36 @@ export default function CommunityPage() {
       navigate('/signin/public-user');
       return;
     }
-    navigate('/community/create');
+    setShowCreateForm(true);
+  };
+
+  const submitNewPost = async (e) => {
+    e.preventDefault();
+    if (!newPost.title.trim() || !newPost.content.trim()) {
+      alert('Title and content are required');
+      return;
+    }
+    try {
+      setCreateLoading(true);
+      await communityAPI.createPost({
+        title: newPost.title,
+        content: newPost.content,
+        type: newPost.type,
+        bloodGroup: newPost.bloodGroup || undefined,
+        urgency: newPost.urgency,
+        contactInfo: {
+          phone: newPost.contactPhone,
+          email: newPost.contactEmail
+        }
+      });
+      setShowCreateForm(false);
+      setNewPost({ title: '', content: '', type: 'general', bloodGroup: '', urgency: 'low', contactPhone: '', contactEmail: '' });
+      fetchAllPosts();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to create post');
+    } finally {
+      setCreateLoading(false);
+    }
   };
 
   return (
@@ -194,6 +229,74 @@ export default function CommunityPage() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Post Modal */}
+      {showCreateForm && (
+        <div className="modal-overlay" onClick={() => setShowCreateForm(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Create New Post</h2>
+              <button className="close-btn" onClick={() => setShowCreateForm(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={submitNewPost}>
+                <div style={{ marginBottom: '12px' }}>
+                  <label><strong>Title *</strong></label>
+                  <input type="text" value={newPost.title} onChange={(e) => setNewPost({ ...newPost, title: e.target.value })} placeholder="Post title" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd', marginTop: '4px' }} required />
+                </div>
+                <div style={{ marginBottom: '12px' }}>
+                  <label><strong>Content *</strong></label>
+                  <textarea value={newPost.content} onChange={(e) => setNewPost({ ...newPost, content: e.target.value })} placeholder="Describe your post..." rows={4} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd', marginTop: '4px' }} required />
+                </div>
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                  <div style={{ flex: 1 }}>
+                    <label><strong>Type</strong></label>
+                    <select value={newPost.type} onChange={(e) => setNewPost({ ...newPost, type: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd', marginTop: '4px' }}>
+                      <option value="general">General</option>
+                      <option value="blood_request">Blood Request</option>
+                      <option value="announcement">Announcement</option>
+                      <option value="thank_you">Thank You</option>
+                    </select>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label><strong>Blood Group</strong></label>
+                    <select value={newPost.bloodGroup} onChange={(e) => setNewPost({ ...newPost, bloodGroup: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd', marginTop: '4px' }}>
+                      <option value="">Any / N/A</option>
+                      <option value="A+">A+</option><option value="A-">A-</option>
+                      <option value="B+">B+</option><option value="B-">B-</option>
+                      <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                      <option value="O+">O+</option><option value="O-">O-</option>
+                    </select>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label><strong>Urgency</strong></label>
+                    <select value={newPost.urgency} onChange={(e) => setNewPost({ ...newPost, urgency: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd', marginTop: '4px' }}>
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="critical">Critical</option>
+                    </select>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                  <div style={{ flex: 1 }}>
+                    <label><strong>Contact Phone</strong></label>
+                    <input type="tel" value={newPost.contactPhone} onChange={(e) => setNewPost({ ...newPost, contactPhone: e.target.value })} placeholder="Phone number" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd', marginTop: '4px' }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label><strong>Contact Email</strong></label>
+                    <input type="email" value={newPost.contactEmail} onChange={(e) => setNewPost({ ...newPost, contactEmail: e.target.value })} placeholder="Email address" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd', marginTop: '4px' }} />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                  <button type="button" className="btn-secondary" onClick={() => setShowCreateForm(false)}>Cancel</button>
+                  <button type="submit" className="btn-primary" disabled={createLoading}>{createLoading ? 'Posting...' : 'Create Post'}</button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

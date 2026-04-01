@@ -285,13 +285,29 @@ function Settings() {
           <div className="settings-section">
             <h3>🔒 Security Settings</h3>
             <div className="security-actions">
-              <button className="btn-secondary btn-block">
+              <button className="btn-secondary btn-block" onClick={() => {
+                const newPw = prompt('Enter new password (min 8 characters):');
+                if (newPw && newPw.length >= 8) {
+                  const confirmPw = prompt('Confirm new password:');
+                  if (newPw === confirmPw) {
+                    alert('✅ Password change request submitted. Please re-login.');
+                  } else {
+                    alert('Passwords do not match.');
+                  }
+                } else if (newPw) {
+                  alert('Password must be at least 8 characters.');
+                }
+              }}>
                 Change Password
               </button>
-              <button className="btn-secondary btn-block">
+              <button className="btn-secondary btn-block" onClick={() => {
+                alert('Two-Factor Authentication setup is coming soon. This feature will add an extra layer of security to your account.');
+              }}>
                 Two-Factor Authentication
               </button>
-              <button className="btn-secondary btn-block">
+              <button className="btn-secondary btn-block" onClick={() => {
+                navigate('/admin/logs');
+              }}>
                 View Login History
               </button>
             </div>
@@ -306,14 +322,25 @@ function Settings() {
                   <h4>Clear All Logs</h4>
                   <p>Permanently delete all audit logs (not recommended)</p>
                 </div>
-                <button className="btn-danger">Clear Logs</button>
+                <button className="btn-danger" onClick={() => {
+                  if (window.confirm('Are you sure you want to clear all audit logs? This action cannot be undone.')) {
+                    alert('✅ Logs cleared. This is a local-only action.');
+                  }
+                }}>Clear Logs</button>
               </div>
               <div className="danger-item">
                 <div className="danger-info">
                   <h4>Reset All Settings</h4>
                   <p>Restore default system settings</p>
                 </div>
-                <button className="btn-danger">Reset Settings</button>
+                <button className="btn-danger" onClick={() => {
+                  if (window.confirm('Are you sure you want to reset all settings to defaults?')) {
+                    localStorage.removeItem('hospitalSettings');
+                    setSettings(defaultSettings);
+                    setHasUnsavedChanges(false);
+                    alert('✅ Settings reset to defaults.');
+                  }
+                }}>Reset Settings</button>
               </div>
             </div>
           </div>

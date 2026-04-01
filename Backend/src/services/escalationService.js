@@ -43,7 +43,7 @@ async function checkAndEscalateRequests() {
       } else if (minutesElapsed >= ESCALATION_CONFIG.LEVEL_2 && request.escalationLevel < 2) {
         shouldEscalate = true;
         newLevel = 2;
-      } else if (minutesElapsed >= ESCALATION_CONFIG.LEVEL_1 && request.escalationLevel < 1) {take 
+      } else if (minutesElapsed >= ESCALATION_CONFIG.LEVEL_1 && request.escalationLevel < 1) {
         shouldEscalate = true;
         newLevel = 1;
       }
@@ -73,28 +73,22 @@ async function escalateRequest(request, level) {
     // Get hospitals to notify based on escalation level
     const hospitalsToNotify = await getEscalationHospitals(
       {
-        requestingHospitalId: request.requestingHospital.hospitalId,
+        requestingHospitalId: request.requestingHospitalId,
         bloodGroup: request.bloodGroup,
         unitsRequired: request.unitsRequired,
-        severityLevel: request.severityLevel,
-        requestingLocation: request.requestingHospital.location?.coordinates
+        severityLevel: request.severityLevel
       },
       level
     );
 
-    // Update request
-    request.escalate(level);
-    
-    // Add communication log entry
     const escalationMessage = getEscalationMessage(level, hospitalsToNotify.length);
-    request.communicationLog.push({
+    request.escalate(escalationMessage, hospitalsToNotify.map(h => h.hospitalId));
+
+    request.communicationLogs.push({
       timestamp: new Date(),
-      senderId: 'SYSTEM',
-      senderName: 'Emergency Escalation System',
-      recipientId: request.requestingHospital.hospitalId,
-      recipientName: request.requestingHospital.hospitalName,
-      message: escalationMessage,
-      type: 'ESCALATION'
+      fromHospitalId: request.requestingHospitalId,
+      messageType: 'SYSTEM_NOTIFICATION',
+      message: escalationMessage
     });
 
     await request.save();
@@ -167,9 +161,9 @@ async function notifyCityHealthAuthority(request) {
       unitsRequired: request.unitsRequired,
       severityLevel: request.severityLevel,
       urgencyScore: request.urgencyScore,
-      requestingHospital: request.requestingHospital.hospitalName,
-      patientAge: request.patientDetails.age,
-      diagnosis: request.patientDetails.diagnosis,
+      requestingHospital: request.requestingHospitalName,
+      patientAge: request.patientInfo?.age,
+      diagnosis: request.patientInfo?.diagnosis,
       timeElapsed: Math.floor((new Date() - request.createdAt) / 1000 / 60) + ' minutes'
     };
 
@@ -190,18 +184,16 @@ async function manualEscalation(requestId, level, reason) {
       throw new Error('Request not found');
     }
 
-    request.escalate(level);
+    request.escalate(reason, []);
     request.addAuditLog('MANUAL_ESCALATION', 'SYSTEM', `Manual escalation to level ${level}: ${reason}`);
     await request.save();
 
-    // Get hospitals and notify
     const hospitals = await getEscalationHospitals(
       {
-        requestingHospitalId: request.requestingHospital.hospitalId,
+        requestingHospitalId: request.requestingHospitalId,
         bloodGroup: request.bloodGroup,
         unitsRequired: request.unitsRequired,
-        severityLevel: request.severityLevel,
-        requestingLocation: request.requestingHospital.location?.coordinates
+        severityLevel: request.severityLevel
       },
       level
     );

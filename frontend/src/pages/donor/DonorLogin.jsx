@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../../services/axiosInstance';
 
 const DonorLogin = () => {
   const navigate = useNavigate();
@@ -28,20 +28,17 @@ const DonorLogin = () => {
 
     try {
       const endpoint = loginType === 'otp'
-        ? '/api/donor-auth/login/otp'
-        : '/api/donor-auth/login/password';
+        ? '/donor-auth/login/otp'
+        : '/donor-auth/login/password';
 
       const payload = loginType === 'otp'
         ? { email: formData.email, otp: formData.otp }
         : { email: formData.email, password: formData.password };
 
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}${endpoint}`,
-        payload
-      );
+      const response = await axiosInstance.post(endpoint, payload);
 
       localStorage.setItem('token', response.data.data.token);
-      localStorage.setItem('donorInfo', JSON.stringify(response.data.data.donor));
+      localStorage.setItem('user', JSON.stringify(response.data.data.donor));
 
       if (response.data.data.mustChangePassword) {
         navigate('/donor/change-password');

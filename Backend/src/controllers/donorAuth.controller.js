@@ -2,7 +2,7 @@ const DonorCredential = require('../models/DonorCredential');
 const PublicUser = require('../models/PublicUser');
 const { validateOTP } = require('../services/otp.service');
 const { generateToken } = require('../utils/jwt');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 const loginWithOTP = async (req, res) => {
   try {
@@ -50,7 +50,8 @@ const loginWithOTP = async (req, res) => {
 
     const token = generateToken({
       userId: donor._id,
-      role: 'donor'
+      role: 'donor',
+      name: donor.fullName
     });
 
     res.status(200).json({
@@ -61,6 +62,7 @@ const loginWithOTP = async (req, res) => {
         mustChangePassword: credential.mustChangePassword,
         donor: {
           id: donor._id,
+          name: donor.fullName,
           email: donor.email,
           fullName: donor.fullName,
           bloodGroup: donor.bloodGroup
@@ -153,7 +155,8 @@ const loginWithPassword = async (req, res) => {
 
     const token = generateToken({
       userId: donor._id,
-      role: 'donor'
+      role: 'donor',
+      name: donor.fullName
     });
 
     res.status(200).json({
@@ -161,9 +164,10 @@ const loginWithPassword = async (req, res) => {
       message: 'Login successful',
       data: {
         token,
-        mustChangePassword: false,
+        mustChangePassword: credential.mustChangePassword || false,
         donor: {
           id: donor._id,
+          name: donor.fullName,
           email: donor.email,
           fullName: donor.fullName,
           bloodGroup: donor.bloodGroup

@@ -18,6 +18,7 @@ const AuditTrailPage = () => {
   const [filters, setFilters] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectedLog, setSelectedLog] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadAuditData();
@@ -26,6 +27,7 @@ const AuditTrailPage = () => {
   const loadAuditData = async () => {
     setLoading(true);
     try {
+      setError('');
       const [logsRes, distRes, overrideRes, usageRes, patternsRes] = await Promise.all([
         auditTrailAPI.getAuditLogs({ ...filters, page: pagination.page, limit: pagination.limit }),
         auditTrailAPI.getActionDistribution(filters),
@@ -45,45 +47,13 @@ const AuditTrailPage = () => {
       if (patternsRes.success) setEmergencyPatterns(patternsRes.data);
     } catch (error) {
       console.error('Error loading audit data:', error);
-      const dummyLogs = Array.from({ length: 15 }, (_, i) => ({
-        _id: `LOG${i + 1}`,
-        timestamp: new Date(Date.now() - i * 3600000).toISOString(),
-        actionType: ['accepted', 'overridden', 'approved', 'rejected'][i % 4],
-        caseType: 'blood_unit_validation',
-        justification: i % 4 === 1 ? 'Emergency patient requires immediate transfusion' : null
-      }));
-      setLogs(dummyLogs);
-      setPagination({ page: 1, limit: 50, total: 15, pages: 1 });
-      
-      setActionDistribution([
-        { action: 'accepted', count: 145 },
-        { action: 'overridden', count: 23 },
-        { action: 'approved', count: 89 },
-        { action: 'rejected', count: 12 }
-      ]);
-      
-      setOverrideFrequency(Array.from({ length: 30 }, (_, i) => ({
-        date: new Date(Date.now() - (29 - i) * 86400000).toISOString().split('T')[0],
-        count: Math.floor(Math.random() * 8) + 1
-      })));
-      
-      setBloodUsage([
-        { bloodGroup: 'A+', used: 45, wasted: 3 },
-        { bloodGroup: 'A-', used: 12, wasted: 1 },
-        { bloodGroup: 'B+', used: 38, wasted: 2 },
-        { bloodGroup: 'B-', used: 8, wasted: 0 },
-        { bloodGroup: 'O+', used: 67, wasted: 4 },
-        { bloodGroup: 'O-', used: 15, wasted: 1 },
-        { bloodGroup: 'AB+', used: 22, wasted: 1 },
-        { bloodGroup: 'AB-', used: 5, wasted: 0 }
-      ]);
-      
-      setEmergencyPatterns(Array.from({ length: 14 }, (_, i) => ({
-        date: new Date(Date.now() - (13 - i) * 86400000).toISOString().split('T')[0],
-        critical: Math.floor(Math.random() * 5),
-        urgent: Math.floor(Math.random() * 10) + 3,
-        moderate: Math.floor(Math.random() * 15) + 5
-      })));
+      setLogs([]);
+      setPagination({ page: 1, limit: 50, total: 0, pages: 0 });
+      setActionDistribution([]);
+      setOverrideFrequency([]);
+      setBloodUsage([]);
+      setEmergencyPatterns([]);
+      setError('Unable to load audit trail right now.');
     } finally {
       setLoading(false);
     }
@@ -119,6 +89,8 @@ const AuditTrailPage = () => {
         <h1>🔍 Audit Trail</h1>
         <p className="audit-subtitle">Immutable medical accountability records</p>
       </div>
+
+      {error && <div className="error-message">{error}</div>}
 
       <AuditFilters onFilterChange={handleFilterChange} currentFilters={filters} />
 

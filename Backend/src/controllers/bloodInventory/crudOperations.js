@@ -1,4 +1,5 @@
 const BloodInventory = require('../../models/BloodInventory');
+const eventBus = require('../../services/realtime/eventBus');
 
 // Get all blood units with filters (pagination, blood group, status)
 exports.getAllUnits = async (req, res) => {
@@ -124,6 +125,16 @@ exports.addUnit = async (req, res) => {
 
     console.log('🔁 Adding blood unit', { hospitalId: hospitalId?.toString(), bloodGroup: bloodGroup && bloodGroup.toUpperCase(), storageType: storageTypeNormalizedForModel, performedBy: req.user && (req.user.email || req.user._id) });
     await newUnit.save();
+    const payload = {
+      hospitalId,
+      bloodGroup: newUnit.bloodGroup,
+      action: 'add_unit',
+      units: 1,
+      reason: 'inventory_addition',
+      modifiedBy: req.user?.id || req.user?._id
+    };
+    eventBus.publish('inventory:updated', payload);
+    eventBus.publish('inventory_updated', payload);
     console.log('✅ Blood unit saved successfully:', newUnit._id);
     res.status(201).json({ success: true, message: 'Unit added successfully', data: newUnit });
   } catch (error) {
@@ -234,6 +245,17 @@ exports.updateUnit = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Unit not found' });
     }
 
+    const payload = {
+      hospitalId: unit.hospitalId,
+      bloodGroup: unit.bloodGroup,
+      action: 'update_unit',
+      units: 1,
+      reason: 'inventory_update',
+      modifiedBy: req.user?.id || req.user?._id
+    };
+    eventBus.publish('inventory:updated', payload);
+    eventBus.publish('inventory_updated', payload);
+
     res.json({ success: true, message: 'Unit updated', data: unit });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -255,6 +277,16 @@ exports.deleteUnit = async (req, res) => {
     }
 
     await BloodInventory.findByIdAndDelete(unitId);
+    const payload = {
+      hospitalId: unit.hospitalId,
+      bloodGroup: unit.bloodGroup,
+      action: 'delete_unit',
+      units: 1,
+      reason: 'inventory_delete',
+      modifiedBy: req.user?.id || req.user?._id
+    };
+    eventBus.publish('inventory:updated', payload);
+    eventBus.publish('inventory_updated', payload);
     res.json({ success: true, message: 'Unit deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

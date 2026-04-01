@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import CivicAlertFeed from '../../components/civic/CivicAlertFeed';
 import DonationReadinessAdvisor from '../../components/readiness/DonationReadinessAdvisor';
 import EmergencyMobilization from '../../components/emergency/EmergencyMobilization';
+import PeerEmergencyDonorChain from '../../components/emergency/PeerEmergencyDonorChain';
 import './PublicDashboard.css';
 
 export default function PublicDashboard() {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
   const [activeSection, setActiveSection] = useState('overview');
+  const [userStats, setUserStats] = useState({ donations: 0, bloodDonated: 0, livesSaved: 0, status: 'New' });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -19,6 +21,29 @@ export default function PublicDashboard() {
 
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     setUserName(user.fullName || user.name || 'User');
+
+    // Try to load user donation stats from API
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/donor-dashboard/dashboard`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const d = data.data || data;
+          const donationCount = d.totalDonations || d.donations || 0;
+          setUserStats({
+            donations: donationCount,
+            bloodDonated: `${donationCount * 450}ml`,
+            livesSaved: donationCount * 3,
+            status: donationCount >= 5 ? 'Hero' : donationCount >= 3 ? 'Champion' : donationCount >= 1 ? 'Contributor' : 'New'
+          });
+        }
+      } catch {
+        // Keep defaults for public users without donor history
+      }
+    };
+    fetchStats();
   }, [navigate]);
 
   const quickAccessCards = [
@@ -144,7 +169,7 @@ export default function PublicDashboard() {
             {activeSection === 'overview' && 'Dashboard Overview'}
             {activeSection === 'alerts' && 'Civic Blood Alerts'}
             {activeSection === 'readiness' && 'Donation Readiness'}
-            {activeSection === 'emergency' && 'Emergency Mobilization'}
+            {activeSection === 'emergency' && 'Emergency Donor Chain'}
           </h1>
           <div className="topbar-actions">
             <button className="notification-btn" onClick={() => navigate('/notifications')}>
@@ -169,28 +194,28 @@ export default function PublicDashboard() {
                 <div className="stat-card">
                   <div className="stat-icon">💉</div>
                   <div className="stat-content">
-                    <h3>3</h3>
+                    <h3>{userStats.donations}</h3>
                     <p>Total Donations</p>
                   </div>
                 </div>
                 <div className="stat-card">
                   <div className="stat-icon">🏆</div>
                   <div className="stat-content">
-                    <h3>1,500ml</h3>
+                    <h3>{userStats.bloodDonated}</h3>
                     <p>Blood Donated</p>
                   </div>
                 </div>
                 <div className="stat-card">
                   <div className="stat-icon">❤️</div>
                   <div className="stat-content">
-                    <h3>9</h3>
+                    <h3>{userStats.livesSaved}</h3>
                     <p>Lives Saved</p>
                   </div>
                 </div>
                 <div className="stat-card">
                   <div className="stat-icon">⭐</div>
                   <div className="stat-content">
-                    <h3>Hero</h3>
+                    <h3>{userStats.status}</h3>
                     <p>Donor Status</p>
                   </div>
                 </div>
@@ -245,7 +270,12 @@ export default function PublicDashboard() {
 
           {activeSection === 'alerts' && <CivicAlertFeed />}
           {activeSection === 'readiness' && <DonationReadinessAdvisor />}
-          {activeSection === 'emergency' && <EmergencyMobilization />}
+          {activeSection === 'emergency' && (
+            <div className="public-emergency-stack">
+              <PeerEmergencyDonorChain />
+              <EmergencyMobilization />
+            </div>
+          )}
         </div>
       </div>
     </div>

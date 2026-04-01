@@ -14,7 +14,17 @@
 const HospitalProfile = require('../models/HospitalProfile');
 const BloodInventory = require('../models/BloodInventory');
 const HospitalTrustLedger = require('../models/HospitalTrustLedger');
-const User = require('../models/User');
+
+const BLOOD_COMPATIBILITY = {
+  'O-': ['O-'],
+  'O+': ['O-', 'O+'],
+  'A-': ['O-', 'A-'],
+  'A+': ['O-', 'O+', 'A-', 'A+'],
+  'B-': ['O-', 'B-'],
+  'B+': ['O-', 'O+', 'B-', 'B+'],
+  'AB-': ['O-', 'A-', 'B-', 'AB-'],
+  'AB+': ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+']
+};
 
 /**
  * Calculate distance using Haversine formula
@@ -46,19 +56,19 @@ async function findMatchingHospitals(request) {
   } = request;
 
   try {
-    // Find all active hospitals except requesting one
-    const hospitals = await User.find({
-      role: 'HOSPITAL_ADMIN',
+    // Find all approved hospital profiles except requesting one
+    const hospitals = await HospitalProfile.find({
       _id: { $ne: requestingHospitalId },
-      isActive: true,
       verificationStatus: 'approved'
-    }).select('_id hospitalName location phone email');
+    }).select('_id hospitalName location phone officialEmail');
 
     if (!hospitals || hospitals.length === 0) {
       return [];
     }
 
     const matches = [];
+    const compatibleDonorGroups = BLOOD_COMPATIBILITY[bloodGroup] || [bloodGroup];
+    const allowCompatibleMatching = bloodGroup === 'AB+';
 
     for (const hospital of hospitals) {
       // Skip if no location data
@@ -71,16 +81,24 @@ async function findMatchingHospitals(request) {
       const [reqLon, reqLat] = requestingLocation || [0, 0];
       const distance = calculateDistance(reqLat, reqLon, hospLat, hospLon);
 
-      // Get blood inventory for this hospital
-      const inventory = await BloodInventory.findOne({
+      // Keep exact-group units for consistency in API output.
+      const exactAvailableUnits = await BloodInventory.countDocuments({
         hospitalId: hospital._id,
-        bloodGroup: bloodGroup
+        bloodGroup,
+        status: 'Available'
       });
 
-      const availableUnits = inventory ? inventory.unitsAvailable : 0;
+      // Use compatible units when universal-receiver behavior is required.
+      const compatibleAvailableUnits = await BloodInventory.countDocuments({
+        hospitalId: hospital._id,
+        bloodGroup: { $in: compatibleDonorGroups },
+        status: 'Available'
+      });
+
+      const scoringUnits = allowCompatibleMatching ? compatibleAvailableUnits : exactAvailableUnits;
 
       // Skip if no blood available
-      if (availableUnits === 0) {
+      if (scoringUnits === 0) {
         continue;
       }
 
@@ -101,7 +119,7 @@ async function findMatchingHospitals(request) {
       // Calculate matching score
       const matchScore = calculateMatchScore({
         distance,
-        availableUnits,
+        availableUnits: scoringUnits,
         unitsRequired,
         trustScore: trustLedger.trustScore.overall,
         responseMetrics: trustLedger.responseMetrics,
@@ -118,7 +136,7 @@ async function findMatchingHospitals(request) {
       // Determine confidence level
       const confidenceLevel = determineConfidenceLevel(
         matchScore,
-        availableUnits,
+        scoringUnits,
         unitsRequired,
         trustLedger.responseMetrics.acceptanceRate
       );
@@ -128,7 +146,8 @@ async function findMatchingHospitals(request) {
         hospitalName: hospital.hospitalName,
         matchScore: Math.round(matchScore),
         distance: parseFloat(distance.toFixed(2)),
-        availableUnits,
+        availableUnits: exactAvailableUnits,
+        compatibleUnits: compatibleAvailableUnits,
         responseTime: estimatedResponseTime,
         trustScore: trustLedger.trustScore.overall,
         reliabilityRating: trustLedger.reliabilityRating,
@@ -136,7 +155,7 @@ async function findMatchingHospitals(request) {
         estimatedArrival,
         contact: {
           phone: hospital.phone,
-          email: hospital.email
+          email: hospital.officialEmail
         },
         location: {
           latitude: hospLat,

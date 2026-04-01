@@ -11,6 +11,13 @@ function HospitalSignup() {
     hospitalName: '',
     officialEmail: '',
     licenseNumber: '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: '',
+    phone: '',
+    latitude: '',
+    longitude: '',
     adminName: '',
     adminEmail: '',
     password: '',
@@ -22,6 +29,46 @@ function HospitalSignup() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [locationDetected, setLocationDetected] = useState(false);
+  const [isResolvingAddress, setIsResolvingAddress] = useState(false);
+
+  const reverseGeocode = async (latitude, longitude) => {
+    setIsResolvingAddress(true);
+    try {
+      const resp = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}&addressdetails=1`,
+        {
+          headers: {
+            Accept: 'application/json'
+          }
+        }
+      );
+
+      if (!resp.ok) {
+        return;
+      }
+
+      const data = await resp.json();
+      const addr = data?.address || {};
+
+      const detectedPincode = addr.postcode || '';
+      const detectedCity = addr.city || addr.town || addr.village || addr.county || '';
+      const detectedState = addr.state || '';
+      const detectedAddress = data?.display_name || '';
+
+      setFormData((prev) => ({
+        ...prev,
+        pincode: detectedPincode || prev.pincode,
+        city: detectedCity || prev.city,
+        state: detectedState || prev.state,
+        address: detectedAddress || prev.address
+      }));
+    } catch (error) {
+      console.warn('Failed to resolve address from coordinates:', error);
+    } finally {
+      setIsResolvingAddress(false);
+    }
+  };
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -40,6 +87,28 @@ function HospitalSignup() {
     }, formRef);
 
     return () => ctx.revert();
+  }, []);
+
+  // Auto-detect location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const detectedLat = Number(position.coords.latitude).toFixed(6);
+          const detectedLng = Number(position.coords.longitude).toFixed(6);
+          setFormData((prev) => ({
+            ...prev,
+            latitude: detectedLat,
+            longitude: detectedLng
+          }));
+          setLocationDetected(true);
+          reverseGeocode(detectedLat, detectedLng);
+        },
+        () => {
+          console.warn('Location access denied - hospital can set location later');
+        }
+      );
+    }
   }, []);
 
   const validateFile = (file) => {
@@ -91,6 +160,29 @@ function HospitalSignup() {
     }
 
     if (!formData.licenseNumber) newErrors.licenseNumber = 'License number is required';
+    if (!formData.address) newErrors.address = 'Hospital address is required';
+    if (!formData.city) newErrors.city = 'City is required';
+    if (!formData.pincode) newErrors.pincode = 'Pincode is required';
+
+    const latitude = Number(formData.latitude);
+    const longitude = Number(formData.longitude);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      newErrors.latitude = 'Valid latitude is required';
+      newErrors.longitude = 'Valid longitude is required';
+    } else {
+      if (latitude < -90 || latitude > 90) newErrors.latitude = 'Latitude must be between -90 and 90';
+      if (longitude < -180 || longitude > 180) newErrors.longitude = 'Longitude must be between -180 and 180';
+      if (latitude === 0 && longitude === 0) {
+        newErrors.latitude = 'Latitude cannot be 0 when longitude is 0';
+        newErrors.longitude = 'Longitude cannot be 0 when latitude is 0';
+      }
+    }
+
+    if (!formData.phone) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^\d{10}$/.test(formData.phone.replace(/[- ]/g, ''))) {
+      newErrors.phone = 'Enter a valid 10-digit phone number';
+    }
     if (!formData.adminName) newErrors.adminName = 'Admin name is required';
     
     if (!formData.adminEmail) {
@@ -139,7 +231,11 @@ function HospitalSignup() {
           licenseNumber: formData.licenseNumber
         });
         
-        const response = await authAPI.registerHospital(formData);
+        const response = await authAPI.registerHospital({
+          ...formData,
+          latitude: formData.latitude,
+          longitude: formData.longitude
+        });
         
         console.log('✅ Registration response:', response);
         
@@ -252,6 +348,119 @@ function HospitalSignup() {
                 {errors.licenseNumber && <span className="error-message">{errors.licenseNumber}</span>}
               </div>
             </div>
+
+            <div className="form-group">
+              <label htmlFor="address">Hospital Address *</label>
+              <input
+                type="text"
+                id="address"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                className={errors.address ? 'error' : ''}
+              />
+              {errors.address && <span className="error-message">{errors.address}</span>}
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="city">City *</label>
+                <input
+                  type="text"
+                  id="city"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  className={errors.city ? 'error' : ''}
+                />
+                {errors.city && <span className="error-message">{errors.city}</span>}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="state">State</label>
+                <input
+                  type="text"
+                  id="state"
+                  name="state"
+                  value={formData.state}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="pincode">Pincode *</label>
+                <input
+                  type="text"
+                  id="pincode"
+                  name="pincode"
+                  value={formData.pincode}
+                  onChange={handleChange}
+                  className={errors.pincode ? 'error' : ''}
+                />
+                {errors.pincode && <span className="error-message">{errors.pincode}</span>}
+              </div>
+              <div className="form-group">
+                <label htmlFor="phone">Hospital Phone *</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className={errors.phone ? 'error' : ''}
+                  placeholder="9876543210"
+                />
+                {errors.phone && <span className="error-message">{errors.phone}</span>}
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="latitude">Latitude *</label>
+                <input
+                  type="number"
+                  step="0.000001"
+                  id="latitude"
+                  name="latitude"
+                  value={formData.latitude}
+                  onChange={handleChange}
+                  className={errors.latitude ? 'error' : ''}
+                />
+                {errors.latitude && <span className="error-message">{errors.latitude}</span>}
+              </div>
+              <div className="form-group">
+                <label htmlFor="longitude">Longitude *</label>
+                <input
+                  type="number"
+                  step="0.000001"
+                  id="longitude"
+                  name="longitude"
+                  value={formData.longitude}
+                  onChange={handleChange}
+                  className={errors.longitude ? 'error' : ''}
+                />
+                {errors.longitude && <span className="error-message">{errors.longitude}</span>}
+              </div>
+            </div>
+
+            {isResolvingAddress && (
+              <div className="info-note" style={{ background: '#e3f2fd', marginBottom: '12px' }}>
+                Detecting address and pincode from your coordinates...
+              </div>
+            )}
+
+            {locationDetected && (
+              <div className="info-note" style={{ background: '#e8f5e9', marginBottom: '12px' }}>
+                📍 Location detected automatically. You can still edit coordinates before submit.
+              </div>
+            )}
+            {!locationDetected && (
+              <div className="info-note" style={{ background: '#fff3e0', marginBottom: '12px' }}>
+                📍 Allow location access so donors can find your hospital on the map.
+              </div>
+            )}
 
             <div className="form-group file-upload-group">
               <label>Hospital License * (PDF, JPG, PNG - Max 2MB)</label>

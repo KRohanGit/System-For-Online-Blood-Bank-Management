@@ -14,7 +14,7 @@ const DonationHistory = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/donor-dashboard/history`,
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/donor-dashboard/history`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setHistory(response.data.data);

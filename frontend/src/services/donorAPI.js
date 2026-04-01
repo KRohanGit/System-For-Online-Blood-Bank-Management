@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
@@ -9,41 +9,41 @@ const getAuthHeaders = () => {
 
 export const donorAPI = {
   loginWithOTP: (email, otp) =>
-    axios.post(`${API_URL}/api/donor-auth/login/otp`, { email, otp }),
+    axios.post(`${API_URL}/donor-auth/login/otp`, { email, otp }),
 
   loginWithPassword: (email, password) =>
-    axios.post(`${API_URL}/api/donor-auth/login/password`, { email, password }),
+    axios.post(`${API_URL}/donor-auth/login/password`, { email, password }),
 
   changePassword: (newPassword) =>
     axios.post(
-      `${API_URL}/api/donor-auth/change-password`,
+      `${API_URL}/donor-auth/change-password`,
       { newPassword },
       { headers: getAuthHeaders() }
     ),
 
   getDashboard: () =>
-    axios.get(`${API_URL}/api/donor-dashboard/dashboard`, {
+    axios.get(`${API_URL}/donor-dashboard/dashboard`, {
       headers: getAuthHeaders()
     }),
 
   getHistory: () =>
-    axios.get(`${API_URL}/api/donor-dashboard/history`, {
+    axios.get(`${API_URL}/donor-dashboard/history`, {
       headers: getAuthHeaders()
     }),
 
   getCertificates: () =>
-    axios.get(`${API_URL}/api/donor-dashboard/certificates`, {
+    axios.get(`${API_URL}/donor-dashboard/certificates`, {
       headers: getAuthHeaders()
     }),
 
   getEmergencyMessages: () =>
-    axios.get(`${API_URL}/api/emergency/messages`, {
+    axios.get(`${API_URL}/emergency/messages`, {
       headers: getAuthHeaders()
     }),
 
   markMessageAsRead: (messageId) =>
     axios.put(
-      `${API_URL}/api/emergency/messages/${messageId}/read`,
+      `${API_URL}/emergency/messages/${messageId}/read`,
       {},
       { headers: getAuthHeaders() }
     )
@@ -51,28 +51,28 @@ export const donorAPI = {
 
 export const donationAPI = {
   createDonation: (data) =>
-    axios.post(`${API_URL}/api/donations/create`, data, {
+    axios.post(`${API_URL}/donations/create`, data, {
       headers: getAuthHeaders()
     }),
 
   getDonations: () =>
-    axios.get(`${API_URL}/api/donations/list`, { headers: getAuthHeaders() }),
+    axios.get(`${API_URL}/donations/list`, { headers: getAuthHeaders() }),
 
   completeDonation: (donationId) =>
     axios.put(
-      `${API_URL}/api/donations/complete/${donationId}`,
+      `${API_URL}/donations/complete/${donationId}`,
       {},
       { headers: getAuthHeaders() }
     ),
 
   getDonors: () =>
-    axios.get(`${API_URL}/api/donations/donors`, { headers: getAuthHeaders() })
+    axios.get(`${API_URL}/donations/donors`, { headers: getAuthHeaders() })
 };
 
 export const emergencyAPI = {
   sendAlert: (bloodGroup, message) =>
     axios.post(
-      `${API_URL}/api/emergency/send`,
+      `${API_URL}/emergency/send`,
       { bloodGroup, message },
       { headers: getAuthHeaders() }
     )

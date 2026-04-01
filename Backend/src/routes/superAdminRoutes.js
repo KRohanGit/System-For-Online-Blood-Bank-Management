@@ -18,12 +18,16 @@ router.get('/activity', superAdminController.getRecentActivity);
 // User management
 router.get('/users/pending', superAdminController.getPendingUsers);
 router.get('/users', superAdminController.getAllUsers);
+router.get('/users/:userId/documents', superAdminController.getUserDocuments);
+router.get('/users/:userId/documents/:documentType/download', superAdminController.downloadUserDocument);
 
 // Approval actions
 router.put('/users/:userId/approve', superAdminController.approveUser);
 router.delete('/users/:userId/reject', superAdminController.rejectUser);
 
 // PUBLIC_USER approval actions
+router.get('/public-users/:userId/documents', superAdminController.getPublicUserDocuments);
+router.get('/public-users/:userId/documents/:documentType/download', superAdminController.downloadPublicUserDocument);
 router.put('/public-users/:userId/approve', superAdminController.approvePublicUser);
 router.put('/public-users/:userId/reject', superAdminController.rejectPublicUser);
 

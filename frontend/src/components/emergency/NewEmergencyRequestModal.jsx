@@ -75,7 +75,7 @@ const NewEmergencyRequestModal = ({ isOpen, onClose, onSubmit, nearbyHospitals }
               <option value="">Select Hospital</option>
               {nearbyHospitals.map(hospital => (
                 <option key={hospital._id} value={hospital._id}>
-                  {hospital.name} ({hospital.distance} km)
+                  {hospital.hospitalName || hospital.name} ({hospital.distance || '--'} km)
                 </option>
               ))}
             </select>
@@ -143,7 +143,7 @@ const NewEmergencyRequestModal = ({ isOpen, onClose, onSubmit, nearbyHospitals }
               >
                 <option value="CRITICAL">Critical</option>
                 <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
+                <option value="MODERATE">Moderate</option>
               </select>
             </div>
           </div>

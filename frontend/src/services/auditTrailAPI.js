@@ -1,4 +1,4 @@
-import api from './api';
+import api from './axiosInstance';
 
 const auditTrailAPI = {
   getAuditLogs: async (filters = {}) => {

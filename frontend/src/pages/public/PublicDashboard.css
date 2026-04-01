@@ -150,6 +150,12 @@
   overflow-y: auto;
 }
 
+.public-emergency-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .welcome-banner {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;

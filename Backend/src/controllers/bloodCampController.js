@@ -3,6 +3,7 @@ const CampBooking = require('../models/CampBooking');
 const Notification = require('../models/Notification');
 const PublicUser = require('../models/PublicUser');
 const User = require('../models/User');
+const { broadcast, emitToRole, emitToHospital } = require('../services/realtime/socketService');
 
 exports.getAllCamps = async (req, res) => {
   try {
@@ -312,6 +313,34 @@ exports.createCamp = async (req, res) => {
 
     await camp.save();
 
+    // Emit real-time socket event to notify all connected users
+    try {
+      broadcast('camp.created', {
+        campId: camp._id,
+        title: camp.title,
+        organizerName: camp.organizerName,
+        dateTime: camp.dateTime,
+        location: camp.location,
+        timestamp: new Date().toISOString()
+      });
+
+      // Also emit to specific roles
+      emitToRole('public_user', 'camp.created', {
+        campId: camp._id,
+        title: camp.title,
+        message: `New blood camp organized: ${camp.title}`
+      });
+
+      emitToRole('hospital_admin', 'camp.created', {
+        campId: camp._id,
+        title: camp.title,
+        organizer: camp.organizerName,
+        message: `New blood camp organized: ${camp.title}`
+      });
+    } catch (socketError) {
+      console.error('Error emitting socket event:', socketError);
+    }
+
     // Send notification to nearby users (within 25km)
     // This is an async operation that doesn't need to block the response
     notifyNearbyUsers(camp).catch(err => console.error('Error notifying users:', err));
@@ -381,6 +410,31 @@ exports.updateCamp = async (req, res) => {
     Object.assign(camp, updates);
     await camp.save();
 
+    // Emit real-time socket event for camp update
+    try {
+      broadcast('camp.updated', {
+        campId: camp._id,
+        title: camp.title,
+        updates: updates,
+        timestamp: new Date().toISOString()
+      });
+
+      // Also emit to specific roles
+      emitToRole('public_user', 'camp.updated', {
+        campId: camp._id,
+        title: camp.title,
+        message: `Blood camp "${camp.title}" has been updated`
+      });
+
+      emitToRole('hospital_admin', 'camp.updated', {
+        campId: camp._id,
+        title: camp.title,
+        message: `Blood camp "${camp.title}" has been updated`
+      });
+    } catch (socketError) {
+      console.error('Error emitting socket event:', socketError);
+    }
+
     // Notify all booked users about the update
     notifyCampBookings(id, 'camp_update', 'Camp Updated', 
       `The blood camp "${camp.title}" has been updated. Please check the new details.`)
@@ -447,6 +501,33 @@ exports.cancelCamp = async (req, res) => {
     camp.cancellationReason = reason || 'Not specified';
     camp.cancelledAt = new Date();
     await camp.save();
+
+    // Emit real-time socket event for camp cancellation
+    try {
+      broadcast('camp.cancelled', {
+        campId: camp._id,
+        title: camp.title,
+        reason: camp.cancellationReason,
+        timestamp: new Date().toISOString()
+      });
+
+      // Also emit to specific roles
+      emitToRole('public_user', 'camp.cancelled', {
+        campId: camp._id,
+        title: camp.title,
+        reason: camp.cancellationReason,
+        message: `Blood camp "${camp.title}" has been cancelled. Reason: ${camp.cancellationReason}`
+      });
+
+      emitToRole('hospital_admin', 'camp.cancelled', {
+        campId: camp._id,
+        title: camp.title,
+        reason: camp.cancellationReason,
+        message: `Blood camp "${camp.title}" has been cancelled`
+      });
+    } catch (socketError) {
+      console.error('Error emitting socket event:', socketError);
+    }
 
     // Cancel all bookings and notify users
     const bookings = await CampBooking.find({

@@ -14,7 +14,7 @@ const CompleteDonations = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/donations/list`,
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/donations/list`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const pending = response.data.data.filter(d => d.status === 'PENDING');
@@ -30,7 +30,7 @@ const CompleteDonations = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/donations/complete/${donationId}`,
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/donations/complete/${donationId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

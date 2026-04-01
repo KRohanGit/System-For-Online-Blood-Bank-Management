@@ -10,7 +10,11 @@ export const register = async (formData) => {
     method: 'POST',
     body: formData
   });
-  return response.json();
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Registration failed');
+  }
+  return data;
 };
 
 export const login = async (email, password) => {
@@ -19,7 +23,11 @@ export const login = async (email, password) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password })
   });
-  return response.json();
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Login failed');
+  }
+  return data;
 };
 
 export const getNearbyBloodBanks = async (latitude, longitude, radius = 10, bloodGroup = '') => {
@@ -76,6 +84,51 @@ export const verifyCertificate = async (certificateNumber, verificationHash) => 
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ certificateNumber, verificationHash })
+  });
+  return response.json();
+};
+
+export const requestEmergencyDonorChain = async (payload) => {
+  const response = await fetch(`${API_BASE_URL}/emergency/request`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    },
+    body: JSON.stringify(payload)
+  });
+  return response.json();
+};
+
+export const respondEmergencyDonorChain = async (requestId, decision) => {
+  const response = await fetch(`${API_BASE_URL}/emergency/request/${requestId}/respond`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader()
+    },
+    body: JSON.stringify({ decision })
+  });
+  return response.json();
+};
+
+export const getMyEmergencyChainRequests = async () => {
+  const response = await fetch(`${API_BASE_URL}/emergency/request/my`, {
+    headers: getAuthHeader()
+  });
+  return response.json();
+};
+
+export const getEmergencyChainRequestById = async (requestId) => {
+  const response = await fetch(`${API_BASE_URL}/emergency/request/${requestId}`, {
+    headers: getAuthHeader()
+  });
+  return response.json();
+};
+
+export const getMyPendingDonorChainActions = async () => {
+  const response = await fetch(`${API_BASE_URL}/emergency/donor-chain/pending`, {
+    headers: getAuthHeader()
   });
   return response.json();
 };

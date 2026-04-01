@@ -15,6 +15,8 @@ Follow this checklist to deploy your application successfully.
 ### Local Testing
 - [ ] Backend runs successfully: `cd Backend && npm run dev`
 - [ ] Frontend runs successfully: `cd frontend && npm start`  
+- [ ] Port 5000 is free before backend start (or set alternate `PORT`)
+- [ ] Port 3000 is free before frontend start (or set alternate React port)
 - [ ] Login/Register functionality works
 - [ ] API calls succeed without errors
 - [ ] Browser console shows no errors
@@ -71,7 +73,7 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 - [ ] First deployment completed successfully
 - [ ] Railway URL copied (e.g., https://your-app.railway.app)
 - [ ] Health endpoint works: `https://your-app.railway.app/health`
-- [ ] Response shows: `{"success":true,"message":"Server is running"}`
+- [ ] Response JSON includes `status`, `database`, `memory`, and `timestamp`
 - [ ] Logs show no errors
 
 ---
@@ -140,6 +142,7 @@ FRONTEND_URL=https://your-app.vercel.app
 - [ ] Response status codes are 200
 - [ ] No 404 or 500 errors
 - [ ] No CORS policy errors
+- [ ] Admin dashboard service health card shows backend, ML, and socket status
 
 ### Feature Testing
 - [ ] Navigate between pages
@@ -237,6 +240,7 @@ FRONTEND_URL=https://your-app.vercel.app
 
 ### If API Not Found (404):
 - [ ] Verified REACT_APP_API_URL in Vercel
+- [ ] Confirmed REACT_APP_API_URL points to backend base URL ending in `/api`
 - [ ] Checked Railway Root Directory is "Backend"
 - [ ] Confirmed backend endpoints exist
 - [ ] Reviewed Railway logs for errors
@@ -258,6 +262,7 @@ FRONTEND_URL=https://your-app.vercel.app
 
 ### Monitor for 24 Hours
 - [ ] Check Railway logs periodically
+- [ ] Check `/health` and `/metrics` every few hours
 - [ ] Monitor Vercel deployment status
 - [ ] Review MongoDB Atlas metrics
 - [ ] Test from different devices/browsers

@@ -64,10 +64,6 @@ export default function HospitalsPage() {
     setFilteredHospitals(filtered);
   };
 
-  useEffect(() => {
-    fetchAllHospitals();
-  }, []);
-
   const fetchAllHospitals = async () => {
     try {
       setLoading(true);

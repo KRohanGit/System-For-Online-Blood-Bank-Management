@@ -46,7 +46,7 @@ REACT_APP_API_URL=https://your-app.railway.app
 
 ### Backend Test
 Visit: `https://your-backend.railway.app/health`
-Expected: `{"success":true,"message":"Server is running"}`
+Expected: JSON containing `status`, `database`, `memory`, and `timestamp`
 
 ### Frontend Test
 1. Visit your Vercel URL
@@ -138,6 +138,17 @@ npm start
 ### Build Frontend Locally
 ```bash
 cd frontend
+npm run build
+```
+
+### Strict Release Validation (No Deploy)
+```bash
+cd Backend
+PORT=5001 npm start
+# check http://localhost:5001/health
+# check http://localhost:5001/api/ml/health
+
+cd ../frontend
 npm run build
 ```
 

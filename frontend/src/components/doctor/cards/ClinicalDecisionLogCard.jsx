@@ -1,11 +1,7 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { 
-  getRecentDecisions, 
-  getFullDecisionLog,
-  formatDecisionTime 
-} from '../../../services/doctorClinicalData';
+import doctorClinicalAPI from '../../../services/doctorClinicalAPI';
 import './ClinicalDecisionLogCard.css';
 
 const ClinicalDecisionLogCard = () => {
@@ -19,17 +15,65 @@ const ClinicalDecisionLogCard = () => {
     loadRecentDecisions();
   }, []);
 
-  const loadRecentDecisions = () => {
-    setLoading(true);
-    const decisions = getRecentDecisions(5);
-    setRecentDecisions(decisions);
-    setLoading(false);
+  const formatDecisionTime = (timestamp) => {
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diffMs = now - then;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffHours < 1) {
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      return `${diffMins} minutes ago`;
+    }
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return then.toLocaleDateString();
   };
 
-  const handleViewFullLog = () => {
-    const fullLog = getFullDecisionLog(1, 20);
-    setFullLogData(fullLog);
-    setShowFullLog(true);
+  const mapRecordToDecision = (record) => ({
+    _id: record._id,
+    actionType: record.validationStatus || record.actionType || 'UNKNOWN',
+    caseType: record.validationType || record.caseType || 'N/A',
+    caseId: record.targetId?._id || record.targetId || 'N/A',
+    patientInitials: null,
+    justification: record.medicalNotes || record.justification || 'No notes',
+    timestamp: record.timestamp || record.createdAt,
+    doctorId: record.doctorId || 'N/A'
+  });
+
+  const loadRecentDecisions = async () => {
+    setLoading(true);
+    try {
+      const response = await doctorClinicalAPI.getAuditTrail({ page: 1, limit: 5 });
+      const records = response?.data?.auditRecords || [];
+      setRecentDecisions(records.map(mapRecordToDecision));
+    } catch (error) {
+      console.error('Failed to load recent clinical decisions:', error);
+      setRecentDecisions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewFullLog = async () => {
+    try {
+      const response = await doctorClinicalAPI.getAuditTrail({ page: 1, limit: 20 });
+      const records = response?.data?.auditRecords || [];
+      setFullLogData({
+        decisions: records.map(mapRecordToDecision),
+        total: response?.data?.pagination?.total || records.length,
+        page: response?.data?.pagination?.page || 1,
+        pageSize: response?.data?.pagination?.limit || 20,
+        totalPages: response?.data?.pagination?.pages || 1
+      });
+      setShowFullLog(true);
+    } catch (error) {
+      console.error('Failed to load full clinical decision log:', error);
+      setFullLogData({ decisions: [], total: 0, page: 1, pageSize: 20, totalPages: 1 });
+      setShowFullLog(true);
+    }
   };
 
   const handleCloseFullLog = () => {

@@ -70,6 +70,14 @@ export const authAPI = {
     data.append('adminEmail', formData.adminEmail);
     data.append('password', formData.password);
     data.append('license', formData.license);
+    // Location & contact fields
+    if (formData.address) data.append('address', formData.address);
+    if (formData.city) data.append('city', formData.city);
+    if (formData.state) data.append('state', formData.state);
+    if (formData.pincode) data.append('pincode', formData.pincode);
+    if (formData.phone) data.append('phone', formData.phone);
+    if (formData.latitude) data.append('latitude', formData.latitude);
+    if (formData.longitude) data.append('longitude', formData.longitude);
 
     return apiRequest('/auth/register/hospital', {
       method: 'POST',

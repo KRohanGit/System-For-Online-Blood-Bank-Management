@@ -12,50 +12,7 @@ function DoctorApprovals() {
   const pageRef = useRef(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [doctors, setDoctors] = useState([
-    {
-      _id: '1',
-      fullName: 'Dinesh S',
-      email: 'dinesh.s@hospital.com',
-      licenseNumber: 'MED2021001',
-      specialization: 'Hematology',
-      certificateFilePath: null,
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      verificationStatus: 'pending'
-    },
-    {
-      _id: '2',
-      fullName: 'Rohan.k',
-      email: 'rohan.k@gitam.edu',
-      licenseNumber: 'MED2019045',
-      specialization: 'Emergency Medicine',
-      certificateFilePath: null,
-      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      verificationStatus: 'approved',
-      approvedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
-    },
-    {
-      _id: '3',
-      fullName: 'Gaveshna L',
-      email: 'gaveshna.l@kgh.in',
-      licenseNumber: 'MED2022103',
-      specialization: 'Pediatric Surgery',
-      certificateFilePath: null,
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      verificationStatus: 'pending'
-    },
-    {
-      _id: '4',
-      fullName: 'Giri G',
-      email: 'giri.g@carehospital.com',
-      licenseNumber: 'MED2015078',
-      specialization: 'General Surgery',
-      certificateFilePath: null,
-      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-      verificationStatus: 'approved',
-      approvedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000)
-    }
-  ]);
+  const [doctors, setDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -90,16 +47,14 @@ function DoctorApprovals() {
   const fetchDoctors = async () => {
     try {
       setLoading(true);
-      // Using dummy data already initialized in state
-      // If you want to fetch real data from API, uncomment below:
-      // const response = await doctorAPI.getPendingDoctors();
-      // setDoctors(response.data?.doctors || []);
+      const response = await doctorAPI.getPendingDoctors();
+      const data = response.data || response;
+      setDoctors(data.doctors || data.data?.doctors || []);
     } catch (error) {
       console.error('Error fetching doctors:', error);
       alert('Failed to fetch doctors. Please try again.');
     } finally {
-      // Short delay to show loading animation
-      setTimeout(() => setLoading(false), 500);
+      setLoading(false);
     }
   };
 
@@ -113,6 +68,8 @@ function DoctorApprovals() {
     
     try {
       setSubmitting(true);
+      // Call API to approve doctor
+      await doctorAPI.verifyDoctor(doctor._id, 'approved');
       // Update local state
       setDoctors(prevDoctors => 
         prevDoctors.map(d => 
@@ -122,9 +79,6 @@ function DoctorApprovals() {
         )
       );
       alert(`✅ Dr. ${doctor.fullName} has been approved!`);
-      
-      // If you want to call API, uncomment below:
-      // await doctorAPI.verifyDoctor(doctor._id, 'approved');
     } catch (error) {
       console.error('Error approving doctor:', error);
       alert('Failed to approve doctor. Please try again.');
@@ -141,6 +95,8 @@ function DoctorApprovals() {
     
     try {
       setSubmitting(true);
+      // Call API to reject doctor
+      await doctorAPI.verifyDoctor(selectedDoctor._id, 'rejected', rejectionReason);
       // Update local state
       setDoctors(prevDoctors => 
         prevDoctors.map(d => 
@@ -153,9 +109,6 @@ function DoctorApprovals() {
       setShowRejectModal(false);
       setRejectionReason('');
       setSelectedDoctor(null);
-      
-      // If you want to call API, uncomment below:
-      // await doctorAPI.verifyDoctor(selectedDoctor._id, 'rejected', rejectionReason);
     } catch (error) {
       console.error('Error rejecting doctor:', error);
       alert('Failed to reject doctor. Please try again.');

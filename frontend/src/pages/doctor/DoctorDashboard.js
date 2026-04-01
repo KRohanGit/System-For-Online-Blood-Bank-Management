@@ -12,6 +12,7 @@ import BloodUnitValidationPage from './BloodUnitValidationPage';
 import EmergencyConsultsPage from './EmergencyConsultsPage';
 import CampOversightPage from './CampOversightPage';
 import AuditTrailPage from './AuditTrailPage';
+import { connectSocket, disconnectSocket, onEmergencyNew, onEmergencyCritical, onEmergencyUpdate } from '../../services/socketService';
 import '../../styles/DoctorDashboard.css';
 
 const DoctorDashboard = () => {
@@ -24,6 +25,34 @@ const DoctorDashboard = () => {
   useEffect(() => {
     checkVerificationAndLoadData();
   }, []);
+
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    connectSocket(profile.id, 'doctor');
+
+    const refreshOverview = async () => {
+      try {
+        const overviewResponse = await doctorClinicalAPI.getDoctorOverview();
+        if (overviewResponse.success) {
+          setOverview(overviewResponse.data);
+        }
+      } catch (error) {
+        console.error('Live refresh failed:', error);
+      }
+    };
+
+    const offNew = onEmergencyNew(() => refreshOverview());
+    const offCritical = onEmergencyCritical(() => refreshOverview());
+    const offUpdate = onEmergencyUpdate(() => refreshOverview());
+
+    return () => {
+      offNew();
+      offCritical();
+      offUpdate();
+      disconnectSocket();
+    };
+  }, [profile?.id]);
 
   const checkVerificationAndLoadData = async () => {
     try {

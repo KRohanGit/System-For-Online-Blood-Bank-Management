@@ -4,7 +4,10 @@ const ALGORITHM = 'aes-256-cbc';
 const IV_LENGTH = 16;
 
 const getEncryptionKey = () => {
-  const secret = process.env.ENCRYPTION_SECRET || 'your-32-character-secret-key!!';
+  const secret = process.env.ENCRYPTION_SECRET;
+  if (!secret) {
+    throw new Error('ENCRYPTION_SECRET environment variable must be set');
+  }
   return crypto.createHash('sha256').update(secret).digest();
 };
 

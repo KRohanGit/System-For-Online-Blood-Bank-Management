@@ -13,7 +13,6 @@
 
 const HospitalProfile = require('../models/HospitalProfile');
 const BloodCamp = require('../models/BloodCamp');
-const User = require('../models/User');
 
 /**
  * Utility: Calculate distance between two coordinates using Haversine formula
@@ -151,17 +150,14 @@ exports.getNearbyCamps = async (req, res) => {
 
     const lat = parseFloat(latitude);
     const lon = parseFloat(longitude);
-    const radiusInMeters = parseFloat(radius) * 1000;
+    const radiusInKm = parseFloat(radius);
+    const radiusInRadians = radiusInKm / 6378.1;
 
     // Build query
     const query = {
-      'venue.location.coordinates': {
-        $near: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [lon, lat]
-          },
-          $maxDistance: radiusInMeters
+      'venue.location': {
+        $geoWithin: {
+          $centerSphere: [[lon, lat], radiusInRadians]
         }
       },
       isActive: true
@@ -249,29 +245,28 @@ exports.getGeoAnalytics = async (req, res) => {
 
     const lat = parseFloat(latitude);
     const lon = parseFloat(longitude);
-    const radiusInMeters = parseFloat(radius) * 1000;
+    const radiusInKm = parseFloat(radius);
 
     // Parallel queries for efficiency
+    const radiusInRadians = radiusInKm / 6378.1;
+    const geoWithinCircle = {
+      $geoWithin: {
+        $centerSphere: [[lon, lat], radiusInRadians]
+      }
+    };
+
     const [hospitals, camps, emergencyHospitals] = await Promise.all([
-      // Total hospitals in area
-      User.countDocuments({
-        role: 'HOSPITAL_ADMIN',
-        isActive: true,
+      // Total approved hospitals in area
+      HospitalProfile.countDocuments({
         verificationStatus: 'approved',
-        'location.coordinates': {
-          $near: {
-            $geometry: { type: 'Point', coordinates: [lon, lat] },
-            $maxDistance: radiusInMeters
-          }
-        }
+        location: geoWithinCircle
       }),
       
       // Upcoming camps in area
       BloodCamp.countDocuments({
-        'venue.location.coordinates': {
-          $near: {
-            $geometry: { type: 'Point', coordinates: [lon, lat] },
-            $maxDistance: radiusInMeters
+        'venue.location': {
+          $geoWithin: {
+            $centerSphere: [[lon, lat], radiusInRadians]
           }
         },
         isActive: true,
@@ -280,50 +275,43 @@ exports.getGeoAnalytics = async (req, res) => {
       }),
       
       // Emergency support hospitals
-      User.countDocuments({
-        role: 'HOSPITAL_ADMIN',
-        isActive: true,
+      HospitalProfile.countDocuments({
         verificationStatus: 'approved',
         emergencySupport: true,
-        'location.coordinates': {
-          $near: {
-            $geometry: { type: 'Point', coordinates: [lon, lat] },
-            $maxDistance: radiusInMeters
-          }
-        }
+        location: geoWithinCircle
       })
     ]);
 
-    // Get nearest emergency hospital
-    const nearestEmergency = await User.findOne({
-      role: 'HOSPITAL_ADMIN',
-      isActive: true,
+    // Get nearest emergency hospital (within radius), then sort in memory by Haversine
+    const emergencyHospitalsInRadius = await HospitalProfile.find({
       verificationStatus: 'approved',
       emergencySupport: true,
-      'location.coordinates': {
-        $near: {
-          $geometry: { type: 'Point', coordinates: [lon, lat] },
-          $maxDistance: radiusInMeters
-        }
-      }
+      location: geoWithinCircle
     }).select('hospitalName location');
+
+    const nearestEmergency = emergencyHospitalsInRadius
+      .map((h) => {
+        const [eLon, eLat] = h.location.coordinates;
+        return {
+          hospital: h,
+          distance: calculateDistance(lat, lon, eLat, eLon)
+        };
+      })
+      .sort((a, b) => a.distance - b.distance)[0] || null;
 
     let nearestEmergencyData = null;
     if (nearestEmergency) {
-      const [eLon, eLat] = nearestEmergency.location.coordinates;
-      const distance = calculateDistance(lat, lon, eLat, eLon);
       nearestEmergencyData = {
-        name: nearestEmergency.hospitalName,
-        distance: parseFloat(distance.toFixed(2))
+        name: nearestEmergency.hospital.hospitalName,
+        distance: parseFloat(nearestEmergency.distance.toFixed(2))
       };
     }
 
     // Get upcoming camp details
     const upcomingCamps = await BloodCamp.find({
-      'venue.location.coordinates': {
-        $near: {
-          $geometry: { type: 'Point', coordinates: [lon, lat] },
-          $maxDistance: radiusInMeters
+      'venue.location': {
+        $geoWithin: {
+          $centerSphere: [[lon, lat], radiusInRadians]
         }
       },
       isActive: true,
@@ -408,18 +396,16 @@ exports.getMapData = async (req, res) => {
 
     const lat = parseFloat(latitude);
     const lon = parseFloat(longitude);
-    const radiusInMeters = parseFloat(radius) * 1000;
+    const radiusInKm = parseFloat(radius);
+    const radiusInRadians = radiusInKm / 6378.1;
 
     // Get hospitals and camps
     const [hospitals, camps] = await Promise.all([
-      User.find({
-        role: 'HOSPITAL_ADMIN',
-        isActive: true,
+      HospitalProfile.find({
         verificationStatus: 'approved',
-        'location.coordinates': {
-          $near: {
-            $geometry: { type: 'Point', coordinates: [lon, lat] },
-            $maxDistance: radiusInMeters
+        location: {
+          $geoWithin: {
+            $centerSphere: [[lon, lat], radiusInRadians]
           }
         }
       })
@@ -427,10 +413,9 @@ exports.getMapData = async (req, res) => {
         .limit(50),
       
       BloodCamp.find({
-        'venue.location.coordinates': {
-          $near: {
-            $geometry: { type: 'Point', coordinates: [lon, lat] },
-            $maxDistance: radiusInMeters
+        'venue.location': {
+          $geoWithin: {
+            $centerSphere: [[lon, lat], radiusInRadians]
           }
         },
         isActive: true,

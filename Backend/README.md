@@ -266,6 +266,34 @@ Server will start on `http://localhost:5000`
 | `JWT_SECRET` | Secret key for JWT | Generated 64-byte hex string |
 | `FRONTEND_URL` | Frontend URL for CORS | `http://localhost:3000` |
 
+### SMTP / Email Setup
+
+The backend can send donor credential and emergency alert emails through a real SMTP provider.
+
+Use one of these options in `.env`:
+
+1. `SMTP_URL` - preferred if your provider gives a single connection string.
+2. `SMTP_HOST` + `SMTP_PORT` + `SMTP_SECURE` + `EMAIL_USER` + `EMAIL_PASS` - standard SMTP config.
+3. `EMAIL_USER` + `EMAIL_PASS` - Gmail App Password mode.
+
+If none of the SMTP values are set, the app falls back to Ethereal test mail, which is useful for local development but does not deliver to a real inbox.
+
+Example real SMTP config:
+
+```env
+SMTP_URL=smtps://user@example.com:your-app-password@smtp.provider.com:465
+EMAIL_FROM_NAME=LifeLink Blood Bank
+EMAIL_FROM_ADDRESS=no-reply@lifelink.com
+```
+
+How to verify:
+
+1. Restart the backend after editing `.env`.
+2. Create a donor from the hospital admin endpoint.
+3. Check the API response `emailSent` field.
+4. Check the recipient inbox if you used a real SMTP provider.
+5. If you used Ethereal, open the preview URL printed in the backend logs.
+
 ## 📝 Development Notes
 
 ### Adding New Routes

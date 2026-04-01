@@ -11,7 +11,7 @@ const emergencyController = require('../controllers/emergencyIntelligenceControl
  */
 router.post('/scenarios', 
   auth, 
-  checkRole(['Super Admin', 'hospital_admin']), 
+  checkRole(['super_admin', 'hospital_admin']), 
   emergencyController.createScenario
 );
 
@@ -22,7 +22,7 @@ router.post('/scenarios',
  */
 router.get('/scenarios', 
   auth, 
-  checkRole(['Super Admin', 'hospital_admin', 'doctor']), 
+  checkRole(['super_admin', 'hospital_admin', 'doctor']), 
   emergencyController.getAllScenarios
 );
 
@@ -33,7 +33,7 @@ router.get('/scenarios',
  */
 router.get('/scenarios/:id', 
   auth, 
-  checkRole(['Super Admin', 'hospital_admin', 'doctor']), 
+  checkRole(['super_admin', 'hospital_admin', 'doctor']), 
   emergencyController.getScenarioById
 );
 
@@ -44,7 +44,7 @@ router.get('/scenarios/:id',
  */
 router.put('/scenarios/:id/rerun', 
   auth, 
-  checkRole(['Super Admin', 'hospital_admin']), 
+  checkRole(['super_admin', 'hospital_admin']), 
   emergencyController.rerunSimulation
 );
 
@@ -55,7 +55,7 @@ router.put('/scenarios/:id/rerun',
  */
 router.put('/scenarios/:scenarioId/recommendations/:recommendationIndex', 
   auth, 
-  checkRole(['Super Admin', 'hospital_admin']), 
+  checkRole(['super_admin', 'hospital_admin']), 
   emergencyController.updateRecommendation
 );
 
@@ -66,7 +66,7 @@ router.put('/scenarios/:scenarioId/recommendations/:recommendationIndex',
  */
 router.delete('/scenarios/:id', 
   auth, 
-  checkRole('Super Admin'), 
+  checkRole('super_admin'), 
   emergencyController.deleteScenario
 );
 

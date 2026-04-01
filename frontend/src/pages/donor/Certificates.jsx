@@ -14,7 +14,7 @@ const Certificates = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/donor-dashboard/certificates`,
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/donor-dashboard/certificates`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setCertificates(response.data.data);

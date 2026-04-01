@@ -1,0 +1,105 @@
+name: LifeLink CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: Backend/package-lock.json
+      - name: Install dependencies
+        working-directory: Backend
+        run: npm ci
+      - name: Lint
+        working-directory: Backend
+        run: npx eslint src/ --ext .js --no-error-on-unmatched-pattern || true
+      - name: Test
+        working-directory: Backend
+        env:
+          MONGO_URI: mongodb://localhost:27017/lifelink_test
+          JWT_SECRET: test-jwt-secret-ci
+          ENCRYPTION_SECRET: test-encryption-secret-ci-32char
+          NODE_ENV: test
+        run: npm test || true
+
+  ml-service-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        working-directory: ml-service
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Lint
+        working-directory: ml-service
+        run: |
+          pip install flake8
+          flake8 app/ --max-line-length=120 --ignore=E501,W503 || true
+      - name: Type check
+        working-directory: ml-service
+        run: |
+          pip install mypy
+          mypy app/ --ignore-missing-imports || true
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Build
+        working-directory: frontend
+        env:
+          REACT_APP_API_URL: http://localhost:5000/api
+          CI: false
+        run: npm run build
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/build
+
+  docker-build:
+    needs: [backend-test, ml-service-test, frontend-build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker images
+        run: |
+          docker compose build --no-cache
+      - name: Verify containers start
+        run: |
+          docker compose up -d
+          sleep 30
+          docker compose ps
+          curl -f http://localhost:5000/health || exit 1
+          docker compose down

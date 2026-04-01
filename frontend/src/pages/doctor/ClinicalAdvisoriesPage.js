@@ -13,6 +13,7 @@ const ClinicalAdvisoriesPage = () => {
   const [trends, setTrends] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAdvisory, setSelectedAdvisory] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadAdvisories();
@@ -21,6 +22,7 @@ const ClinicalAdvisoriesPage = () => {
 
   const loadAdvisories = async () => {
     try {
+      setError('');
       const response = await clinicalAdvisoryAPI.getActiveAdvisories();
       if (response.success) {
         setAdvisories(response.data.advisories);
@@ -28,28 +30,9 @@ const ClinicalAdvisoriesPage = () => {
       }
     } catch (error) {
       console.error('Error loading advisories:', error);
-      const dummyAdvisories = [
-        {
-          advisoryId: 'ADV001',
-          bloodGroup: 'O-',
-          severity: 'critical',
-          title: 'Critical O- Blood Stock',
-          message: 'O- blood stock below critical threshold (2 units). Recommend immediate blood drive activation.',
-          protocol: { id: 'P001', name: 'Rare Blood Conservation', threshold: 5 },
-          timestamp: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          advisoryId: 'ADV002',
-          bloodGroup: 'AB-',
-          severity: 'medium',
-          title: 'Low AB- Inventory',
-          message: 'AB- blood stock at 6 units. Consider activating rare blood conservation protocol.',
-          protocol: { id: 'P002', name: 'Inventory Management', threshold: 10 },
-          timestamp: new Date(Date.now() - 7200000).toISOString()
-        }
-      ];
-      setAdvisories(dummyAdvisories);
-      setSummary({ critical: 1, medium: 1, total: 2 });
+      setAdvisories([]);
+      setSummary({ critical: 0, medium: 0, total: 0 });
+      setError('Unable to load advisories right now.');
     } finally {
       setLoading(false);
     }
@@ -57,19 +40,15 @@ const ClinicalAdvisoriesPage = () => {
 
   const loadTrends = async () => {
     try {
+      setError('');
       const response = await clinicalAdvisoryAPI.getTrends(30);
       if (response.success) {
         setTrends(response.data);
       }
     } catch (error) {
       console.error('Error loading trends:', error);
-      const dummyTrends = Array.from({ length: 30 }, (_, i) => ({
-        date: new Date(Date.now() - (29 - i) * 86400000).toISOString().split('T')[0],
-        accepted: Math.floor(Math.random() * 15) + 5,
-        overridden: Math.floor(Math.random() * 5),
-        deferred: Math.floor(Math.random() * 3)
-      }));
-      setTrends(dummyTrends);
+      setTrends([]);
+      setError((prev) => prev || 'Unable to load advisory trends right now.');
     }
   };
 
@@ -109,6 +88,8 @@ const ClinicalAdvisoriesPage = () => {
           <span className="pill total">{summary.total} Total</span>
         </div>
       </div>
+
+      {error && <div className="error-message">{error}</div>}
 
       <div className="advisories-grid">
         <div className="advisories-column">

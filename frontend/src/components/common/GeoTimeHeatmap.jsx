@@ -1,58 +1,125 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import config from '../../config/config';
 import './GeoTimeHeatmap.css';
 
 /**
  * Geo-Time Heatmap for Blood Demand Visualization
- * Shows demand intensity by location and time
+ * Shows demand intensity by location from real hospital data
  */
-
-// Mock data generator for demonstration
-const generateMockData = (timeFilter) => {
-  const locations = [
-    { id: 1, name: 'Madhurawada', lat: 17.7831, lng: 83.3780, requests: 45, fulfilled: 38 },
-    { id: 2, name: 'Hanumanthawaka', lat: 17.7500, lng: 83.2833, requests: 38, fulfilled: 30 },
-    { id: 3, name: 'Yendada', lat: 17.7697, lng: 83.3629, requests: 52, fulfilled: 45 },
-    { id: 4, name: 'Town', lat: 17.6868, lng: 83.2185, requests: 31, fulfilled: 28 },
-    { id: 5, name: 'Gajuwaka', lat: 17.7000, lng: 83.2167, requests: 42, fulfilled: 35 },
-    { id: 6, name: 'MVP Colony', lat: 17.7306, lng: 83.3185, requests: 36, fulfilled: 32 },
-    { id: 7, name: 'Rushikonda', lat: 17.7860, lng: 83.3850, requests: 29, fulfilled: 24 },
-    { id: 8, name: 'Dwaraka Nagar', lat: 17.7231, lng: 83.3145, requests: 27, fulfilled: 23 }
-  ];
-
-  // Adjust numbers based on time filter
-  const multiplier = timeFilter === '24h' ? 0.3 : timeFilter === '7d' ? 1 : 3.5;
-  
-  return locations.map(loc => ({
-    ...loc,
-    requests: Math.round(loc.requests * multiplier),
-    fulfilled: Math.round(loc.fulfilled * multiplier)
-  }));
-};
 
 const BLOOD_GROUPS = ['ALL', 'O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
 
-const GeoTimeHeatmap = () => {
+const GeoTimeHeatmap = ({ hospitalLocation = null }) => {
   const [timeFilter, setTimeFilter] = useState('7d');
   const [bloodGroupFilter, setBloodGroupFilter] = useState('ALL');
   const [heatmapData, setHeatmapData] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const hasConfiguredHospitalLocation =
+    hospitalLocation &&
+    Number.isFinite(hospitalLocation.latitude) &&
+    Number.isFinite(hospitalLocation.longitude);
+
   useEffect(() => {
     fetchHeatmapData();
-  }, [timeFilter, bloodGroupFilter]);
+  }, [timeFilter, bloodGroupFilter, hasConfiguredHospitalLocation, hospitalLocation]);
 
   const fetchHeatmapData = async () => {
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      const data = generateMockData(timeFilter);
+    try {
+      if (!hasConfiguredHospitalLocation) {
+        setHeatmapData([]);
+        setLoading(false);
+        return;
+      }
+
+      const API_URL = config?.API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+      const center = hospitalLocation;
+
+      // Fetch nearby hospitals and live emergency requests
+      const [hospitalsResp, requestsResp] = await Promise.allSettled([
+        axios.get(`${API_URL}/geolocation/nearby-hospitals`, {
+          params: { latitude: center.latitude, longitude: center.longitude, radius: 100, limit: 100 },
+          headers
+        }),
+        axios.get(`${API_URL}/emergency-coordination/requests`, { headers })
+      ]);
+
+      const hospitals = hospitalsResp.status === 'fulfilled' 
+        ? (hospitalsResp.value.data?.data?.hospitals || hospitalsResp.value.data?.hospitals || [])
+        : [];
+      
+      const requests = requestsResp.status === 'fulfilled'
+        ? (requestsResp.value.data?.requests || [])
+        : [];
+
+      const now = Date.now();
+      const hoursWindow = timeFilter === '24h' ? 24 : timeFilter === '7d' ? 24 * 7 : 24 * 30;
+      const minTimestamp = now - (hoursWindow * 60 * 60 * 1000);
+
+      const filteredRequests = requests.filter((request) => {
+        const createdAt = request?.createdAt ? new Date(request.createdAt).getTime() : 0;
+        const inWindow = createdAt >= minTimestamp;
+        const bloodGroupMatch = bloodGroupFilter === 'ALL' || request?.bloodGroup === bloodGroupFilter;
+        return inWindow && bloodGroupMatch;
+      });
+
+      const requestMap = filteredRequests.reduce((acc, request) => {
+        const hospitalId = String(request?.requestingHospitalId || '');
+        if (!hospitalId) return acc;
+
+        const existing = acc.get(hospitalId) || { total: 0, fulfilled: 0 };
+        existing.total += 1;
+        if (request?.lifecycleStatus === 'DELIVERED' || request?.lifecycleStatus === 'COMPLETED') {
+          existing.fulfilled += 1;
+        }
+        acc.set(hospitalId, existing);
+        return acc;
+      }, new Map());
+
+      const data = hospitals
+        .map((hospital, idx) => {
+          const lat = Number(hospital?.location?.latitude);
+          const lng = Number(hospital?.location?.longitude);
+          if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            return null;
+          }
+
+          const hospitalId = String(hospital?.id || hospital?._id || '');
+          const demandMetrics = requestMap.get(hospitalId) || { total: 0, fulfilled: 0 };
+
+          return {
+            id: idx + 1,
+            hospitalId,
+            name: hospital?.name || hospital?.hospitalName || 'Unknown Hospital',
+            lat,
+            lng,
+            requests: demandMetrics.total,
+            fulfilled: demandMetrics.fulfilled,
+            phone: hospital?.phone || 'N/A',
+            city: hospital?.city || 'N/A',
+            distance: Number(hospital?.distance || 0)
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.distance - b.distance);
+
       setHeatmapData(data);
+    } catch (err) {
+      console.error('Heatmap fetch error:', err);
+      setHeatmapData([]);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   const getIntensityColor = (requests, fulfilled) => {
+    if (requests <= 0) return '#10b981';
     const unfulfilled = requests - fulfilled;
     const ratio = unfulfilled / requests;
     
@@ -64,6 +131,7 @@ const GeoTimeHeatmap = () => {
   };
 
   const getIntensityLabel = (requests, fulfilled) => {
+    if (requests <= 0) return 'NO ACTIVE REQUESTS';
     const ratio = (requests - fulfilled) / requests;
     if (ratio >= 0.4) return 'CRITICAL';
     if (ratio >= 0.3) return 'HIGH';
@@ -77,6 +145,34 @@ const GeoTimeHeatmap = () => {
     const baseSize = 40;
     const maxSize = 120;
     return baseSize + ((requests / maxRequests) * (maxSize - baseSize));
+  };
+
+  const getHeatPointPosition = (location) => {
+    if (!heatmapData.length) {
+      return { left: '50%', top: '50%' };
+    }
+
+    const lats = heatmapData.map((item) => item.lat);
+    const lngs = heatmapData.map((item) => item.lng);
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+    const minLng = Math.min(...lngs);
+    const maxLng = Math.max(...lngs);
+
+    const latRange = maxLat - minLat || 1;
+    const lngRange = maxLng - minLng || 1;
+
+    const normalizedX = (location.lng - minLng) / lngRange;
+    const normalizedY = (maxLat - location.lat) / latRange;
+
+    const padding = 10;
+    const left = padding + (normalizedX * (100 - (padding * 2)));
+    const top = padding + (normalizedY * (100 - (padding * 2)));
+
+    return {
+      left: `${left}%`,
+      top: `${top}%`
+    };
   };
 
   const handleLocationClick = (location) => {
@@ -143,37 +239,50 @@ const GeoTimeHeatmap = () => {
       </div>
 
       <div className="heatmap-container">
-        {/* Placeholder map - in production, use actual map library like Leaflet or Google Maps */}
         <div className="heatmap-canvas">
-          <div className="map-overlay">
-            {heatmapData.map((location) => {
-              const color = getIntensityColor(location.requests, location.fulfilled);
-              const size = getIntensitySize(location.requests);
-              const intensity = getIntensityLabel(location.requests, location.fulfilled);
-              
-              return (
-                <div
-                  key={location.id}
-                  className="heat-point"
-                  style={{
-                    backgroundColor: color,
-                    width: `${size}px`,
-                    height: `${size}px`,
-                    left: `${(location.id % 4) * 25}%`,
-                    top: `${Math.floor(location.id / 4) * 33}%`,
-                    boxShadow: `0 0 ${size/2}px ${color}`
-                  }}
-                  onClick={() => handleLocationClick(location)}
-                >
-                  <div className="heat-point-label">{location.requests}</div>
-                </div>
-              );
-            })}
-          </div>
+          {heatmapData.length > 0 ? (
+            <div className="map-overlay">
+              {heatmapData.map((location) => {
+                const color = getIntensityColor(location.requests, location.fulfilled);
+                const size = getIntensitySize(location.requests);
+                const position = getHeatPointPosition(location);
+
+                return (
+                  <div
+                    key={location.id}
+                    className="heat-point"
+                    style={{
+                      backgroundColor: color,
+                      width: `${size}px`,
+                      height: `${size}px`,
+                      left: position.left,
+                      top: position.top,
+                      boxShadow: `0 0 ${size / 2}px ${color}`
+                    }}
+                    onClick={() => handleLocationClick(location)}
+                  >
+                    <div className="heat-point-label">{location.requests}</div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
           <div className="map-placeholder">
             <span className="map-icon">🗺️</span>
-            <p>Interactive Map View</p>
-            <small>In production: Integrate with Leaflet/Google Maps API</small>
+            <p>
+              {!hasConfiguredHospitalLocation
+                ? 'Hospital location not configured'
+                : heatmapData.length > 0
+                ? 'Nearby Hospitals Heat View'
+                : 'No Nearby Hospital Data'}
+            </p>
+            <small>
+              {!hasConfiguredHospitalLocation
+                ? 'Set your hospital coordinates during signup or profile setup to enable real-time location intelligence.'
+                : heatmapData.length > 0
+                ? 'Points are positioned from real hospital coordinates and live emergency request trends.'
+                : 'No approved nearby hospitals found for the selected filters.'}
+            </small>
           </div>
         </div>
 
@@ -221,7 +330,7 @@ const GeoTimeHeatmap = () => {
                     <div 
                       className="fulfillment-fill"
                       style={{ 
-                        width: `${(location.fulfilled / location.requests) * 100}%`,
+                        width: `${location.requests > 0 ? (location.fulfilled / location.requests) * 100 : 0}%`,
                         backgroundColor: '#10b981'
                       }}
                     />

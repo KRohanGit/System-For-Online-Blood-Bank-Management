@@ -1,0 +1,7 @@
+__pycache__
+*.pyc
+.env
+saved_models/*.pkl
+app/data/*
+venv
+.venv

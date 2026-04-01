@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import config from '../../config/config';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Modal from '../../components/common/Modal';
 import Loader from '../../components/common/Loader';
@@ -14,6 +16,8 @@ function BloodRequestsPage() {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
 
+  const API_URL = config?.API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
   useEffect(() => {
     fetchBloodRequests();
   }, [activeTab]);
@@ -21,74 +25,29 @@ function BloodRequestsPage() {
   const fetchBloodRequests = async () => {
     try {
       setLoading(true);
-      // Simulated data - replace with actual API call
-      const mockRequests = [
-        {
-          id: 1,
-          patientName: 'K. Rohan',
-          bloodGroup: 'O+',
-          units: 2,
-          urgency: 'Emergency',
-          requestDate: '2026-02-02T10:30:00',
-          status: 'pending',
-          hospital: 'City Hospital',
-          contact: '+91 9876543210',
-          reason: 'Surgery'
-        },
-        {
-          id: 2,
-          patientName: 'L. Gaveshna',
-          bloodGroup: 'A+',
-          units: 3,
-          urgency: 'Urgent',
-          requestDate: '2026-02-02T09:15:00',
-          status: 'pending',
-          hospital: 'Apollo Hospital',
-          contact: '+91 9876543211',
-          reason: 'Accident Case'
-        },
-        {
-          id: 3,
-          patientName: 'S. Dinesh',
-          bloodGroup: 'B+',
-          units: 1,
-          urgency: 'Regular',
-          requestDate: '2026-02-02T08:00:00',
-          status: 'pending',
-          hospital: 'General Hospital',
-          contact: '+91 9876543212',
-          reason: 'Routine Treatment'
-        },
-        {
-          id: 4,
-          patientName: 'Giri',
-          bloodGroup: 'AB-',
-          units: 2,
-          urgency: 'Emergency',
-          requestDate: '2026-02-01T16:45:00',
-          status: 'approved',
-          hospital: 'Max Hospital',
-          contact: '+91 9876543213',
-          reason: 'Emergency Surgery'
-        },
-        {
-          id: 5,
-          patientName: 'Dinesh Kumar',
-          bloodGroup: 'O-',
-          units: 4,
-          urgency: 'Urgent',
-          requestDate: '2026-02-01T14:30:00',
-          status: 'completed',
-          hospital: 'Fortis Hospital',
-          contact: '+91 9876543214',
-          reason: 'Blood Loss'
-        }
-      ];
-
-      const filtered = mockRequests.filter(req => req.status === activeTab);
-      setRequests(filtered);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/appointments/hospital`, {
+        params: { status: activeTab !== 'all' ? activeTab : undefined },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = response.data;
+      const appointments = data.data?.appointments || data.appointments || data.data || [];
+      const mapped = appointments.map((appt) => ({
+        id: appt._id,
+        patientName: appt.userName || appt.patientName || 'Unknown',
+        bloodGroup: appt.bloodGroup || appt.preferredBloodGroup || 'N/A',
+        units: appt.units || 1,
+        urgency: appt.urgency || appt.priority || 'Regular',
+        requestDate: appt.appointmentDate || appt.createdAt,
+        status: appt.status || 'pending',
+        hospital: appt.hospitalName || 'This Hospital',
+        contact: appt.userPhone || appt.contactNumber || 'N/A',
+        reason: appt.reason || appt.notes || appt.type || 'Donation'
+      }));
+      setRequests(mapped);
     } catch (error) {
       console.error('Error fetching blood requests:', error);
+      setRequests([]);
     } finally {
       setLoading(false);
     }
@@ -100,8 +59,12 @@ function BloodRequestsPage() {
     }
 
     try {
-      // TODO: Replace with actual API call
-      // await bloodRequestAPI.approve(request.id);
+      // Call API to approve appointment
+      const token = localStorage.getItem('token');
+      await axios.patch(`${API_URL}/appointments/${request.id}/status`, 
+        { status: 'confirmed' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       
       alert(`✅ Blood request approved for ${request.patientName}`);
       
@@ -131,8 +94,12 @@ function BloodRequestsPage() {
     }
 
     try {
-      // TODO: Replace with actual API call
-      // await bloodRequestAPI.reject(selectedRequest.id, rejectionReason);
+      // Call API to reject/cancel appointment
+      const token = localStorage.getItem('token');
+      await axios.patch(`${API_URL}/appointments/${selectedRequest.id}/status`, 
+        { status: 'cancelled', reason: rejectionReason },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       
       alert(`❌ Blood request rejected for ${selectedRequest.patientName}`);
       

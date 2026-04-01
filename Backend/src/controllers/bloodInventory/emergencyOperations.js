@@ -1,4 +1,5 @@
 const BloodInventory = require('../../models/BloodInventory');
+const eventBus = require('../../services/realtime/eventBus');
 
 // Emergency auto-release: unlocks reserved stock and overrides thresholds
 exports.emergencyRelease = async (req, res) => {
@@ -45,6 +46,17 @@ exports.emergencyRelease = async (req, res) => {
       await unit.save();
       issuedUnits.push(unit);
     }
+
+    const payload = {
+      hospitalId,
+      bloodGroup: bloodGroup.toUpperCase(),
+      action: 'emergency_release',
+      units: issuedUnits.length,
+      reason: reason || 'emergency_release',
+      modifiedBy: req.user?.id || req.user?._id
+    };
+    eventBus.publish('inventory:updated', payload);
+    eventBus.publish('inventory_updated', payload);
 
     res.json({
       success: true,

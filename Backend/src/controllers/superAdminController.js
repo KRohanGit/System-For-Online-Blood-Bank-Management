@@ -2,6 +2,23 @@ const User = require('../models/User');
 const DoctorProfile = require('../models/DoctorProfile');
 const HospitalProfile = require('../models/HospitalProfile');
 const PublicUser = require('../models/PublicUser');
+const { retrieveDecryptedFile } = require('../utils/fileEncryptionService');
+
+const getSafeFilename = (name, fallback) => {
+  const base = (name || fallback || 'document').toString();
+  return base.replace(/[^a-zA-Z0-9._-]/g, '_');
+};
+
+const sendDecryptedDocument = async (res, encryptionPackage, metadata = {}, fallbackName = 'document.bin') => {
+  const decryptedBuffer = await retrieveDecryptedFile(encryptionPackage);
+  const mimeType = metadata.mimeType || 'application/octet-stream';
+  const originalName = getSafeFilename(metadata.originalName, fallbackName);
+
+  res.setHeader('Content-Type', mimeType);
+  res.setHeader('Content-Disposition', `inline; filename="${originalName}"`);
+  res.setHeader('Content-Length', decryptedBuffer.length);
+  return res.status(200).send(decryptedBuffer);
+};
 
 // Get all pending users (hospital_admin, doctor) for approval
 exports.getPendingUsers = async (req, res) => {
@@ -54,13 +71,13 @@ exports.getPendingUsers = async (req, res) => {
 
         if (user.role === 'doctor') {
           const profile = await DoctorProfile.findOne({ userId: user._id })
-            .select('fullName hospitalName');
+            .select('fullName hospitalName verificationStatus encryptedCertificateData encryptedAESKey encryptionIV encryptionMetadata');
           profileData = profile;
           userName = profile?.fullName || 'Unknown Doctor';
           console.log(`👨‍⚕️ Doctor profile for ${user.email}:`, profile ? 'Found' : 'Not found');
         } else if (user.role === 'hospital_admin') {
           const profile = await HospitalProfile.findOne({ userId: user._id })
-            .select('adminName hospitalName licenseNumber adminEmail');
+            .select('adminName hospitalName licenseNumber adminEmail encryptedLicenseData encryptedAESKey encryptionIV encryptionMetadata');
           profileData = profile;
           userName = profile?.adminName || 'Unknown Admin';
           console.log(`🏥 Hospital profile for ${user.email}:`, profile ? 'Found' : 'Not found');
@@ -72,7 +89,24 @@ exports.getPendingUsers = async (req, res) => {
           email: user.email,
           role: user.role,
           createdAt: user.createdAt,
-          profile: profileData,
+          profile: profileData ? {
+            ...profileData.toObject(),
+            documents: user.role === 'doctor'
+              ? [{
+                  type: 'certificate',
+                  label: 'Medical Certificate',
+                  uploaded: !!profileData.encryptedCertificateData,
+                  fileName: profileData.encryptionMetadata?.originalName || null,
+                  mimeType: profileData.encryptionMetadata?.mimeType || null
+                }]
+              : [{
+                  type: 'license',
+                  label: 'Hospital License',
+                  uploaded: !!profileData.encryptedLicenseData,
+                  fileName: profileData.encryptionMetadata?.originalName || null,
+                  mimeType: profileData.encryptionMetadata?.mimeType || null
+                }]
+          } : null,
           userType: 'regular'
         };
       })
@@ -90,7 +124,24 @@ exports.getPendingUsers = async (req, res) => {
         bloodGroup: user.bloodGroup,
         city: user.location?.city,
         state: user.location?.state,
-        hasIdentityProof: !!user.encryptedIdentityProofPath
+        hasIdentityProof: !!user.encryptedIdentityProofPath,
+        identityProofType: user.identityProofType,
+        documents: [
+          {
+            type: 'identityProof',
+            label: 'Identity Proof',
+            uploaded: !!user.identityProofEncryption?.encryptedData,
+            fileName: user.identityProofEncryption?.metadata?.originalName || null,
+            mimeType: user.identityProofEncryption?.metadata?.mimeType || null
+          },
+          {
+            type: 'signature',
+            label: 'Signature',
+            uploaded: !!user.signatureEncryption?.encryptedData,
+            fileName: user.signatureEncryption?.metadata?.originalName || null,
+            mimeType: user.signatureEncryption?.metadata?.mimeType || null
+          }
+        ]
       },
       userType: 'public'
     }));
@@ -453,5 +504,213 @@ exports.getRecentActivity = async (req, res) => {
       message: 'Error fetching recent activity',
       error: error.message
     });
+  }
+};
+
+// Get document metadata for doctor/hospital user
+exports.getUserDocuments = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId).select('email role');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (!['doctor', 'hospital_admin'].includes(user.role)) {
+      return res.status(400).json({ success: false, message: 'Unsupported role for document review' });
+    }
+
+    let documents = [];
+
+    if (user.role === 'doctor') {
+      const profile = await DoctorProfile.findOne({ userId: user._id })
+        .select('encryptedCertificateData encryptionMetadata');
+
+      documents = [{
+        type: 'certificate',
+        label: 'Medical Certificate',
+        uploaded: !!profile?.encryptedCertificateData,
+        fileName: profile?.encryptionMetadata?.originalName || null,
+        mimeType: profile?.encryptionMetadata?.mimeType || null
+      }];
+    }
+
+    if (user.role === 'hospital_admin') {
+      const profile = await HospitalProfile.findOne({ userId: user._id })
+        .select('encryptedLicenseData encryptionMetadata');
+
+      documents = [{
+        type: 'license',
+        label: 'Hospital License',
+        uploaded: !!profile?.encryptedLicenseData,
+        fileName: profile?.encryptionMetadata?.originalName || null,
+        mimeType: profile?.encryptionMetadata?.mimeType || null
+      }];
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        userId,
+        role: user.role,
+        documents
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching user documents:', error);
+    return res.status(500).json({ success: false, message: 'Error fetching documents', error: error.message });
+  }
+};
+
+// Download decrypted document for doctor/hospital user
+exports.downloadUserDocument = async (req, res) => {
+  try {
+    const { userId, documentType } = req.params;
+    const user = await User.findById(userId).select('role');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (user.role === 'doctor' && documentType === 'certificate') {
+      const profile = await DoctorProfile.findOne({ userId: user._id })
+        .select('encryptedCertificateData encryptedAESKey encryptionIV encryptionMetadata');
+
+      if (!profile?.encryptedCertificateData || !profile?.encryptedAESKey || !profile?.encryptionIV) {
+        return res.status(404).json({ success: false, message: 'Certificate document not found' });
+      }
+
+      return await sendDecryptedDocument(
+        res,
+        {
+          encryptedFileData: profile.encryptedCertificateData,
+          encryptedAESKey: profile.encryptedAESKey,
+          encryptionIV: profile.encryptionIV
+        },
+        profile.encryptionMetadata,
+        'doctor-certificate.bin'
+      );
+    }
+
+    if (user.role === 'hospital_admin' && documentType === 'license') {
+      const profile = await HospitalProfile.findOne({ userId: user._id })
+        .select('encryptedLicenseData encryptedAESKey encryptionIV encryptionMetadata');
+
+      if (!profile?.encryptedLicenseData || !profile?.encryptedAESKey || !profile?.encryptionIV) {
+        return res.status(404).json({ success: false, message: 'License document not found' });
+      }
+
+      return await sendDecryptedDocument(
+        res,
+        {
+          encryptedFileData: profile.encryptedLicenseData,
+          encryptedAESKey: profile.encryptedAESKey,
+          encryptionIV: profile.encryptionIV
+        },
+        profile.encryptionMetadata,
+        'hospital-license.bin'
+      );
+    }
+
+    return res.status(400).json({ success: false, message: 'Invalid document type for role' });
+  } catch (error) {
+    console.error('Error downloading user document:', error);
+    return res.status(500).json({ success: false, message: 'Error downloading document', error: error.message });
+  }
+};
+
+// Get document metadata for public user
+exports.getPublicUserDocuments = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await PublicUser.findById(userId)
+      .select('identityProofType identityProofEncryption signatureEncryption');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Public user not found' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        userId,
+        role: 'PUBLIC_USER',
+        identityProofType: user.identityProofType,
+        documents: [
+          {
+            type: 'identityProof',
+            label: 'Identity Proof',
+            uploaded: !!user.identityProofEncryption?.encryptedData,
+            fileName: user.identityProofEncryption?.metadata?.originalName || null,
+            mimeType: user.identityProofEncryption?.metadata?.mimeType || null
+          },
+          {
+            type: 'signature',
+            label: 'Signature',
+            uploaded: !!user.signatureEncryption?.encryptedData,
+            fileName: user.signatureEncryption?.metadata?.originalName || null,
+            mimeType: user.signatureEncryption?.metadata?.mimeType || null
+          }
+        ]
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching public user documents:', error);
+    return res.status(500).json({ success: false, message: 'Error fetching documents', error: error.message });
+  }
+};
+
+// Download decrypted document for public user
+exports.downloadPublicUserDocument = async (req, res) => {
+  try {
+    const { userId, documentType } = req.params;
+    const user = await PublicUser.findById(userId)
+      .select('identityProofEncryption signatureEncryption');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Public user not found' });
+    }
+
+    if (documentType === 'identityProof') {
+      const identity = user.identityProofEncryption;
+      if (!identity?.encryptedData || !identity?.encryptedAESKey || !identity?.iv) {
+        return res.status(404).json({ success: false, message: 'Identity proof not found' });
+      }
+
+      return await sendDecryptedDocument(
+        res,
+        {
+          encryptedFileData: identity.encryptedData,
+          encryptedAESKey: identity.encryptedAESKey,
+          encryptionIV: identity.iv
+        },
+        identity.metadata,
+        'identity-proof.bin'
+      );
+    }
+
+    if (documentType === 'signature') {
+      const signature = user.signatureEncryption;
+      if (!signature?.encryptedData || !signature?.encryptedAESKey || !signature?.iv) {
+        return res.status(404).json({ success: false, message: 'Signature not found' });
+      }
+
+      return await sendDecryptedDocument(
+        res,
+        {
+          encryptedFileData: signature.encryptedData,
+          encryptedAESKey: signature.encryptedAESKey,
+          encryptionIV: signature.iv
+        },
+        signature.metadata,
+        'signature.bin'
+      );
+    }
+
+    return res.status(400).json({ success: false, message: 'Invalid document type' });
+  } catch (error) {
+    console.error('Error downloading public user document:', error);
+    return res.status(500).json({ success: false, message: 'Error downloading document', error: error.message });
   }
 };

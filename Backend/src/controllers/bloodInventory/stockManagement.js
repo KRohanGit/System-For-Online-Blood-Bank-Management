@@ -1,4 +1,5 @@
 const BloodInventory = require('../../models/BloodInventory');
+const eventBus = require('../../services/realtime/eventBus');
 
 // Get stock overview for all 8 blood groups with statistics
 exports.getStockOverview = async (req, res) => {
@@ -87,6 +88,19 @@ exports.getExpiringUnits = async (req, res) => {
       else if (hoursLeft < 72) categorized.urgent.push(unit);
       else categorized.warning.push(unit);
     });
+
+    if (categorized.critical.length > 0 || categorized.urgent.length > 0) {
+      const payload = {
+        hospitalId,
+        critical: categorized.critical.length,
+        urgent: categorized.urgent.length,
+        warning: categorized.warning.length,
+        total: expiringUnits.length,
+        generatedAt: new Date().toISOString()
+      };
+      eventBus.publish('unit:expiring_soon', payload);
+      eventBus.publish('expiry_alert', payload);
+    }
 
     res.json({
       success: true,
