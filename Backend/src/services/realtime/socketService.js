@@ -1,4 +1,5 @@
 const { Server } = require('socket.io');
+const { parseAllowedOrigins, isOriginAllowed } = require('../../utils/originMatcher');
 
 
 let io = null;
@@ -6,9 +7,18 @@ const connectedClients = new Map();
 const roomMemberships = new Map();
 
 function initializeSocket(httpServer) {
+  const socketOrigins = parseAllowedOrigins(process.env.CLIENT_URL || process.env.FRONTEND_URL || '');
+
   io = new Server(httpServer, {
     cors: {
-      origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+      origin: (origin, callback) => {
+        if (isOriginAllowed(origin, socketOrigins)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(new Error('Socket CORS origin not allowed'));
+      },
       methods: ['GET', 'POST'],
       credentials: true
     },

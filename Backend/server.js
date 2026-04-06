@@ -22,6 +22,7 @@ const emergencyIntelligenceRoutes = require('./src/routes/emergencyIntelligenceR
 const doctorClinicalRoutes = require('./src/routes/doctorClinicalRoutes');
 const geolocationRoutes = require('./src/routes/geolocationRoutes');
 const emergencyCoordinationRoutes = require('./src/routes/emergencyCoordinationRoutes');
+const deliveryIntelligenceRoutes = require('./src/routes/deliveryIntelligenceRoutes');
 const clinicalAdvisoryRoutes = require('./src/routes/clinicalAdvisory');
 const auditTrailRoutes = require('./src/routes/auditTrail');
 const donationRoutes = require('./src/routes/donation.routes');
@@ -33,16 +34,30 @@ const bloodTraceRoutes = require('./src/routes/blood.routes');
 const mlRoutes = require('./src/routes/mlRoutes');
 const rlRoutes = require('./src/routes/rlRoutes');
 const graphRoutes = require('./src/routes/graphRoutes');
-const syntheticRoutes = require('./src/routes/syntheticRoutes');
 const optimizeRoutes = require('./src/routes/optimizeRoutes');
 const secureDocumentRoutes = require('./src/routes/secureDocumentRoutes');
+const { parseAllowedOrigins, isOriginAllowed } = require('./src/utils/originMatcher');
 
 const app = express();
 const server = http.createServer(app);
 
+const clientOrigins = parseAllowedOrigins(process.env.CLIENT_URL || process.env.FRONTEND_URL || '');
+
 app.use(securityHeaders);
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    if (isOriginAllowed(origin, clientOrigins)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error('CORS origin not allowed'));
+  },
   credentials: true
 }));
 
@@ -93,6 +108,7 @@ app.use('/api/emergency-intelligence', apiLimiter, emergencyIntelligenceRoutes);
 app.use('/api/doctor-clinical', apiLimiter, doctorClinicalRoutes);
 app.use('/api/geolocation', geolocationRoutes);
 app.use('/api/emergency-coordination', emergencyCoordinationRoutes);
+app.use('/api', deliveryIntelligenceRoutes);
 app.use('/api/clinical-advisory', apiLimiter, clinicalAdvisoryRoutes);
 app.use('/api/audit-trail', apiLimiter, auditTrailRoutes);
 app.use('/api/donations', apiLimiter, donationRoutes);
@@ -104,7 +120,6 @@ app.use('/api/blood', apiLimiter, bloodTraceRoutes);
 app.use('/api/ml', apiLimiter, mlRoutes);
 app.use('/api/rl', apiLimiter, rlRoutes);
 app.use('/api/graph', apiLimiter, graphRoutes);
-app.use('/api/synthetic', apiLimiter, syntheticRoutes);
 app.use('/api/optimize', apiLimiter, optimizeRoutes);
 app.use('/api/documents', apiLimiter, secureDocumentRoutes);
 
@@ -172,16 +187,17 @@ const startServer = async () => {
     const { startWatchdog } = require('./src/services/monitoring/watchdog');
     startWatchdog(30);
 
-    const PORT = process.env.PORT || 5000;
+    const PORT = Number(process.env.PORT || 10000);
 
     server.listen(PORT, () => {
       console.log('\n' + '='.repeat(60));
       console.log('✅ LifeLink Backend Server Started Successfully!');
       console.log('='.repeat(60));
       console.log(`🔌 Backend API running on port ${PORT}`);
-      console.log(`📊 Health check: http://localhost:${PORT}/health`);
-      console.log(`📈 Metrics: http://localhost:${PORT}/metrics`);
-      console.log(`🤖 ML Service: http://localhost:8000/health`);
+      console.log(`📊 Health check endpoint: /health`);
+      console.log(`📈 Metrics endpoint: /metrics`);
+      console.log(`🤖 ML Service URL: ${process.env.ML_API_URL || process.env.ML_SERVICE_URL || 'not-configured'}`);
+      console.log(`🌐 Allowed client URLs: ${clientOrigins.length ? clientOrigins.join(', ') : 'all (CLIENT_URL not set)'}`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log('='.repeat(60) + '\n');
     });
