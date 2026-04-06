@@ -22,7 +22,6 @@ const emergencyIntelligenceRoutes = require('./src/routes/emergencyIntelligenceR
 const doctorClinicalRoutes = require('./src/routes/doctorClinicalRoutes');
 const geolocationRoutes = require('./src/routes/geolocationRoutes');
 const emergencyCoordinationRoutes = require('./src/routes/emergencyCoordinationRoutes');
-const deliveryIntelligenceRoutes = require('./src/routes/deliveryIntelligenceRoutes');
 const clinicalAdvisoryRoutes = require('./src/routes/clinicalAdvisory');
 const auditTrailRoutes = require('./src/routes/auditTrail');
 const donationRoutes = require('./src/routes/donation.routes');
@@ -37,6 +36,16 @@ const graphRoutes = require('./src/routes/graphRoutes');
 const optimizeRoutes = require('./src/routes/optimizeRoutes');
 const secureDocumentRoutes = require('./src/routes/secureDocumentRoutes');
 const { parseAllowedOrigins, isOriginAllowed } = require('./src/utils/originMatcher');
+
+let deliveryIntelligenceRoutes = null;
+try {
+  // Optional route bundle. Keep server booting when this module isn't present in a deploy.
+  deliveryIntelligenceRoutes = require('./src/routes/deliveryIntelligenceRoutes');
+} catch (error) {
+  if (error.code !== 'MODULE_NOT_FOUND') {
+    throw error;
+  }
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -108,7 +117,9 @@ app.use('/api/emergency-intelligence', apiLimiter, emergencyIntelligenceRoutes);
 app.use('/api/doctor-clinical', apiLimiter, doctorClinicalRoutes);
 app.use('/api/geolocation', geolocationRoutes);
 app.use('/api/emergency-coordination', emergencyCoordinationRoutes);
-app.use('/api', deliveryIntelligenceRoutes);
+if (deliveryIntelligenceRoutes) {
+  app.use('/api', deliveryIntelligenceRoutes);
+}
 app.use('/api/clinical-advisory', apiLimiter, clinicalAdvisoryRoutes);
 app.use('/api/audit-trail', apiLimiter, auditTrailRoutes);
 app.use('/api/donations', apiLimiter, donationRoutes);
