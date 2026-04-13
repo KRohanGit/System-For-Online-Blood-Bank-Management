@@ -12,7 +12,11 @@ const EmergencyRequest = require('./src/models/EmergencyRequest');
 const HospitalTrustLedger = require('./src/models/HospitalTrustLedger');
 const OptimizationRun = require('./src/models/OptimizationRun');
 
-const BASE_URL = process.env.BACKEND_URL || 'http://localhost:5000';
+const BASE_URL = process.env.BACKEND_URL;
+
+if (!BASE_URL) {
+  throw new Error('Missing BACKEND_URL environment variable. Set it to your deployed backend URL.');
+}
 
 const tag = `E2E-${Date.now()}`;
 const created = {

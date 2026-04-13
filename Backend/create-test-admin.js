@@ -1,7 +1,6 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('./src/models/User');
-const bcrypt = require('bcryptjs');
 
 async function createTestAdmin() {
   try {
@@ -17,11 +16,9 @@ async function createTestAdmin() {
     }
 
     // Create new test admin with known password
-    const hashedPassword = await bcrypt.hash('Test@2026', 10);
-    
     testAdmin = new User({
       email: 'testemergency@admin.com',
-      password: hashedPassword,
+      password: 'Test@2026',
       role: 'hospital_admin',
       isVerified: true
     });

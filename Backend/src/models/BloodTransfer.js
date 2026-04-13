@@ -139,7 +139,12 @@ const bloodTransferSchema = new mongoose.Schema({
     distance: Number, // km
     estimatedTime: Number, // minutes
     actualDistance: Number,
-    actualTime: Number
+    actualTime: Number,
+    routeCoordinates: [[Number]],
+    routePolyline: String,
+    traffic: String,
+    provider: String,
+    confidence: Number
   },
   
   // Temperature Monitoring

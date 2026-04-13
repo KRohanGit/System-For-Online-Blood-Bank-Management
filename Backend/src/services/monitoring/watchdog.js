@@ -132,7 +132,14 @@ async function attemptSelfHeal(check) {
   if (check.name === 'database' && check.status === 'unhealthy') {
     try {
       if (mongoose.connection.readyState !== 1) {
-        await mongoose.connect(process.env.MONGO_URI);
+        const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+        if (!mongoUri) {
+          throw new Error('Mongo URI is not configured');
+        }
+        await mongoose.connect(mongoUri, {
+          serverSelectionTimeoutMS: 10000,
+          socketTimeoutMS: 45000
+        });
       }
     } catch (err) {
       console.error('Self-heal DB reconnect failed:', err.message);

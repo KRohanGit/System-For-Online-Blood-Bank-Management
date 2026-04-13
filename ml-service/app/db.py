@@ -5,7 +5,9 @@ from functools import lru_cache
 
 @lru_cache()
 def get_mongo_client():
-    mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/lifelink")
+    mongo_uri = os.getenv("MONGO_URI") or os.getenv("MONGODB_URI")
+    if not mongo_uri:
+        raise RuntimeError("Missing MongoDB URI. Set MONGO_URI (or MONGODB_URI).")
     return MongoClient(mongo_uri)
 
 

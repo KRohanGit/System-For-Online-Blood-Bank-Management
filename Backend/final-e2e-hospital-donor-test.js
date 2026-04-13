@@ -5,7 +5,11 @@
 
 const http = require('http');
 
-const BASE_URL = 'http://localhost:5000';
+const BASE_URL = process.env.BACKEND_URL;
+
+if (!BASE_URL) {
+  throw new Error('Missing BACKEND_URL environment variable. Set it to your deployed backend URL.');
+}
 
 function request(method, path, body = null, headers = {}) {
   return new Promise((resolve, reject) => {

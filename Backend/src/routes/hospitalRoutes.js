@@ -10,7 +10,8 @@ const {
   createDonorAccount,
   resendDonorCredentials,
   updateDonorStatus,
-  deleteDonorAccount
+  deleteDonorAccount,
+  getCaseAnalytics
 } = require('../controllers/hospitalController');
 const certificateController = require('../controllers/certificateController');
 const {
@@ -42,6 +43,13 @@ router.put('/profile', auth, checkRole('hospital_admin'), updateHospitalProfile)
  * @access  Private (Admin only)
  */
 router.get('/verification-status', auth, checkRole('hospital_admin'), getVerificationStatus);
+
+/**
+ * @route   GET /api/hospital/case-analytics
+ * @desc    Get hospital-level clinical case analytics and AI insights
+ * @access  Private (Hospital Admin / Super Admin)
+ */
+router.get('/case-analytics', auth, checkRole(['hospital_admin', 'super_admin']), getCaseAnalytics);
 
 /**
  * @route   POST /api/hospital/donor

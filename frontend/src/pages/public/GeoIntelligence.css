@@ -8,14 +8,14 @@
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(160deg, #f7fbff 0%, #eef4ff 100%);
   min-height: 100vh;
 }
 
 /* Header */
 .geo-header {
   text-align: center;
-  color: white;
+  color: #0f172a;
   margin-bottom: 2rem;
   animation: fadeInDown 0.6s ease;
 }
@@ -28,7 +28,7 @@
 
 .geo-header p {
   font-size: 1.1rem;
-  opacity: 0.9;
+  color: #334155;
 }
 
 /* Location Controls */
@@ -70,12 +70,13 @@
   color: #721c24;
 }
 
-.coordinates {
-  font-family: 'Courier New', monospace;
-  background: #f8f9fa;
+.location-chip {
+  background: #eef2ff;
+  color: #3730a3;
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: 999px;
   font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .location-actions {
@@ -435,7 +436,7 @@
 }
 
 .marker-popup {
-  font-family: Arial, sans-serif;
+  font-family: inherit;
 }
 
 .marker-popup strong {

@@ -14,7 +14,9 @@ from app.services.graph_algorithms import (
 )
 
 
+# Computes network structure intelligence for hospital coordination decisions.
 class GraphIntelligenceEngine:
+    # Deterministic pseudo-distance for nodes lacking geocoordinates.
     def _deterministic_fallback_distance(self, node_a: str, node_b: str) -> float:
         ordered = "::".join(sorted([str(node_a), str(node_b)]))
         digest = hashlib.md5(ordered.encode("utf-8")).hexdigest()
@@ -22,6 +24,7 @@ class GraphIntelligenceEngine:
         # Deterministic distance between 10 and 80 km for nodes without coordinates.
         return 10.0 + (bucket % 7000) / 100.0
 
+    # Build transfer graph from hospitals, inventory, and geo proximity.
     def _build_graph(self, max_distance_km: float = 100.0) -> HospitalGraph:
         hospitals = fetch_hospital_data()
         inventory_map = build_hospital_inventory_map()
@@ -58,6 +61,7 @@ class GraphIntelligenceEngine:
 
         return graph
 
+    # Return requested centrality metrics and optional top-hospital ranking.
     def get_centrality(self, metric: str = "all") -> Dict[str, Any]:
         graph = self._build_graph()
         result = {
@@ -80,6 +84,7 @@ class GraphIntelligenceEngine:
         result["generated_at"] = timestamp()
         return result
 
+    # Identify structurally risky nodes that can become routing bottlenecks.
     def get_bottlenecks(self, threshold: float = 0.3) -> Dict[str, Any]:
         graph = self._build_graph()
         betweenness = compute_betweenness_centrality(graph)
@@ -113,6 +118,7 @@ class GraphIntelligenceEngine:
             "generated_at": timestamp()
         }
 
+    # Compute composite network stability from connectivity and balance factors.
     def get_stability_index(self) -> Dict[str, Any]:
         graph = self._build_graph()
         nodes = graph.get_all_nodes()
@@ -182,6 +188,7 @@ class GraphIntelligenceEngine:
             "generated_at": timestamp()
         }
 
+    # Build composite ranking from multiple graph centrality signals.
     def _rank_hospitals(self, graph: HospitalGraph, metrics: Dict) -> List[Dict]:
         degree = metrics.get("degree_centrality", {})
         closeness = metrics.get("closeness_centrality", {})
@@ -207,6 +214,7 @@ class GraphIntelligenceEngine:
         rankings.sort(key=lambda x: x["composite_score"], reverse=True)
         return rankings[:10]
 
+    # Convert structural/stock signals into human-readable risk flags.
     def _assess_risk(self, betweenness: float, degree: float, stock: int) -> List[str]:
         risks = []
         if betweenness > 0.5:
@@ -221,6 +229,7 @@ class GraphIntelligenceEngine:
             risks.append("Moderate network position")
         return risks
 
+    # Generate high-level actions for identified bottleneck patterns.
     def _bottleneck_recommendations(self, bottlenecks: List[Dict]) -> List[str]:
         recs = []
         if len(bottlenecks) == 0:
@@ -237,6 +246,7 @@ class GraphIntelligenceEngine:
             recs.append("Bottleneck hospitals with low stock need priority replenishment")
         return recs
 
+    # Generate stability-oriented recommendations from key graph diagnostics.
     def _stability_recommendations(self, stability: float, density: float,
                                     fragmentation: float) -> List[str]:
         recs = []
@@ -251,4 +261,5 @@ class GraphIntelligenceEngine:
         return recs
 
 
+# Shared singleton used by graph routes.
 graph_engine = GraphIntelligenceEngine()

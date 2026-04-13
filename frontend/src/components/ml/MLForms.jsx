@@ -96,8 +96,8 @@ export function AnomalyForm({ form, setForm, onRun, loading, color }) {
 export function RankingForm({ form, setForm, onRun, loading, color }) {
   return (
     <FormWrapper
-      desc="Ranks nearby hospitals using real-time AI decision scoring across availability, distance, response performance, workload, and reliability."
-      onRun={onRun} loading={loading} color={color} btnLabel="🏥 Rank Hospitals"
+      desc="Ranks nearby hospitals using stock availability, distance, reliability, workload, and response speed."
+      onRun={onRun} loading={loading} color={color} btnLabel="🏥 Find Best Hospitals"
     >
       <FieldRow>
         <Field label="Blood Group Needed">
@@ -148,7 +148,7 @@ export function RankingForm({ form, setForm, onRun, loading, color }) {
             checked={!!form.useOptimizationValidation}
             onChange={e => setForm({ ...form, useOptimizationValidation: e.target.checked })}
           />
-          <span>Validate top routes with optimization engine</span>
+          <span>Cross-check top hospital routes before finalizing</span>
         </label>
       </div>
     </FormWrapper>
@@ -185,13 +185,13 @@ export function SimulationForm({ form, setForm, onRun, loading, color }) {
 export function OptimizeForm({ form, setForm, onRun, loading, color }) {
   return (
     <FormWrapper
-      desc="Real-time multi-objective optimization over hospital inventory, emergencies, expiry risk, and transport constraints using a SciPy-backed solver."
-      onRun={onRun} loading={loading} color={color} btnLabel="🔄 Optimize Transfers"
+      desc="Creates a transfer plan across hospitals using inventory levels, emergency demand, expiry risk, and travel constraints."
+      onRun={onRun} loading={loading} color={color} btnLabel="🔄 Build Transfer Plan"
     >
       <FieldRow>
-        <Field label="Optimization Mode">
+        <Field label="Planning Mode">
           <select className="mli-select" value={form.mode} onChange={e => setForm({ ...form, mode: e.target.value })}>
-            <option value="auto">Auto (Intelligent Weights)</option>
+            <option value="auto">Auto (Balanced Priorities)</option>
             <option value="minimize_wastage">Minimize Wastage</option>
             <option value="minimize_delivery_time">Minimize Delivery Time</option>
             <option value="maximize_emergency_coverage">Maximize Emergency Coverage</option>
@@ -219,7 +219,7 @@ export function OptimizeForm({ form, setForm, onRun, loading, color }) {
             checked={!!form.includeRLSuggestions}
             onChange={e => setForm({ ...form, includeRLSuggestions: e.target.checked })}
           />
-          <span>Use RL Agent suggestions (refinement only)</span>
+          <span>Use route learning hints from past transfer outcomes</span>
         </label>
         <label className="mli-toggle-item">
           <input
@@ -227,72 +227,7 @@ export function OptimizeForm({ form, setForm, onRun, loading, color }) {
             checked={!!form.includeGraphConnectivity}
             onChange={e => setForm({ ...form, includeGraphConnectivity: e.target.checked })}
           />
-          <span>Use graph connectivity weighting</span>
-        </label>
-      </div>
-    </FormWrapper>
-  );
-}
-
-export function SyntheticForm({ form, setForm, onRun, loading, color }) {
-  return (
-    <FormWrapper
-      desc="Generate realistic donor populations with scenario-driven behavior, geographic clusters, and eligibility-aware availability scoring."
-      onRun={onRun} loading={loading} color={color} btnLabel="Generate Synthetic Donor Network"
-    >
-      <FieldRow>
-        <Field label="Data Type">
-          <select className="mli-select" value={form.dataType} onChange={e => setForm({ ...form, dataType: e.target.value })}>
-            <option value="donors">Donor Records</option>
-          </select>
-        </Field>
-        <Field label="Record Count">
-          <input className="mli-input" type="number" min={10} max={2000} value={form.count}
-            onChange={e => setForm({ ...form, count: +e.target.value })} />
-        </Field>
-        <Field label="Scenario">
-          <select className="mli-select" value={form.scenario} onChange={e => setForm({ ...form, scenario: e.target.value })}>
-            <option value="normal">Normal Baseline</option>
-            <option value="festival">Festival Season</option>
-            <option value="outbreak">Disease Outbreak</option>
-            <option value="heatwave">Heatwave Constraints</option>
-            <option value="emergency_drive">Emergency Donation Drive</option>
-          </select>
-        </Field>
-      </FieldRow>
-
-      <FieldRow>
-        <Field label="District Filter">
-          <input
-            className="mli-input"
-            type="text"
-            placeholder="all"
-            value={form.district}
-            onChange={e => setForm({ ...form, district: e.target.value })}
-          />
-        </Field>
-        <Field label="Deterministic Seed">
-          <input className="mli-input" type="number" min={1} max={999999} value={form.seed}
-            onChange={e => setForm({ ...form, seed: +e.target.value })} />
-        </Field>
-      </FieldRow>
-
-      <div className="mli-toggle-row">
-        <label className="mli-toggle-item">
-          <input
-            type="checkbox"
-            checked={!!form.includeGeo}
-            onChange={e => setForm({ ...form, includeGeo: e.target.checked })}
-          />
-          <span>Include geospatial coordinates</span>
-        </label>
-        <label className="mli-toggle-item">
-          <input
-            type="checkbox"
-            checked={!!form.injectToSystem}
-            onChange={e => setForm({ ...form, injectToSystem: e.target.checked })}
-          />
-          <span>Flag generated records as system-injected</span>
+          <span>Prioritize routes with strong hospital connectivity</span>
         </label>
       </div>
     </FormWrapper>

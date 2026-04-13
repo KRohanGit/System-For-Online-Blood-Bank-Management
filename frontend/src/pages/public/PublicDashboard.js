@@ -25,7 +25,7 @@ export default function PublicDashboard() {
     // Try to load user donation stats from API
     const fetchStats = async () => {
       try {
-        const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/donor-dashboard/dashboard`, {
+        const res = await fetch(`${process.env.REACT_APP_API_URL || '/api'}/donor-dashboard/dashboard`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -110,6 +110,14 @@ export default function PublicDashboard() {
       action: () => navigate('/public/certificates'),
       color: '#d35400',
       gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)'
+    },
+    {
+      icon: '🔎',
+      title: 'Blood QR Trace',
+      description: 'Track blood unit lifecycle',
+      action: () => navigate('/trace'),
+      color: '#2c3e50',
+      gradient: 'linear-gradient(135deg, #cfd9df 0%, #e2ebf0 100%)'
     }
   ];
 

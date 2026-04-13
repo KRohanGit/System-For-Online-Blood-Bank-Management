@@ -6,7 +6,7 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 const getAuthToken = () => {
   return localStorage.getItem('token');
@@ -52,6 +52,79 @@ export const getEmergencyRequests = async (filters = {}) => {
 };
 
 /**
+ * Get privacy-safe nearby hospitals for coordination
+ */
+export const getNearbyCoordinationHospitals = async (params = {}) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/emergency-coordination/hospitals/nearby`,
+      {
+        headers: authHeader(),
+        params
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
+ * Get one hospital coordination summary (privacy-safe)
+ */
+export const getHospitalCoordinationSummary = async (hospitalId) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/emergency-coordination/hospitals/${hospitalId}/summary`,
+      { headers: authHeader() }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
+ * Get AI recommendation for inter-hospital coordination
+ */
+export const getHospitalInsights = async (payload) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/emergency-coordination/hospital-insights`,
+      payload,
+      { headers: authHeader() }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
+ * Get AI-powered delivery estimate between two hospital locations
+ */
+export const getDeliveryEstimate = async ({ from, to, priority = 'HIGH', weatherScore = null, emergencyPriority = false }) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/delivery-estimate`,
+      {
+        headers: authHeader(),
+        params: {
+          from: `${from.latitude},${from.longitude}`,
+          to: `${to.latitude},${to.longitude}`,
+          priority,
+          weatherScore,
+          emergencyPriority
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
  * Get request details
  */
 export const getRequestDetails = async (requestId) => {
@@ -73,6 +146,21 @@ export const getMatchingHospitals = async (requestId) => {
   try {
     const response = await axios.get(
       `${API_BASE_URL}/emergency-coordination/request/${requestId}/matches`,
+      { headers: authHeader() }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+/**
+ * Get the active delivery session for a request
+ */
+export const getDeliverySession = async (requestId) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/emergency-coordination/request/${requestId}/delivery-session`,
       { headers: authHeader() }
     );
     return response.data;
@@ -180,7 +268,12 @@ export const completeDelivery = async (transferId, deliveryData) => {
 export default {
   createEmergencyRequest,
   getEmergencyRequests,
+  getNearbyCoordinationHospitals,
+  getHospitalCoordinationSummary,
+  getHospitalInsights,
+  getDeliveryEstimate,
   getRequestDetails,
+  getDeliverySession,
   getMatchingHospitals,
   acceptEmergencyRequest,
   declineEmergencyRequest,

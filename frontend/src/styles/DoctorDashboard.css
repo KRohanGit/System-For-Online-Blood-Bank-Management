@@ -1,48 +1,55 @@
-/* Doctor Dashboard - Simple & Clean */
+/* Doctor Dashboard - Clean Production Layout */
 
 .doctor-dashboard {
   min-height: 100vh;
-  background: white;
-  padding: 20px;
-  font-family: Arial, sans-serif;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  padding: 24px;
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 
 .dashboard-container {
-  max-width: 1400px;
+  max-width: 1360px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 20px;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
 }
 
 .dashboard-sidebar {
   position: sticky;
-  top: 20px;
+  top: 24px;
 }
 
 .dashboard-main {
   width: 100%;
+  min-width: 0;
 }
 
 .dashboard-header {
-  background: white;
-  padding: 20px;
-  margin-bottom: 20px;
-  border: 1px solid #ddd;
+  background: #ffffff;
+  padding: 24px;
+  margin-bottom: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
 .dashboard-header h1 {
   margin: 0;
-  font-size: 24px;
-  color: #000;
-  font-weight: normal;
+  font-size: 28px;
+  color: #0f172a;
+  font-weight: 700;
+  letter-spacing: 0.2px;
 }
 
 .dashboard-navigation {
-  background: white;
+  background: #ffffff;
   padding: 15px;
-  margin-bottom: 20px;
-  border: 1px solid #ddd;
+  margin-bottom: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
@@ -50,26 +57,29 @@
 
 .dashboard-navigation button {
   padding: 10px 15px;
-  border: 1px solid #ddd;
-  background: white;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
   font-size: 14px;
-  color: #000;
+  color: #334155;
   cursor: pointer;
-  font-weight: normal;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.2s ease;
 }
 
 .dashboard-navigation button:hover {
-  background: #f5f5f5;
+  border-color: #94a3b8;
+  background: #f8fafc;
 }
 
 .dashboard-navigation button.active {
-  background: #000;
+  background: #0f172a;
   color: white;
-  border-color: #000;
+  border-color: #0f172a;
 }
 
 .dashboard-content {
-  background: white;
+  background: transparent;
 }
 
 .overview-section {
@@ -88,6 +98,159 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
+}
+
+.doctor-community-feed {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.doctor-community-feed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.doctor-community-feed-header h3 {
+  margin: 0 0 6px 0;
+  font-size: 18px;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.doctor-community-feed-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.doctor-community-feed-header button,
+.doctor-community-comment-row button,
+.doctor-community-actions button {
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #0f172a;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.doctor-community-feed-header button:hover,
+.doctor-community-comment-row button:hover,
+.doctor-community-actions button:hover {
+  background: #f5f5f5;
+}
+
+.doctor-community-empty {
+  padding: 16px;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+  font-size: 14px;
+  border-radius: 8px;
+}
+
+.doctor-community-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.doctor-community-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  background: #fff;
+}
+
+.doctor-community-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.doctor-community-card-top h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.doctor-community-card-top p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.doctor-community-card-top span {
+  align-self: flex-start;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+}
+
+.doctor-community-content {
+  margin: 0 0 12px 0;
+  color: #1e293b;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.doctor-community-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.doctor-community-comment-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.doctor-community-comment-row input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.dashboard-panel-state {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 22px;
+  font-size: 14px;
+}
+
+.dashboard-panel-state.loading {
+  color: #334155;
+}
+
+.dashboard-panel-state.error {
+  color: #991b1b;
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+.doctor-community-comment-row button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .quick-actions-section {
@@ -145,15 +308,16 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: white;
+  background: #f8fafc;
 }
 
 .loading {
-  background: white;
+  background: #ffffff;
   padding: 20px;
   font-size: 14px;
-  color: #000;
-  border: 1px solid #ddd;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
 }
 
 .error-container {
@@ -161,18 +325,19 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: white;
+  background: #f8fafc;
   padding: 20px;
 }
 
 .error-container > div {
-  background: white;
+  background: #ffffff;
   padding: 30px;
-  color: #000;
+  color: #0f172a;
   font-size: 14px;
   max-width: 500px;
   text-align: center;
-  border: 1px solid #ddd;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
 }
 
 .coming-soon {
@@ -208,7 +373,7 @@
 
 @media (max-width: 768px) {
   .doctor-dashboard {
-    padding: 10px;
+    padding: 12px;
   }
 
   .dashboard-header {
@@ -226,7 +391,7 @@
 
   .dashboard-navigation button {
     width: 100%;
-    text-align: left;
+    text-align: center;
     padding: 12px 15px;
   }
 
@@ -235,6 +400,14 @@
   }
 
   .quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .doctor-community-feed-header {
+    flex-direction: column;
+  }
+
+  .doctor-community-comment-row {
     grid-template-columns: 1fr;
   }
 

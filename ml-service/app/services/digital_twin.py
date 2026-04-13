@@ -4,11 +4,13 @@ from typing import Any, Dict, List, Tuple
 from app.services.shared_utils import BLOOD_GROUPS, build_hospital_inventory_map, fetch_hospital_data, timestamp
 
 
+# Monte Carlo digital-twin engine for risk, resilience, and strategy support.
 class DigitalTwinEngine:
     def __init__(self):
         self._rng = np.random.default_rng()
         self._last_live_snapshot = None
 
+    # Run full twin simulation for a scenario and produce decision artifacts.
     def simulate(self, scenario: str, params: Dict, duration_days: int, monte_carlo_runs: int) -> Dict[str, Any]:
         normalized_scenario = self._normalize_scenario(scenario)
         twin_state = self._build_initial_state(params)
@@ -69,6 +71,7 @@ class DigitalTwinEngine:
             "generated_at": timestamp(),
         }
 
+    # Compare multiple scenarios and rank by risk/resilience profile.
     def compare_scenarios(self, scenarios: List[str], params: Dict, duration_days: int, monte_carlo_runs: int) -> Dict[str, Any]:
         scenario_results = {}
         for s in scenarios:
@@ -112,6 +115,7 @@ class DigitalTwinEngine:
             "generated_at": timestamp(),
         }
 
+    # Return current network/status snapshot used for quick health checks.
     def get_status(self) -> Dict[str, Any]:
         state = self._build_initial_state({})
         totals = state["inventory"]
@@ -128,6 +132,7 @@ class DigitalTwinEngine:
         }
         return self._last_live_snapshot
 
+    # Compute baseline resilience package for dashboard display.
     def get_resilience_score(self) -> Dict[str, Any]:
         baseline = self.simulate("baseline", {}, 14, 150)
         return {
@@ -137,6 +142,7 @@ class DigitalTwinEngine:
             "generated_at": timestamp(),
         }
 
+    # Recommend best available strategy from canonical scenario set.
     def recommend_best_strategy(self, params: Dict, duration_days: int, monte_carlo_runs: int) -> Dict[str, Any]:
         comparison = self.compare_scenarios(["baseline", "disaster", "donor_campaign"], params, duration_days, monte_carlo_runs)
         return {
@@ -145,6 +151,7 @@ class DigitalTwinEngine:
             "generated_at": timestamp(),
         }
 
+    # Normalize caller scenario aliases into supported scenario ids.
     def _normalize_scenario(self, scenario: str) -> str:
         value = (scenario or "baseline").lower().strip()
         if value in ["campaign", "donor", "donor_campaign"]:
@@ -153,6 +160,7 @@ class DigitalTwinEngine:
             return "disaster"
         return "baseline"
 
+    # Build initial state from live inventory and configurable stress knobs.
     def _build_initial_state(self, params: Dict) -> Dict[str, Any]:
         hospitals = fetch_hospital_data()
         inventory_map = build_hospital_inventory_map()
@@ -229,6 +237,7 @@ class DigitalTwinEngine:
             },
         }
 
+    # Simulate one stochastic trajectory through demand/supply/expiry dynamics.
     def _run_single_path(self, scenario: str, twin_state: Dict[str, Any], params: Dict, duration_days: int) -> Dict[str, Any]:
         inventory = {bg: float(v) for bg, v in twin_state["inventory"].items()}
         supply_rate = twin_state["incomingSupplyRate"]

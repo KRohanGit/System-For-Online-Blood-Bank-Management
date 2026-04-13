@@ -1,112 +1,300 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import jsQR from 'jsqr';
 import bloodApi from '../services/bloodApi';
 import './QRScanner.css';
 
 const QRScanner = () => {
-  const [unitId, setUnitId] = useState('');
+  const [qrInput, setQrInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [scanned, setScanned] = useState(null);
-  const navigate = useNavigate();
-  const videoRef = useRef(null);
+  const [scanMessage, setScanMessage] = useState('Ready to verify a QR code.');
+  const [selectedImageName, setSelectedImageName] = useState('');
+  const [verificationResult, setVerificationResult] = useState(null);
   const [hasPermission, setHasPermission] = useState(null);
   const [isScanningActive, setIsScanningActive] = useState(false);
+  const [supportsBarcodeDetector, setSupportsBarcodeDetector] = useState(false);
+  const navigate = useNavigate();
+  const videoRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const streamRef = useRef(null);
+  const detectorRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const mountedRef = useRef(true);
+
+  const stopCamera = useCallback(() => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  }, []);
 
   useEffect(() => {
-    if (isScanningActive) {
-      startCamera();
-    }
+    mountedRef.current = true;
+    setSupportsBarcodeDetector(typeof window !== 'undefined' && 'BarcodeDetector' in window);
+
     return () => {
+      mountedRef.current = false;
       stopCamera();
     };
-  }, [isScanningActive]);
+  }, [stopCamera]);
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setHasPermission(true);
-      }
-    } catch (err) {
-      setHasPermission(false);
-      setError('Unable to access camera. Please check permissions.');
-    }
-  };
+  const verifyQrValue = useCallback(async (qrValue) => {
+    const normalizedValue = String(qrValue || '').trim();
 
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-    }
-  };
-
-  const handleManualSearch = async (e) => {
-    e.preventDefault();
-    if (!unitId.trim()) {
-      setError('Please enter a unit ID');
+    if (!normalizedValue) {
+      setError('Please enter a QR payload or unit ID.');
       return;
     }
 
     setLoading(true);
     setError(null);
+    setVerificationResult(null);
+    setScanMessage('Verifying QR payload and loading trace data...');
+
     try {
-      const result = await bloodApi.traceBloodUnit(unitId);
-      setScanned(result);
-      navigate(`/trace/${unitId}`);
+      const response = await bloodApi.verifyQrCode(normalizedValue);
+      const trace = response?.data;
+
+      setVerificationResult(trace);
+      setScanMessage('QR verified successfully. Opening the trace view...');
+
+      if (trace?.unitId) {
+        stopCamera();
+        setTimeout(() => {
+          if (mountedRef.current) {
+            navigate(`/trace/${trace.unitId}`);
+          }
+        }, 700);
+      }
     } catch (err) {
+      setVerificationResult(null);
       setError(err.message || 'Blood unit not found');
-      setScanned(null);
+      setScanMessage('QR verification failed. Try entering the unit ID manually.');
     } finally {
       setLoading(false);
     }
+  }, [navigate, stopCamera]);
+
+  const scanVideoFrame = useCallback(async () => {
+    if (!isScanningActive || !videoRef.current || !detectorRef.current) {
+      return;
+    }
+
+    const video = videoRef.current;
+    if (video.readyState < 2) {
+      animationFrameRef.current = requestAnimationFrame(scanVideoFrame);
+      return;
+    }
+
+    try {
+      const barcodes = await detectorRef.current.detect(video);
+      if (barcodes.length > 0 && barcodes[0].rawValue) {
+        await verifyQrValue(barcodes[0].rawValue);
+        return;
+      }
+    } catch (err) {
+      if (mountedRef.current) {
+        setScanMessage('Camera is active, but QR decoding is unavailable in this browser.');
+      }
+    }
+
+    animationFrameRef.current = requestAnimationFrame(scanVideoFrame);
+  }, [isScanningActive, verifyQrValue]);
+
+  const startCamera = useCallback(async () => {
+    try {
+      setError(null);
+      setScanMessage('Requesting camera access...');
+
+      if (!supportsBarcodeDetector) {
+        setScanMessage('Camera preview only. Paste the QR text below or use a supported browser to decode automatically.');
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+
+      streamRef.current = stream;
+      setHasPermission(true);
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+
+      if (supportsBarcodeDetector && typeof window !== 'undefined' && window.BarcodeDetector) {
+        detectorRef.current = new window.BarcodeDetector({ formats: ['qr_code'] });
+        setScanMessage('Camera ready. Hold the QR code inside the frame.');
+        animationFrameRef.current = requestAnimationFrame(scanVideoFrame);
+      } else {
+        detectorRef.current = null;
+      }
+    } catch (err) {
+      setHasPermission(false);
+      setScanMessage('Camera access denied. Use manual QR verification below.');
+      setError('Unable to access camera. Please check browser permissions.');
+    }
+  }, [scanVideoFrame, supportsBarcodeDetector]);
+
+  useEffect(() => {
+    if (isScanningActive) {
+      startCamera();
+    } else {
+      stopCamera();
+    }
+
+    return () => stopCamera();
+  }, [isScanningActive, startCamera, stopCamera]);
+
+  const handleManualSearch = async (e) => {
+    e.preventDefault();
+    await verifyQrValue(qrInput);
   };
 
-  const handleUnitIdChange = (e) => {
-    setUnitId(e.target.value);
+  const handleInputChange = (e) => {
+    setQrInput(e.target.value);
     setError(null);
   };
 
+  const handleSelectImageClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSelectedImageName(file.name);
+    setError(null);
+    setVerificationResult(null);
+
+    setLoading(true);
+    setScanMessage('Analyzing uploaded image for QR payload...');
+
+    let bitmap = null;
+    let fallbackCanvas = null;
+    try {
+      bitmap = await createImageBitmap(file);
+
+      let detectedValue = '';
+      if (supportsBarcodeDetector && typeof window !== 'undefined' && window.BarcodeDetector) {
+        const detector = detectorRef.current || new window.BarcodeDetector({ formats: ['qr_code'] });
+        detectorRef.current = detector;
+        const codes = await detector.detect(bitmap);
+        detectedValue = String(codes?.[0]?.rawValue || '').trim();
+      }
+
+      if (!detectedValue) {
+        fallbackCanvas = document.createElement('canvas');
+        fallbackCanvas.width = bitmap.width;
+        fallbackCanvas.height = bitmap.height;
+        const ctx = fallbackCanvas.getContext('2d');
+        if (!ctx) {
+          throw new Error('Unable to read image data for QR decoding.');
+        }
+        ctx.drawImage(bitmap, 0, 0);
+        const imageData = ctx.getImageData(0, 0, fallbackCanvas.width, fallbackCanvas.height);
+        const qrResult = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'attemptBoth'
+        });
+        detectedValue = String(qrResult?.data || '').trim();
+      }
+
+      if (!detectedValue) {
+        setScanMessage('No QR found in the uploaded image. Try a clearer image with full QR visible.');
+        setError('No QR code detected in image.');
+        return;
+      }
+
+      setQrInput(detectedValue);
+      setScanMessage('QR detected from uploaded image. Verifying trace lifecycle...');
+      await verifyQrValue(detectedValue);
+    } catch (err) {
+      setError('Unable to decode QR from image. Please try another image.');
+      setScanMessage('Image decoding failed.');
+    } finally {
+      if (bitmap && typeof bitmap.close === 'function') {
+        bitmap.close();
+      }
+      fallbackCanvas = null;
+      setLoading(false);
+      e.target.value = '';
+    }
+  };
+
   const toggleScanner = () => {
-    setIsScanningActive(!isScanningActive);
+    setIsScanningActive((current) => !current);
   };
 
   return (
     <div className="qr-scanner-container">
       <div className="scanner-header">
         <h1>🔍 Blood Unit Tracing</h1>
-        <p>Scan QR code or enter unit ID to track blood unit lifecycle</p>
+        <p>Scan a signed QR payload or enter a unit ID to verify and load the blood trace</p>
       </div>
 
       <div className="scanner-content">
         <div className="scanner-section">
-          <h2>Method 1: Enter Unit ID</h2>
-          
+          <h2>Manual Verification</h2>
+
           <form onSubmit={handleManualSearch} className="search-form">
             <div className="form-group">
               <input
                 type="text"
-                placeholder="Enter blood unit ID (e.g., BU-2024-001)"
-                value={unitId}
-                onChange={handleUnitIdChange}
+                placeholder="Paste QR payload or enter blood unit ID"
+                value={qrInput}
+                onChange={handleInputChange}
                 disabled={loading}
                 className="search-input"
               />
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="btn btn-primary"
                 disabled={loading}
               >
-                {loading ? 'Searching...' : 'Search Unit'}
+                {loading ? 'Verifying...' : 'Verify QR'}
               </button>
             </div>
           </form>
 
-          {error && !unitId && (
+          {error && (
             <div className="alert alert-error">{error}</div>
           )}
+
+          <div className="upload-section">
+            <h3>Upload QR Image</h3>
+            <p className="upload-hint">Upload a screenshot/photo of the QR code to detect and open blood lifecycle trace.</p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              onChange={handleImageUpload}
+              style={{ display: 'none' }}
+            />
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleSelectImageClick}
+              disabled={loading}
+            >
+              {loading ? 'Processing image...' : 'Upload QR Image'}
+            </button>
+            {selectedImageName && (
+              <div className="upload-file-name">Selected: {selectedImageName}</div>
+            )}
+          </div>
         </div>
 
         <div className="scanner-divider">
@@ -114,21 +302,23 @@ const QRScanner = () => {
         </div>
 
         <div className="scanner-section">
-          <h2>Method 2: Scan QR Code</h2>
-          
-          <button 
+          <h2>Camera Scan</h2>
+
+          <button
             className={`btn btn-secondary ${isScanningActive ? 'active' : ''}`}
             onClick={toggleScanner}
+            disabled={loading}
           >
             {isScanningActive ? 'Stop Camera' : 'Start Camera'}
           </button>
 
           {isScanningActive && (
             <div className="camera-container">
-              <video 
-                ref={videoRef} 
-                autoPlay 
+              <video
+                ref={videoRef}
+                autoPlay
                 playsInline
+                muted
                 className="camera-feed"
               />
               <div className="scanner-frame">
@@ -137,21 +327,29 @@ const QRScanner = () => {
                 <div className="frame-corner bottom-left"></div>
                 <div className="frame-corner bottom-right"></div>
               </div>
-              <p className="scanner-hint">Position QR code within frame</p>
+              <p className="scanner-hint">
+                {supportsBarcodeDetector
+                  ? 'Position the QR code inside the frame.'
+                  : 'This browser does not support live QR decoding. Use manual verification below.'}
+              </p>
             </div>
           )}
 
+          <div className="alert alert-success" style={{ marginTop: '12px' }}>
+            {scanMessage}
+          </div>
+
           {hasPermission === false && (
             <div className="alert alert-error">
-              Camera access denied. Please check browser permissions.
+              Camera access denied. Please use the manual verification field above.
             </div>
           )}
         </div>
 
-        {scanned && (
+        {verificationResult && (
           <div className="scanner-result">
             <div className="alert alert-success">
-              ✓ Blood unit found! Redirecting...
+              ✓ Verified {verificationResult.unitId}. Redirecting to the trace view...
             </div>
           </div>
         )}
@@ -161,17 +359,16 @@ const QRScanner = () => {
         <h3>About Blood Unit Tracing</h3>
         <ul>
           <li>🩸 Complete lifecycle tracking from collection to transfusion</li>
-          <li>✓ Test results and safety certifications</li>
+          <li>✓ Signed QR payloads with signature verification</li>
           <li>📍 Real-time location updates</li>
           <li>🔗 Blockchain-verified integrity</li>
-          <li>📊 AI-powered anomaly detection</li>
+          <li>📊 Role-aware trace visibility for donors and operational users</li>
         </ul>
       </div>
 
       <div className="scanner-footer">
         <p>
-          Blood unit tracing is available to all donors, hospitals, and healthcare workers.
-          No authentication required for public querying.
+          Blood unit tracing is public for transparency, while authenticated users can receive role-aware trace context.
         </p>
       </div>
     </div>

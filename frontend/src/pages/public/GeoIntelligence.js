@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -11,6 +12,7 @@ import {
   formatDistance,
   DEFAULT_LOCATIONS
 } from '../../services/geolocationApi';
+import { connectSocket, disconnectSocket, onEvent } from '../../services/socketService';
 import './GeoIntelligence.css';
 
 // Fix Leaflet default marker icons
@@ -49,6 +51,49 @@ function MapController({ center }) {
 }
 
 const GeoIntelligence = () => {
+  const navigate = useNavigate();
+  const [showQuickAgreeModal, setShowQuickAgreeModal] = useState(false);
+  const [selectedHospitalForAgreement, setSelectedHospitalForAgreement] = useState(null);
+
+  const getNormalizedRole = () => {
+    const token = localStorage.getItem('token');
+    const roleFromStorage = localStorage.getItem('role');
+
+    let roleFromToken = '';
+    if (token) {
+      try {
+        const tokenBody = token.split('.')[1] || '';
+        const normalizedBase64 = tokenBody.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(atob(normalizedBase64));
+        roleFromToken = payload?.role || '';
+      } catch {
+        roleFromToken = '';
+      }
+    }
+
+    let user = {};
+    try {
+      user = JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      user = {};
+    }
+
+    return String(
+      roleFromToken || user.role || user.userRole || roleFromStorage || ''
+    ).toLowerCase().trim();
+  };
+
+  const isHospitalAdmin = () => {
+    const role = getNormalizedRole();
+    return [
+      'hospital_admin',
+      'hospital_administrator',
+      'hospital',
+      'admin',
+      'super_admin'
+    ].includes(role);
+  };
+  
   // Location state
   const [userLocation, setUserLocation] = useState(null);
   const [mapCenter, setMapCenter] = useState([17.7231, 83.3012]);
@@ -119,6 +164,19 @@ const GeoIntelligence = () => {
   };
 
   /**
+   * Quick agree handler - open modal with hospital details
+   */
+  const handleQuickAgree = (hospital) => {
+    if (!isHospitalAdmin()) {
+      console.warn('Quick agree blocked due to role:', getNormalizedRole());
+      alert('Only hospital admins can agree to coordination');
+      return;
+    }
+    setSelectedHospitalForAgreement(hospital);
+    setShowQuickAgreeModal(true);
+  };
+
+  /**
    * Initial load with default location
    */
   useEffect(() => {
@@ -138,6 +196,31 @@ const GeoIntelligence = () => {
     }
   }, [searchRadius, showEmergencyOnly]);
 
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const socketUserId = user.id || user._id || `geo-guest-${Date.now()}`;
+    const socketRole = String(user.role || localStorage.getItem('role') || 'public_user').toLowerCase();
+
+    connectSocket(socketUserId, socketRole);
+
+    const refreshGeoData = () => {
+      if (userLocation?.latitude && userLocation?.longitude) {
+        fetchGeoData(userLocation.latitude, userLocation.longitude);
+      }
+    };
+
+    const offHospitalCreated = onEvent('hospital.created', refreshGeoData);
+    const offHospitalOnline = onEvent('hospital.online', refreshGeoData);
+    const offHospitalOffline = onEvent('hospital.offline', refreshGeoData);
+
+    return () => {
+      offHospitalCreated();
+      offHospitalOnline();
+      offHospitalOffline();
+      disconnectSocket();
+    };
+  }, [userLocation, searchRadius, showEmergencyOnly]);
+
   return (
     <div className="geo-intelligence-container">
       {/* Header */}
@@ -152,9 +235,8 @@ const GeoIntelligence = () => {
           {userLocation ? (
             <div className="location-info">
               <span className="status-indicator active">📍 Location Active</span>
-              <span className="coordinates">
-                {userLocation.latitude.toFixed(4)}, {userLocation.longitude.toFixed(4)}
-                {userLocation.name && ` (${userLocation.name})`}
+              <span className="location-chip">
+                {userLocation.name || 'Using current area'}
               </span>
             </div>
           ) : (
@@ -172,7 +254,7 @@ const GeoIntelligence = () => {
           </button>
 
           <div className="test-locations">
-            <span>Quick Test:</span>
+            <span>Try Location:</span>
             {Object.entries(DEFAULT_LOCATIONS).slice(0, 3).map(([key, loc]) => (
               <button
                 key={key}
@@ -351,15 +433,88 @@ const GeoIntelligence = () => {
                   icon={hospital.emergencySupport ? icons.emergencyHospital : icons.hospital}
                 >
                   <Popup>
-                    <div className="marker-popup">
-                      <strong>{hospital.emergencySupport ? '🚑' : '🏥'} {hospital.name}</strong>
-                      <p>{hospital.address}</p>
-                      <p>{hospital.city}, {hospital.state}</p>
-                      <p><strong>Distance:</strong> {formatDistance(hospital.distance)}</p>
+                    <div className="marker-popup" style={{ minWidth: '280px' }}>
+                      <div style={{ marginBottom: '12px' }}>
+                        <strong style={{ fontSize: '14px' }}>
+                          {hospital.emergencySupport ? '🚑' : '🏥'} {hospital.name}
+                        </strong>
+                      </div>
+
+                      {/* Hospital Details */}
+                      <div style={{ fontSize: '12px', marginBottom: '10px', color: '#555' }}>
+                        <p style={{ margin: '2px 0' }}>{hospital.address}</p>
+                        <p style={{ margin: '2px 0' }}>{hospital.city}, {hospital.state}</p>
+                        <p style={{ margin: '4px 0' }}>
+                          <strong>📍 Distance:</strong> {formatDistance(hospital.distance)}
+                        </p>
+                        <p style={{ margin: '4px 0' }}>
+                          <strong>📞 Phone:</strong> {hospital.phone}
+                        </p>
+                        <p style={{ margin: '4px 0' }}>
+                          <strong>Status:</strong> {hospital.emergencySupport ? 'Available for emergency support' : 'General support'}
+                        </p>
+                      </div>
+
+                      {/* Emergency Badge */}
                       {hospital.emergencySupport && (
-                        <span className="emergency-badge">Emergency Support</span>
+                        <div style={{ 
+                          backgroundColor: '#fee2e2', 
+                          color: '#991b1b',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                          marginBottom: '8px',
+                          textAlign: 'center'
+                        }}>
+                          🚑 Emergency Support Available
+                        </div>
                       )}
-                      <p><strong>📞</strong> {hospital.phone}</p>
+
+                      {/* Action Buttons */}
+                      <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+                        <button
+                          className="btn-agree"
+                          onClick={() => handleQuickAgree(hospital)}
+                          style={{
+                            flex: 1,
+                            padding: '8px 10px',
+                            backgroundColor: '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            transition: 'background-color 0.2s'
+                          }}
+                          title="Quickly agree to provide blood to this hospital"
+                        >
+                          Quick Accept
+                        </button>
+                        <button
+                          className="btn-view-details"
+                          onClick={() => {
+                            // Route protection enforces access; do not block on client-side role mismatch.
+                            navigate(`/admin/emergency?hospitalId=${hospital.id}`);
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '8px 10px',
+                            backgroundColor: '#2563eb',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            transition: 'background-color 0.2s'
+                          }}
+                          title="Open emergency desk"
+                        >
+                          Open Desk
+                        </button>
+                      </div>
                     </div>
                   </Popup>
                 </Marker>
@@ -600,6 +755,129 @@ const GeoIntelligence = () => {
           </div>
         )}
       </div>
+
+      {/* Quick Agree Modal */}
+      {showQuickAgreeModal && selectedHospitalForAgreement && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '400px',
+            width: '90%',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            animation: 'slideUp 0.3s ease-out'
+          }}>
+            <h2 style={{ marginTop: 0, marginBottom: '16px', color: '#111' }}>
+              Confirm Quick Accept
+            </h2>
+
+            <div style={{
+              backgroundColor: '#f3f4f6',
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '16px'
+            }}>
+              <p style={{ margin: '8px 0', fontSize: '14px' }}>
+                <strong>Hospital:</strong> {selectedHospitalForAgreement.name}
+              </p>
+              <p style={{ margin: '8px 0', fontSize: '14px' }}>
+                <strong>Distance:</strong> {formatDistance(selectedHospitalForAgreement.distance)}
+              </p>
+              <p style={{ margin: '8px 0', fontSize: '14px' }}>
+                <strong>Location:</strong> {selectedHospitalForAgreement.city}, {selectedHospitalForAgreement.state}
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>
+                📞 Contact Information:
+              </label>
+              <p style={{ margin: '4px 0', fontSize: '13px' }}>
+                <strong>Phone:</strong> {selectedHospitalForAgreement.phone}
+              </p>
+              <p style={{ margin: '4px 0', fontSize: '13px' }}>
+                <strong>Email:</strong> {selectedHospitalForAgreement.email}
+              </p>
+            </div>
+
+            <div style={{
+              backgroundColor: '#f0fdf4',
+              border: '1px solid #86efac',
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '16px'
+            }}>
+              <p style={{ margin: 0, fontSize: '13px', color: '#166534' }}>
+                By clicking "Confirm", you share emergency support readiness for this hospital.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setShowQuickAgreeModal(false)}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  backgroundColor: '#e5e7eb',
+                  color: '#111',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: '14px'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  navigate(`/admin/emergency?hospitalId=${selectedHospitalForAgreement.id}`);
+                  setShowQuickAgreeModal(false);
+                  setSelectedHospitalForAgreement(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: '14px'
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+
+          <style>{`
+            @keyframes slideUp {
+              from {
+                opacity: 0;
+                transform: translateY(20px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+          `}</style>
+        </div>
+      )}
     </div>
   );
 };

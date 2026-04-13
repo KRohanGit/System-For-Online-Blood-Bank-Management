@@ -5,6 +5,8 @@ const PublicUser = require('../models/PublicUser');
 const Notification = require('../models/Notification');
 const crypto = require('crypto');
 const QRCode = require('qrcode');
+const mongoose = require('mongoose');
+const { emitToUser } = require('./realtime/socketService');
 
 /**
  * Blood Tracing Service
@@ -29,8 +31,109 @@ function generateUnitId() {
 }
 
 function generateQRString(unitId, bloodGroup) {
-  const data = `${unitId}|${bloodGroup}|${Date.now()}`;
-  return Buffer.from(data).toString('base64');
+  const payload = {
+    version: 2,
+    unitId,
+    bloodGroup,
+    issuedAt: new Date().toISOString(),
+    nonce: crypto.randomBytes(8).toString('hex')
+  };
+
+  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const signature = crypto
+    .createHmac('sha256', getQrTraceSecret())
+    .update(encodedPayload)
+    .digest('base64url');
+
+  return `${QR_TOKEN_PREFIX}.${encodedPayload}.${signature}`;
+}
+
+const QR_TOKEN_PREFIX = 'LLQRv2';
+
+function getQrTraceSecret() {
+  return process.env.QR_TRACE_SECRET || process.env.JWT_SECRET || 'life-link-qr-trace-secret';
+}
+
+function decodeQrString(qrString) {
+  const normalized = String(qrString || '').trim();
+
+  if (!normalized) {
+    throw new Error('QR code data is required');
+  }
+
+  if (normalized.startsWith(`${QR_TOKEN_PREFIX}.`)) {
+    const parts = normalized.split('.');
+    if (parts.length !== 3) {
+      throw new Error('Invalid QR code format');
+    }
+
+    const [, encodedPayload, signature] = parts;
+    const expectedSignature = crypto
+      .createHmac('sha256', getQrTraceSecret())
+      .update(encodedPayload)
+      .digest('base64url');
+
+    if (signature !== expectedSignature) {
+      throw new Error('QR code signature mismatch');
+    }
+
+    const payload = JSON.parse(Buffer.from(encodedPayload, 'base64url').toString('utf8'));
+    if (!payload.unitId) {
+      throw new Error('QR code payload is missing the unit ID');
+    }
+
+    return {
+      version: payload.version || 2,
+      tokenType: 'signed',
+      unitId: payload.unitId,
+      bloodGroup: payload.bloodGroup,
+      issuedAt: payload.issuedAt,
+      nonce: payload.nonce
+    };
+  }
+
+  try {
+    const decodedLegacy = Buffer.from(normalized, 'base64').toString('utf8');
+    const [unitId, bloodGroup, issuedAt] = decodedLegacy.split('|');
+
+    if (!unitId) {
+      throw new Error('Legacy QR code is invalid');
+    }
+
+    return {
+      version: 1,
+      tokenType: 'legacy',
+      unitId,
+      bloodGroup,
+      issuedAt
+    };
+  } catch (error) {
+    if (normalized.startsWith('BU-')) {
+      return {
+        version: 0,
+        tokenType: 'plain-unit-id',
+        unitId: normalized
+      };
+    }
+
+    throw new Error('Unable to decode QR code payload');
+  }
+}
+
+function resolveViewerAccessLevel(viewerContext, bloodUnit) {
+  const viewerRole = String(viewerContext?.role || '').toLowerCase();
+  const viewerId = viewerContext?.userId ? String(viewerContext.userId) : null;
+  const donorId = bloodUnit?.donorId ? String(bloodUnit.donorId) : null;
+
+  if (viewerId && donorId && viewerId === donorId) {
+    return 'DONOR_OWNER';
+  }
+
+  if (['admin', 'hospital_admin', 'hospital'].includes(viewerRole)) {
+    return 'OPERATIONAL';
+  }
+
+  return 'PUBLIC';
 }
 
 async function generateQRCode(qrString) {
@@ -55,6 +158,20 @@ async function generateQRCode(qrString) {
 
 function calculateBlockchainHash(data) {
   return crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
+}
+
+function emitDonorTraceUpdate(bloodUnit, updateType, message) {
+  const donorId = bloodUnit?.donorId ? String(bloodUnit.donorId) : null;
+  if (!donorId) return;
+
+  emitToUser(donorId, 'blood_trace_update', {
+    updateType,
+    message,
+    unitId: bloodUnit.unitId,
+    status: bloodUnit.status,
+    bloodGroup: bloodUnit.bloodGroup,
+    updatedAt: new Date().toISOString()
+  });
 }
 
 // ============================================================================
@@ -116,9 +233,16 @@ async function createBloodUnit(donorId, bloodGroup, component, volume = 450) {
     // Create lifecycle event
     await logLifecycleEvent(bloodUnit._id, 'DONATION', {
       status: 'COLLECTED',
-      facility: 'COLLECTION_CENTER',
+      location: 'COLLECTION_CENTER',
+      facilityName: 'Collection Center',
       description: `Blood unit collected from donor`
     });
+
+    emitDonorTraceUpdate(
+      bloodUnit,
+      'UNIT_CREATED',
+      `Your blood unit ${bloodUnit.unitId} has been registered and is ready for QR trace.`
+    );
 
     return bloodUnit;
   } catch (err) {
@@ -164,11 +288,13 @@ async function logLifecycleEvent(unitId, eventType, options = {}) {
     }
 
     // Calculate blockchain hash (optional)
+    const normalizedFacility = mongoose.Types.ObjectId.isValid(facility) ? facility : null;
+
     const eventData = {
       unitId,
       eventType,
       timestamp: new Date(),
-      facility,
+      facility: normalizedFacility || facilityName || facility || null,
       description
     };
 
@@ -185,8 +311,8 @@ async function logLifecycleEvent(unitId, eventType, options = {}) {
       unitUniqueId: bloodUnit.unitId,
       eventType,
       location: options.location,
-      facility,
-      facilityName,
+      facility: normalizedFacility,
+      facilityName: facilityName || (normalizedFacility ? undefined : String(facility || '')),
       previousStatus,
       newStatus,
       description,
@@ -239,9 +365,13 @@ async function logLifecycleEvent(unitId, eventType, options = {}) {
 // QR CODE SCANNING & TRACE RETRIEVAL
 // ============================================================================
 
-async function traceBloodUnit(unitId) {
+async function traceBloodUnit(unitId, viewerContext = {}) {
   try {
-    const bloodUnit = await BloodUnit.findById(unitId)
+    const bloodUnit = unitId && String(unitId).startsWith('BU-')
+      ? await BloodUnit.findOne({ unitId })
+          .populate('donorId', 'fullName')
+          .populate('currentLocation.facility', 'hospitalName')
+      : await BloodUnit.findById(unitId)
       .populate('donorId', 'fullName')
       .populate('currentLocation.facility', 'hospitalName');
 
@@ -253,7 +383,7 @@ async function traceBloodUnit(unitId) {
     await bloodUnit.save();
 
     // Get all lifecycle events
-    const events = await BloodLifecycleEvent.find({ unitId })
+    const events = await BloodLifecycleEvent.find({ unitId: bloodUnit._id })
       .sort({ timestamp: 1 })
       .populate('recordedBy', 'name email');
 
@@ -281,12 +411,58 @@ async function traceBloodUnit(unitId) {
       scans: {
         totalScans: bloodUnit.qrMetadata.scanCount,
         lastScanned: bloodUnit.qrMetadata.lastScannedAt
+      },
+      access: {
+        level: resolveViewerAccessLevel(viewerContext, bloodUnit)
       }
     };
 
     return trace;
   } catch (err) {
     console.error('Error tracing blood unit:', err.message);
+    throw err;
+  }
+}
+
+async function verifyBloodQRCode(qrData, viewerContext = {}) {
+  try {
+    const token = decodeQrString(qrData);
+    const bloodUnit = await BloodUnit.findOne({ unitId: token.unitId })
+      .populate('donorId', 'fullName')
+      .populate('currentLocation.facility', 'hospitalName');
+
+    if (!bloodUnit) {
+      throw new Error('Blood unit not found');
+    }
+
+    if (token.bloodGroup && token.bloodGroup !== bloodUnit.bloodGroup) {
+      throw new Error('QR code does not match the blood unit');
+    }
+
+    const trace = await traceBloodUnit(bloodUnit.unitId, viewerContext);
+    trace.verification = {
+      isValid: true,
+      tokenVersion: token.version,
+      tokenType: token.tokenType,
+      verifiedAt: new Date().toISOString(),
+      accessLevel: resolveViewerAccessLevel(viewerContext, bloodUnit),
+      ownerVerified: Boolean(
+        viewerContext?.userId &&
+        String(viewerContext.userId) === String(bloodUnit.donorId)
+      )
+    };
+
+    if (trace.verification.ownerVerified) {
+      trace.ownerTrace = {
+        donationDate: bloodUnit.collectionDate,
+        scanCount: bloodUnit.qrMetadata?.scanCount || 0,
+        lastScannedAt: bloodUnit.qrMetadata?.lastScannedAt || null
+      };
+    }
+
+    return trace;
+  } catch (err) {
+    console.error('Error verifying blood QR code:', err.message);
     throw err;
   }
 }
@@ -316,6 +492,11 @@ async function initiateTransfer(unitId, toFacility, toFacilityName, recordedBy) 
     });
 
     await bloodUnit.save();
+    emitDonorTraceUpdate(
+      bloodUnit,
+      'TRANSFER_INITIATED',
+      `Your blood unit ${bloodUnit.unitId} is now in transit to ${toFacilityName}.`
+    );
     return bloodUnit;
   } catch (err) {
     console.error('Error initiating transfer:', err.message);
@@ -348,6 +529,11 @@ async function completeTransfer(unitId, facility, facilityName, recordedBy, meta
     });
 
     await bloodUnit.save();
+    emitDonorTraceUpdate(
+      bloodUnit,
+      'TRANSFER_COMPLETED',
+      `Your blood unit ${bloodUnit.unitId} reached ${facilityName}.`
+    );
     return bloodUnit;
   } catch (err) {
     console.error('Error completing transfer:', err.message);
@@ -405,6 +591,11 @@ async function recordUsage(unitId, hospital, ageGroup, procedure, urgency, outco
     });
 
     await bloodUnit.save();
+    emitDonorTraceUpdate(
+      bloodUnit,
+      'UNIT_USED',
+      `Your blood unit ${bloodUnit.unitId} was used for ${procedure || 'transfusion'} (${urgency}).`
+    );
     return bloodUnit;
   } catch (err) {
     console.error('Error recording usage:', err.message);
@@ -619,6 +810,7 @@ module.exports = {
   // Lifecycle & Events
   logLifecycleEvent,
   traceBloodUnit,
+  verifyBloodQRCode,
 
   // Transfers
   initiateTransfer,

@@ -2,15 +2,20 @@ const eventBus = require('./eventBus');
 const { emitToUser, emitToRole, emitToHospital, emitToEmergency, broadcast } = require('./socketService');
 const blockchainService = require('../blockchain/blockchainService');
 const User = require('../../models/User');
+const HospitalProfile = require('../../models/HospitalProfile');
 const { sendEmergencyAlertEmail } = require('../email.service');
 
 
 function setupEventHandlers() {
   eventBus.subscribe('emergency:created', async (event) => {
-    const { hospitalId, requestId, bloodGroup, urgency } = event.payload;
-    emitToRole('hospital_admin', 'emergency:new', event.payload);
+    const { hospitalId, requestId, bloodGroup, urgency, toHospitalId } = event.payload;
+
+    if (toHospitalId) {
+      emitToHospital(toHospitalId, 'emergency:new', event.payload);
+    }
+    emitToHospital(hospitalId, 'emergency:new', event.payload);
     emitToRole('super_admin', 'emergency:new', event.payload);
-    emitToRole('doctor', 'emergency:new', event.payload);
+
     if (urgency === 'critical') {
       broadcast('emergency:critical', {
         requestId,
@@ -21,20 +26,23 @@ function setupEventHandlers() {
     }
 
     try {
-      const doctors = await User.find({ role: 'doctor', isVerified: true })
-        .select('email')
-        .lean();
+      const message = `Emergency blood request ${requestId} requires ${bloodGroup}. Urgency: ${String(urgency || 'high').toUpperCase()}.`;
 
-      const message = `Emergency blood request ${requestId} requires ${bloodGroup} units. Urgency: ${String(urgency || 'high').toUpperCase()}.`;
-      for (const doctor of (doctors || []).filter((d) => d.email).slice(0, 20)) {
-        await sendEmergencyAlertEmail(
-          doctor.email,
-          event.payload.requestingHospitalName || 'LifeLink Hospital',
-          message
-        );
+      if (toHospitalId) {
+        const targetHospital = await HospitalProfile.findById(toHospitalId)
+          .select('adminEmail officialEmail hospitalName')
+          .lean();
+        const recipientEmail = targetHospital?.adminEmail || targetHospital?.officialEmail;
+        if (recipientEmail) {
+          await sendEmergencyAlertEmail(
+            recipientEmail,
+            event.payload.requestingHospitalName || 'LifeLink Hospital',
+            message
+          );
+        }
       }
     } catch (emailError) {
-      console.error('Failed to send doctor emergency emails:', emailError.message);
+      console.error('Failed to send targeted emergency email:', emailError.message);
     }
 
     blockchainService.recordEmergencyRequest({
@@ -47,9 +55,15 @@ function setupEventHandlers() {
   });
 
   eventBus.subscribe('emergency:status_changed', (event) => {
-    const { requestId, newStatus, hospitalId } = event.payload;
+    const { requestId, newStatus, hospitalId, toHospitalId, fromHospitalId } = event.payload;
     emitToEmergency(requestId, 'emergency:update', event.payload);
     emitToHospital(hospitalId, 'emergency:update', event.payload);
+    if (toHospitalId) {
+      emitToHospital(toHospitalId, 'emergency:update', event.payload);
+    }
+    if (fromHospitalId) {
+      emitToHospital(fromHospitalId, 'emergency:update', event.payload);
+    }
   });
 
   eventBus.subscribe('inventory:updated', (event) => {
@@ -76,6 +90,10 @@ function setupEventHandlers() {
     const { fromHospital, toHospital, transferId } = event.payload;
     emitToHospital(fromHospital, 'transfer:update', event.payload);
     emitToHospital(toHospital, 'transfer:update', event.payload);
+    if (event.payload.deliverySession) {
+      emitToHospital(fromHospital, 'delivery:tracking', event.payload.deliverySession);
+      emitToHospital(toHospital, 'delivery:tracking', event.payload.deliverySession);
+    }
     blockchainService.recordBloodTransfer({
       transferId,
       fromHospital,
@@ -84,6 +102,29 @@ function setupEventHandlers() {
       units: event.payload.units,
       initiatedBy: event.payload.initiatedBy
     });
+  });
+
+  eventBus.subscribe('delivery:session_created', (event) => {
+    const { deliverySession } = event.payload || {};
+    if (!deliverySession) {
+      return;
+    }
+
+    emitToHospital(deliverySession.from?.hospitalId, 'delivery:tracking', deliverySession);
+    emitToHospital(deliverySession.to?.hospitalId, 'delivery:tracking', deliverySession);
+    emitToEmergency(deliverySession.requestId, 'delivery:tracking', deliverySession);
+  });
+
+  eventBus.subscribe('transfer:location_updated', (event) => {
+    const { deliverySession, requestId } = event.payload || {};
+    emitToEmergency(requestId, 'transfer:update', event.payload);
+    if (deliverySession) {
+      emitToHospital(deliverySession.from?.hospitalId, 'transfer:update', event.payload);
+      emitToHospital(deliverySession.to?.hospitalId, 'transfer:update', event.payload);
+      emitToEmergency(deliverySession.requestId, 'delivery:tracking', deliverySession);
+      emitToHospital(deliverySession.from?.hospitalId, 'delivery:tracking', deliverySession);
+      emitToHospital(deliverySession.to?.hospitalId, 'delivery:tracking', deliverySession);
+    }
   });
 
   eventBus.subscribe('transfer:completed', (event) => {

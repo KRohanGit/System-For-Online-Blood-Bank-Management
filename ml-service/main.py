@@ -7,8 +7,11 @@ load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import predict, federated, simulation, optimization, synthetic
+from app.routes import predict, federated, simulation, optimization
 from app.routes import digital_twin, rl_agent, graph_intelligence
+from app.routes import clinical_recommendations
+from app.routes import delivery_eta
+from app.routes import forecast_v2
 
 START_TIME = time.time()
 
@@ -30,10 +33,12 @@ app.include_router(predict.router)
 app.include_router(federated.router)
 app.include_router(simulation.router)
 app.include_router(optimization.router)
-app.include_router(synthetic.router)
 app.include_router(digital_twin.router)
 app.include_router(rl_agent.router)
 app.include_router(graph_intelligence.router)
+app.include_router(clinical_recommendations.router)
+app.include_router(delivery_eta.router)
+app.include_router(forecast_v2.router)
 
 
 @app.get("/health")

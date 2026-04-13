@@ -8,6 +8,48 @@ const DoctorAvailability = require('../models/DoctorAvailability');
 const DoctorProfile = require('../models/DoctorProfile');
 const HospitalProfile = require('../models/HospitalProfile');
 const BloodCamp = require('../models/BloodCamp');
+const ClinicalCase = require('../models/ClinicalCase');
+const CaseEmbedding = require('../models/CaseEmbedding');
+const mlService = require('../services/ml/mlService');
+
+function generateCaseId() {
+  const ts = Date.now();
+  const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `CASE-${ts}-${suffix}`;
+}
+
+function parseBodyAsNumber(value, fallback = 0) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+}
+
+async function resolveDoctorHospitalId(doctorId) {
+  const profile = await DoctorProfile.findOne({ userId: doctorId }).select('affiliatedHospitals');
+  if (profile?.affiliatedHospitals?.length) {
+    const primary = profile.affiliatedHospitals.find((item) => item?.isPrimary && item?.hospitalId);
+    if (primary?.hospitalId) {
+      return primary.hospitalId;
+    }
+
+    const withHospitalId = profile.affiliatedHospitals.find((item) => item?.hospitalId);
+    if (withHospitalId?.hospitalId) {
+      return withHospitalId.hospitalId;
+    }
+
+    // Backward-compatibility: allow old shape where the value itself is an ObjectId/string.
+    const first = profile.affiliatedHospitals[0];
+    if (first) {
+      return first;
+    }
+  }
+
+  const hospitalProfile = await HospitalProfile.findOne({ userId: doctorId }).select('_id');
+  if (hospitalProfile?._id) {
+    return hospitalProfile._id;
+  }
+
+  return null;
+}
 
 /**
  * Get doctor dashboard overview
@@ -763,6 +805,228 @@ exports.getAuditTrail = async (req, res) => {
   } catch (error) {
     console.error('Get audit trail error:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch audit trail', error: error.message });
+  }
+};
+
+/**
+ * Analyze a clinical case using ML recommendations and persist anonymized case data.
+ */
+exports.analyzeClinicalCase = async (req, res) => {
+  try {
+    const doctorId = req.userId || req.user?._id;
+    const {
+      anonymizedPatientFeatures = {},
+      treatment = {},
+      topK = 10
+    } = req.body || {};
+
+    const requiredFeatureFields = [
+      'age',
+      'bloodGroup',
+      'hemoglobinLevel',
+      'bloodLossEstimate',
+      'conditionType'
+    ];
+
+    const missing = requiredFeatureFields.filter((field) => anonymizedPatientFeatures[field] === undefined || anonymizedPatientFeatures[field] === null || anonymizedPatientFeatures[field] === '');
+    if (missing.length) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required patient feature(s): ${missing.join(', ')}`
+      });
+    }
+
+    const hospitalId = await resolveDoctorHospitalId(doctorId);
+    if (!hospitalId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Unable to resolve affiliated hospital for this doctor profile'
+      });
+    }
+
+    const sanitizedFeatures = {
+      age: parseBodyAsNumber(anonymizedPatientFeatures.age),
+      gender: anonymizedPatientFeatures.gender || 'unknown',
+      bloodGroup: anonymizedPatientFeatures.bloodGroup,
+      hemoglobinLevel: parseBodyAsNumber(anonymizedPatientFeatures.hemoglobinLevel),
+      bloodLossEstimate: parseBodyAsNumber(anonymizedPatientFeatures.bloodLossEstimate),
+      conditionType: anonymizedPatientFeatures.conditionType,
+      vitals: {
+        systolicBP: parseBodyAsNumber(anonymizedPatientFeatures?.vitals?.systolicBP, null),
+        diastolicBP: parseBodyAsNumber(anonymizedPatientFeatures?.vitals?.diastolicBP, null),
+        heartRate: parseBodyAsNumber(anonymizedPatientFeatures?.vitals?.heartRate, null)
+      },
+      additionalClinicalContext: anonymizedPatientFeatures.additionalClinicalContext || ''
+    };
+
+    const similarCases = await mlService.findSimilarCases(sanitizedFeatures, Number(topK) || 10);
+    const recommendation = await mlService.recommendTreatment(sanitizedFeatures, Number(topK) || 10);
+
+    const treatmentPlan = {
+      unitsGiven: parseBodyAsNumber(treatment.unitsGiven, recommendation?.recommendedUnits || 0),
+      bloodTypeUsed: treatment.bloodTypeUsed || recommendation?.preferredBloodGroup || sanitizedFeatures.bloodGroup,
+      timing: treatment.timing || 'unknown'
+    };
+
+    const prediction = await mlService.predictClinicalOutcome(sanitizedFeatures, treatmentPlan);
+
+    const caseId = generateCaseId();
+    const caseDoc = await ClinicalCase.create({
+      caseId,
+      anonymizedPatientFeatures: sanitizedFeatures,
+      treatment: treatmentPlan,
+      outcome: {
+        survival: null,
+        recoveryTime: null,
+        complications: []
+      },
+      hospitalId,
+      doctorId,
+      aiInsights: {
+        recommendationSummary: recommendation?.reasoning || null,
+        confidenceScore: recommendation?.confidenceScore || null,
+        predictedSurvivalProbability: prediction?.survivalProbability || null,
+        predictedRiskLevel: prediction?.riskLevel || null
+      },
+      timestamp: new Date()
+    });
+
+    if (Array.isArray(similarCases?.queryEmbedding) && similarCases.queryEmbedding.length) {
+      await CaseEmbedding.findOneAndUpdate(
+        { caseId },
+        {
+          caseId,
+          embeddingVector: similarCases.queryEmbedding,
+          modelVersion: similarCases.modelVersion || 'clinical-embed-v1',
+          updatedAt: new Date()
+        },
+        { upsert: true, new: true }
+      );
+    }
+
+    try {
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('clinical_case.created', {
+          caseId,
+          hospitalId: String(hospitalId),
+          conditionType: sanitizedFeatures.conditionType,
+          bloodGroup: sanitizedFeatures.bloodGroup,
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (socketError) {
+      console.warn('Clinical case socket emit warning:', socketError.message);
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'Clinical case analyzed and stored successfully',
+      data: {
+        caseId: caseDoc.caseId,
+        similarCases: similarCases?.similarCases || [],
+        recommendation,
+        prediction
+      }
+    });
+  } catch (error) {
+    console.error('Analyze clinical case error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to analyze clinical case',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Fetch clinical cases submitted by doctor.
+ */
+exports.getClinicalCases = async (req, res) => {
+  try {
+    const doctorId = req.userId || req.user?._id;
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+
+    const query = { doctorId };
+    const [cases, total] = await Promise.all([
+      ClinicalCase.find(query)
+        .sort({ timestamp: -1 })
+        .skip(skip)
+        .limit(parseInt(limit, 10))
+        .select('caseId anonymizedPatientFeatures treatment outcome aiInsights timestamp')
+        .lean(),
+      ClinicalCase.countDocuments(query)
+    ]);
+
+    return res.json({
+      success: true,
+      data: {
+        cases,
+        pagination: {
+          total,
+          page: parseInt(page, 10),
+          pages: Math.ceil(total / parseInt(limit, 10))
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get clinical cases error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch clinical cases',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Update actual case outcome for online learning and model retraining.
+ */
+exports.updateClinicalCaseOutcome = async (req, res) => {
+  try {
+    const doctorId = req.userId || req.user?._id;
+    const { caseId } = req.params;
+    const { survival, recoveryTime, complications = [] } = req.body || {};
+
+    const clinicalCase = await ClinicalCase.findOne({ caseId, doctorId });
+    if (!clinicalCase) {
+      return res.status(404).json({ success: false, message: 'Clinical case not found' });
+    }
+
+    if (typeof survival === 'boolean') {
+      clinicalCase.outcome.survival = survival;
+    }
+    if (recoveryTime !== undefined) {
+      clinicalCase.outcome.recoveryTime = parseBodyAsNumber(recoveryTime, null);
+    }
+    if (Array.isArray(complications)) {
+      clinicalCase.outcome.complications = complications;
+    }
+
+    await clinicalCase.save();
+
+    try {
+      await mlService.triggerClinicalRetraining(false);
+    } catch (mlError) {
+      console.warn('Clinical model retraining warning:', mlError.message);
+    }
+
+    return res.json({
+      success: true,
+      message: 'Clinical outcome updated successfully',
+      data: {
+        caseId: clinicalCase.caseId,
+        outcome: clinicalCase.outcome
+      }
+    });
+  } catch (error) {
+    console.error('Update clinical case outcome error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update clinical case outcome',
+      error: error.message
+    });
   }
 };
 

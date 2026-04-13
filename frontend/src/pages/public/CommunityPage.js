@@ -5,6 +5,7 @@ import PostCard from '../../components/common/PostCard';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import EmptyState from '../../components/common/EmptyState';
 import ErrorMessage from '../../components/common/ErrorMessage';
+import { connectSocket, onEvent } from '../../services/socketService';
 import './CommunityPage.css';
 
 export default function CommunityPage() {
@@ -30,6 +31,36 @@ export default function CommunityPage() {
   useEffect(() => {
     fetchAllPosts();
   }, []);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const socketUserId = user.id || user._id || `guest-${Date.now()}`;
+    const socketRole = String(user.role || localStorage.getItem('role') || 'public_user').toLowerCase();
+
+    connectSocket(socketUserId, socketRole);
+
+    const refreshFeed = () => {
+      if (viewMode === 'nearby' && userLocation) {
+        fetchNearbyPosts();
+      } else {
+        fetchAllPosts();
+      }
+    };
+
+    const offCreate = onEvent('community.post.created', refreshFeed);
+    const offUpdate = onEvent('community.post.updated', refreshFeed);
+    const offDelete = onEvent('community.post.deleted', refreshFeed);
+    const offComment = onEvent('community.post.commented', refreshFeed);
+    const offLike = onEvent('community.post.liked', refreshFeed);
+
+    return () => {
+      offCreate();
+      offUpdate();
+      offDelete();
+      offComment();
+      offLike();
+    };
+  }, [viewMode, searchRadius, userLocation]);
 
   const fetchAllPosts = async () => {
     try {

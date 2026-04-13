@@ -175,10 +175,18 @@ const SuperAdminDashboard = () => {
         }
       });
       if (response.data.success) {
-        setNearbyBloodCamps(response.data.data || []);
+        const nearbyCamps = Array.isArray(response.data?.data)
+          ? response.data.data
+          : Array.isArray(response.data?.data?.camps)
+            ? response.data.data.camps
+            : [];
+        setNearbyBloodCamps(nearbyCamps);
+      } else {
+        setNearbyBloodCamps([]);
       }
     } catch (error) {
       console.error('Error fetching nearby blood camps:', error);
+      setNearbyBloodCamps([]);
     } finally {
       setLoadingBloodCamps(false);
     }
@@ -368,6 +376,13 @@ const SuperAdminDashboard = () => {
     const requestId = `${user._id}:${documentType}`;
     setDownloadingDocId(requestId);
 
+    // Open the tab synchronously so browsers do not block it as a popup.
+    const previewWindow = window.open('', '_blank', 'noopener,noreferrer');
+    if (previewWindow) {
+      previewWindow.document.title = 'Loading document...';
+      previewWindow.document.body.innerHTML = '<p style="font-family: Arial, sans-serif; padding: 16px;">Opening document...</p>';
+    }
+
     try {
       const endpoint = user.role === 'PUBLIC_USER'
         ? `${config.API_URL}/superadmin/public-users/${user._id}/documents/${documentType}/download`
@@ -375,19 +390,45 @@ const SuperAdminDashboard = () => {
 
       const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
-        responseType: 'blob'
+        responseType: 'blob',
+        timeout: 30000
       });
 
       const contentType = response.headers['content-type'] || 'application/octet-stream';
+
+      // Backend errors can arrive as JSON blobs; decode them for useful feedback.
+      if (contentType.includes('application/json')) {
+        const payloadText = await response.data.text();
+        let payload;
+        try {
+          payload = JSON.parse(payloadText);
+        } catch (_) {
+          payload = {};
+        }
+        throw new Error(payload.message || 'Unable to open the document.');
+      }
+
       const blobUrl = URL.createObjectURL(new Blob([response.data], { type: contentType }));
-      window.open(blobUrl, '_blank', 'noopener,noreferrer');
+
+      if (previewWindow) {
+        previewWindow.location.replace(blobUrl);
+      } else {
+        const fallbackLink = document.createElement('a');
+        fallbackLink.href = blobUrl;
+        fallbackLink.target = '_blank';
+        fallbackLink.rel = 'noopener noreferrer';
+        fallbackLink.click();
+      }
 
       setTimeout(() => {
         URL.revokeObjectURL(blobUrl);
       }, 60000);
     } catch (error) {
       console.error('Error viewing document:', error);
-      alert('Unable to open the document. Please try again.');
+      if (previewWindow && !previewWindow.closed) {
+        previewWindow.close();
+      }
+      alert(error?.message || 'Unable to open the document. Please try again.');
     } finally {
       setDownloadingDocId(null);
     }
@@ -862,7 +903,7 @@ const SuperAdminDashboard = () => {
             <div className="spinner"></div>
             <p>Loading nearby blood camps...</p>
           </div>
-        ) : nearbyBloodCamps.length === 0 ? (
+        ) : !Array.isArray(nearbyBloodCamps) || nearbyBloodCamps.length === 0 ? (
           <div className="empty-state">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

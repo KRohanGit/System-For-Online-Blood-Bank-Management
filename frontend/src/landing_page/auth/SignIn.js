@@ -75,18 +75,18 @@ function SignIn() {
       
       try {
         const response = await authAPI.login(formData.email, formData.password, formData.role);
-        
+
         // Save token
-        if (response.data && response.data.token) {
-          auth.setToken(response.data.token);
+        if (response?.token) {
+          auth.setToken(response.token);
         }
-        
+
         setSuccessMessage('Login successful!');
-        
+
         // Get user role from response
-        const userRole = response.data?.user?.role || formData.role;
-        const isVerified = response.data?.user?.isVerified;
-        const profileData = response.data?.profile;
+        const userRole = response?.user?.role || formData.role;
+        const isVerified = response?.user?.isVerified;
+        const profileData = response?.profile;
         
         // Navigate based on role and verification status
         setTimeout(() => {

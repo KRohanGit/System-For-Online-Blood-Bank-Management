@@ -12,7 +12,7 @@ function AuditLogs() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = config?.API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  const API_URL = config?.API_URL || process.env.REACT_APP_API_URL || '/api';
 
   useEffect(() => {
     fetchLogs();

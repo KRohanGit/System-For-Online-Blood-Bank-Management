@@ -1,4 +1,15 @@
 import React from 'react';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ReferenceDot
+} from 'recharts';
 import { StatCard, RecommendationList, OkMsg, NoData, MLTable } from './MLSharedUI';
 
 function formatMetricValue(value, decimals = 2) {
@@ -28,35 +39,8 @@ export function ResultPanel({ tab, data, color, extra = {} }) {
     case 'ranking': return <RankingResults data={data} color={color} latestSocketEvent={extra.latestSocketEvent} />;
     case 'simulation': return <SimulationResults data={data} color={color} />;
     case 'optimize': return <OptimizeResults data={data} color={color} history={extra.history || []} latestSocketEvent={extra.latestSocketEvent} />;
-    case 'synthetic': return <SyntheticResults data={data} color={color} history={extra.history || []} latestSocketEvent={extra.latestSocketEvent} />;
     default: return <NoData />;
   }
-}
-
-function renderDistributionBars(distribution = {}, color) {
-  const entries = Object.entries(distribution || {});
-  if (!entries.length) return null;
-
-  const maxValue = Math.max(...entries.map(([, value]) => Number(value) || 0), 1);
-
-  return (
-    <div className="mli-bar-chart" style={{ height: 150 }}>
-      {entries.map(([label, value]) => {
-        const numValue = Number(value) || 0;
-        const heightPct = Math.max(6, Math.round((numValue / maxValue) * 100));
-
-        return (
-          <div key={label} className="mli-bar-col">
-            <div className="mli-bar-track">
-              <div className="mli-bar-fill" style={{ height: `${heightPct}%`, background: color }} />
-            </div>
-            <div className="mli-bar-label">{label}</div>
-            <div className="mli-bar-val">{numValue}</div>
-          </div>
-        );
-      })}
-    </div>
-  );
 }
 
 function ResultHeader({ title, color }) {
@@ -95,60 +79,32 @@ function DemandResults({ data, color }) {
 
 function CrisisResults({ data, color }) {
   if (!data) return <NoData />;
-  
-  const crisisProb = data.crisis_probability || 0;
-  const riskLevel = data.risk_level || 'Unknown';
-  const factors = data.contributing_factors || [];
-  
+
+  const riskLevel = String(data.risk_level || data.crisis_level || 'medium').toUpperCase();
+  const impactedHospitals = Number(data.affected_hospitals || data.impacted_hospitals || 0);
+  const shortages = Array.isArray(data.shortages) ? data.shortages : [];
+  const criticalGroups = Array.isArray(data.critical_blood_groups) ? data.critical_blood_groups : [];
+
   return (
     <div className="mli-result-panel">
-      <ResultHeader title="🚨 Crisis Prediction Results" color={color} />
-      <div className="mli-crisis-gauge">
-        <div className="mli-gauge-ring" style={{
-          background: `conic-gradient(${color} 0deg ${crisisProb * 360}deg, rgba(255,255,255,0.1) 0deg)`
-        }}>
-          <div className="mli-gauge-inner">
-            <div className="mli-gauge-pct">{(crisisProb * 100).toFixed(0)}%</div>
-            <div className="mli-gauge-lbl">Crisis Risk</div>
-          </div>
-        </div>
-        <div className="mli-crisis-meta">
-          <div className="mli-risk-badge" style={{
-            background: crisisProb > 0.7 ? 'rgba(239,68,68,0.12)' : 'rgba(107,114,128,0.12)',
-            color: crisisProb > 0.7 ? '#f87171' : '#9ca3af'
-          }}>
-            {riskLevel.toUpperCase()}
-          </div>
-          {factors.length > 0 && (
-            <>
-              <div className="mli-factors-title">Contributing Factors</div>
-              {factors.map((f, i) => (
-                <div key={i} className="mli-factor-row">
-                  <div className="mli-factor-name">{f.factor || `Factor ${i + 1}`}</div>
-                  <div className="mli-factor-bar-track">
-                    <div className="mli-factor-bar" style={{
-                      width: `${(f.severity || 0.5) * 100}%`,
-                      background: color
-                    }} />
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
+      <ResultHeader title="Crisis Prediction Results" color={color} />
+      <div className="mli-stat-row">
+        <StatCard label="Risk Level" value={riskLevel} color={color} />
+        <StatCard label="Impacted Hospitals" value={impactedHospitals} color={color} />
+        <StatCard label="Critical Blood Groups" value={criticalGroups.length} color={color} />
       </div>
-      {data.predicted_shortages && data.predicted_shortages.length > 0 && (
-        <div style={{ marginTop: '20px' }}>
-          <div style={{ fontSize: '13px', fontWeight: '700', color: 'rgba(255,255,255,0.65)', marginBottom: '10px' }}>
-            Predicted Shortages
-          </div>
-          {data.predicted_shortages.map((s, i) => (
-            <div key={i} className="mli-stat-row">
-              <StatCard label={`${s.blood_group} Shortage`} value={s.shortage_units || 0} color={color} unit=" units" />
+
+      {shortages.length > 0 && (
+        <div className="mli-recs" style={{ marginTop: 10 }}>
+          <div className="mli-recs-title">Expected Shortages</div>
+          {shortages.slice(0, 6).map((s, i) => (
+            <div key={i} className="mli-rec-item">
+              {s.blood_group || 'Unknown'}: {formatMetricValue(s.shortage_units || 0, 0)} units likely short
             </div>
           ))}
         </div>
       )}
+
       {data.recommended_actions && <RecommendationList items={data.recommended_actions} />}
     </div>
   );
@@ -183,41 +139,194 @@ function WastageResults({ data, color }) {
 function AnomalyResults({ data, color }) {
   const anomalies = data?.anomalies || [];
   if (!anomalies.length) return <OkMsg>No anomalies detected</OkMsg>;
-  
-  const rows = anomalies.slice(0, 10).map(a => [
-    a.type?.replace(/_/g, ' ') || 'Unknown',
-    a.blood_group || 'N/A',
-    a.value?.toFixed(2) || 0,
-    a.severity || 'medium'
-  ]);
-  
+
   const severityDist = data.severity_distribution || {};
-  
+  const selectedMetric = String(data.metricType || data.metric_type || 'inventory').toLowerCase();
+  const inventorySeries = data.inventorySeries || [];
+  const requestSeries = data.requestSeries || [];
+  const topAnomalies = anomalies.slice(0, 5);
+
+  const chartData = inventorySeries.map(point => {
+    const isAnomaly = anomalies.find(a => a.timestamp === point.time || a.timestamp === point.isoTime);
+    const matchedRequest = requestSeries.find(r => r.time === point.time || r.isoTime === point.isoTime);
+    return {
+      ...point,
+      abMinusObservedRequests: matchedRequest?.observed,
+      abMinusNormalRequests: matchedRequest?.normal,
+      anomalyOminus: isAnomaly?.bloodGroup === 'O-' ? point['O-'] : null,
+      anomalyABminus: isAnomaly?.bloodGroup === 'AB-' ? point['AB-'] : null
+    };
+  });
+
+  const requestChartData = requestSeries.map(point => {
+    const isRequestSpike = anomalies.some(a =>
+      (a.timestamp === point.time || a.timestamp === point.isoTime) &&
+      (a.bloodGroup === 'AB-' || a.blood_group === 'AB-' || a.type === 'demand_spike')
+    );
+    return {
+      ...point,
+      anomalyObserved: isRequestSpike ? point.observed : null
+    };
+  });
+
+  const peakObservedRequest = requestSeries.length
+    ? Math.max(...requestSeries.map(r => Number(r.observed || 0)))
+    : 0;
+  const peakNormalRequest = requestSeries.length
+    ? Math.max(...requestSeries.map(r => Number(r.normal || 0)))
+    : 0;
+  const requestDeltaPct = peakNormalRequest > 0
+    ? ((peakObservedRequest - peakNormalRequest) / peakNormalRequest) * 100
+    : 0;
+
   return (
     <div className="mli-result-panel">
-      <ResultHeader title="🔍 Anomaly Detection Results" color={color} />
+      <ResultHeader title="Anomaly Detection Report" color={color} />
       <div className="mli-stat-row">
         <StatCard label="Total Anomalies" value={data.anomaly_count || 0} color={color} />
-        <StatCard label="High Severity" value={severityDist.high || 0} color="#ef4444" />
-        <StatCard label="Medium Severity" value={severityDist.medium || 0} color="#f59e0b" />
+        <StatCard label="High Risk" value={severityDist.high || 0} color="#ef4444" />
+        <StatCard label="Medium Risk" value={severityDist.medium || 0} color="#f59e0b" />
+        <StatCard label="Low Risk" value={severityDist.low || 0} color="#16a34a" />
       </div>
-      {rows.length > 0 && <MLTable headers={['Anomaly Type', 'Blood Group', 'Value', 'Severity']} rows={rows} />}
+
+      {requestSeries.length > 0 && (
+        <div className="mli-stat-row" style={{ marginTop: 8 }}>
+          <StatCard label="Peak Observed Requests" value={formatMetricValue(peakObservedRequest, 1)} color="#8b5cf6" />
+          <StatCard label="Expected Baseline" value={formatMetricValue(peakNormalRequest, 1)} color="#0ea5e9" />
+          <StatCard
+            label="Request Spike"
+            value={`${requestDeltaPct >= 0 ? '+' : ''}${formatMetricValue(requestDeltaPct, 0)}%`}
+            color={requestDeltaPct >= 0 ? '#dc2626' : '#16a34a'}
+          />
+        </div>
+      )}
+
+      {chartData.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <h4 style={{ marginBottom: 8 }}>
+            {selectedMetric === 'requests' ? '24-Hour Inventory Context (supporting view)' : '24-Hour Blood Inventory Trend'}
+          </h4>
+          <div style={{ width: '100%', height: 320 }}>
+            <ResponsiveContainer>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="4 4" stroke="rgba(148, 163, 184, 0.25)" />
+                <XAxis dataKey="time" tick={{ fill: '#334155', fontSize: 11 }} />
+                <YAxis tick={{ fill: '#334155', fontSize: 11 }} />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="O+" stroke="#1d4ed8" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="B+" stroke="#0f766e" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="AB-" stroke="#7c3aed" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="O-" stroke="#f59e0b" strokeWidth={2} dot={false} />
+
+                {chartData.map((d, idx) => (
+                  d.anomalyOminus != null ? (
+                    <ReferenceDot
+                      key={`o-minus-anomaly-${idx}`}
+                      x={d.time}
+                      y={d['O-']}
+                      r={6}
+                      fill="#dc2626"
+                      stroke="#991b1b"
+                    />
+                  ) : null
+                ))}
+                {chartData.map((d, idx) => (
+                  d.anomalyABminus != null ? (
+                    <ReferenceDot
+                      key={`ab-minus-anomaly-${idx}`}
+                      x={d.time}
+                      y={d['AB-']}
+                      r={6}
+                      fill="#dc2626"
+                      stroke="#991b1b"
+                    />
+                  ) : null
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {requestChartData.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <h4 style={{ marginBottom: 8 }}>
+            {selectedMetric === 'requests' ? '24-Hour Request Volume Trend (primary view)' : '24-Hour Request Volume Trend'}
+          </h4>
+          <div style={{ width: '100%', height: 300 }}>
+            <ResponsiveContainer>
+              <LineChart data={requestChartData}>
+                <CartesianGrid strokeDasharray="4 4" stroke="rgba(148, 163, 184, 0.25)" />
+                <XAxis dataKey="time" tick={{ fill: '#334155', fontSize: 11 }} />
+                <YAxis tick={{ fill: '#334155', fontSize: 11 }} />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="normal" name="Expected Requests" stroke="#0ea5e9" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="observed" name="Observed Requests" stroke="#8b5cf6" strokeWidth={2.2} dot={false} />
+                {requestChartData.map((d, idx) => (
+                  d.anomalyObserved != null ? (
+                    <ReferenceDot
+                      key={`request-anomaly-${idx}`}
+                      x={d.time}
+                      y={d.observed}
+                      r={6}
+                      fill="#dc2626"
+                      stroke="#991b1b"
+                    />
+                  ) : null
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      <MLTable
+        headers={['Blood Group', 'Anomaly Type', 'Risk', 'Time', 'Impact']}
+        rows={topAnomalies.map(a => [
+          a.bloodGroup || a.blood_group || 'Unknown',
+          (a.type || 'pattern_shift').replace(/_/g, ' '),
+          (a.risk || a.severity || 'medium').toUpperCase(),
+          a.timestamp || '-',
+          typeof a.deltaPct === 'number' ? `${a.deltaPct}%` : '-'
+        ])}
+      />
+
+      {(data.explanations?.length > 0 || topAnomalies.some(a => a.explanation)) && (
+        <div className="mli-recs" style={{ marginTop: 12 }}>
+          <div className="mli-recs-title">Plain-Language Explanation</div>
+          {(data.explanations?.length ? data.explanations : topAnomalies.map(a => a.explanation).filter(Boolean)).map((line, idx) => (
+            <div key={idx} className="mli-rec-item">{line}</div>
+          ))}
+        </div>
+      )}
+
+      {(data.recommendations?.length > 0 || topAnomalies.some(a => a.recommendation)) && (
+        <div className="mli-recs" style={{ marginTop: 12 }}>
+          <div className="mli-recs-title">Recommended Actions</div>
+          {(data.recommendations?.length ? data.recommendations : topAnomalies.map(a => a.recommendation).filter(Boolean)).map((line, idx) => (
+            <div key={idx} className="mli-rec-item">{line}</div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 function RankingResults({ data, color, latestSocketEvent = null }) {
   const hospitals = data?.ranked_hospitals || [];
-  if (!hospitals.length) return <NoData>No hospitals found within criteria</NoData>;
+  if (!hospitals.length) return <NoData>No hospitals matched the selected filters. Try increasing Max Distance.</NoData>;
 
   const analysisFlow = Array.isArray(data?.analysisFlow) && data.analysisFlow.length
     ? data.analysisFlow
-    : ['AI analyzing hospital network...', 'Evaluating best options...'];
+    : ['Checking nearby hospitals...', 'Evaluating best options...'];
 
   const rows = hospitals.slice(0, 20).map((h, i) => [
     `#${h.rank || i + 1}`,
     h.hospitalName || h.hospital_name || 'Unknown Hospital',
     `${formatMetricValue(h.score ?? h.final_score ?? 0, 1)}`,
+    h.availabilityPct != null ? `${formatMetricValue(h.availabilityPct, 0)}%` : 'N/A',
     `${formatMetricValue(h.confidence ?? 0, 1)}%`,
     `${formatMetricValue(h.estimatedResponseTime ?? h.estimated_response_time ?? 0, 1)} min`,
     `${formatMetricValue(h.distanceKm ?? h.distance_km ?? 0, 1)} km`
@@ -225,10 +334,16 @@ function RankingResults({ data, color, latestSocketEvent = null }) {
   
   return (
     <div className="mli-result-panel">
-      <ResultHeader title="AI Hospital Decision Ranking" color={color} />
+      <ResultHeader title="Hospital Ranking Results" color={color} />
+
+      {data?.displayMessage && (
+        <div className="mli-ci-row" style={{ marginBottom: 12 }}>
+          {data.displayMessage}
+        </div>
+      )}
 
       <div className="mli-recs" style={{ marginBottom: 12 }}>
-        <div className="mli-recs-title">Decision Flow</div>
+        <div className="mli-recs-title">How ranking was decided</div>
         {analysisFlow.map((line, idx) => (
           <div key={`${line}-${idx}`} className="mli-rec-item">{line}</div>
         ))}
@@ -236,7 +351,7 @@ function RankingResults({ data, color, latestSocketEvent = null }) {
 
       {latestSocketEvent && (
         <div className="mli-ci-row" style={{ marginBottom: 12 }}>
-          Live ranking refresh at {new Date(latestSocketEvent.generatedAt || Date.now()).toLocaleTimeString()} with {latestSocketEvent.totalEvaluated || hospitals.length} evaluated hospitals.
+          Ranking refreshed at {new Date(latestSocketEvent.generatedAt || Date.now()).toLocaleTimeString()} with {latestSocketEvent.totalEvaluated || hospitals.length} hospitals checked.
         </div>
       )}
 
@@ -247,25 +362,14 @@ function RankingResults({ data, color, latestSocketEvent = null }) {
         <StatCard label="Top ETA" value={`${formatMetricValue(hospitals[0]?.estimatedResponseTime || hospitals[0]?.estimated_response_time || 0, 1)} min`} color={color} />
       </div>
 
-      {rows.length > 0 && <MLTable headers={['Rank', 'Hospital', 'Score', 'Confidence', 'Est. Response', 'Distance']} rows={rows} />}
+      {rows.length > 0 && <MLTable headers={['Rank', 'Hospital', 'Priority Score', 'Stock Available', 'Confidence', 'Est. Response', 'Distance']} rows={rows} />}
 
-      {hospitals.slice(0, 6).map((h, i) => (
-        <div key={i} className="mli-hospital-row">
-          <div className="mli-hospital-rank" style={{ background: color }}>#{i + 1}</div>
-          <div className="mli-hospital-info">
-            <div className="mli-hospital-name">{h.hospitalName || h.hospital_name || 'Unknown Hospital'}</div>
-            <div className="mli-hospital-meta">
-              <span>📍 {formatMetricValue(h.distanceKm ?? h.distance_km ?? 0, 1)} km</span>
-              <span>⏱ ETA: {formatMetricValue(h.estimatedResponseTime ?? h.estimated_response_time ?? 0, 1)} min</span>
-              <span>🎯 Confidence: {formatMetricValue(h.confidence ?? 0, 1)}%</span>
-            </div>
-            {h.explanation && <div className="mli-factor-row" style={{ marginTop: 6 }}>{h.explanation}</div>}
-          </div>
-          <div className="mli-hospital-score" style={{ color }}>
-            {formatMetricValue(h.score ?? h.final_score ?? 0, 1)}
-          </div>
+      {hospitals[0]?.explanation && (
+        <div className="mli-recs" style={{ marginTop: 12 }}>
+          <div className="mli-recs-title">Top hospital note</div>
+          <div className="mli-rec-item">{hospitals[0].explanation}</div>
         </div>
-      ))}
+      )}
     </div>
   );
 }
@@ -301,7 +405,7 @@ function SimulationResults({ data, color }) {
 
 function OptimizeResults({ data, color, history = [], latestSocketEvent = null }) {
   const transfers = data?.transfers || [];
-  if (!transfers.length) return <OkMsg>No transfers recommended - inventory is already optimized</OkMsg>;
+  if (!transfers.length) return <OkMsg>No transfers needed right now - current stock is already well balanced</OkMsg>;
 
   const impact = data?.impactMetrics || {};
   const compare = data?.compare || {};
@@ -332,11 +436,11 @@ function OptimizeResults({ data, color, history = [], latestSocketEvent = null }
 
   return (
     <div className="mli-result-panel">
-      <ResultHeader title="AI-Assisted Transfer Optimization" color={color} />
+      <ResultHeader title="Transfer Coordination Plan" color={color} />
 
       {analysisFlow.length > 0 && (
         <div className="mli-recs" style={{ marginBottom: 12 }}>
-          <div className="mli-recs-title">Optimization Flow</div>
+          <div className="mli-recs-title">Planning Flow</div>
           {analysisFlow.map((line, idx) => (
             <div key={`${line}-${idx}`} className="mli-rec-item">{line}</div>
           ))}
@@ -353,7 +457,7 @@ function OptimizeResults({ data, color, history = [], latestSocketEvent = null }
 
       {latestSocketEvent && (
         <div className="mli-ci-row" style={{ marginBottom: 12 }}>
-          Live optimization event received at {new Date(latestSocketEvent.generatedAt || Date.now()).toLocaleTimeString()} with {latestSocketEvent.totalUnitsMoved || 0} units moved.
+          Live transfer update received at {new Date(latestSocketEvent.generatedAt || Date.now()).toLocaleTimeString()} with {latestSocketEvent.totalUnitsMoved || 0} units moved.
         </div>
       )}
 
@@ -361,118 +465,22 @@ function OptimizeResults({ data, color, history = [], latestSocketEvent = null }
 
       {data?.explanation && (
         <div className="mli-recs" style={{ marginTop: 12 }}>
-          <div className="mli-recs-title">AI Explanation</div>
+          <div className="mli-recs-title">Why this plan is recommended</div>
           <div className="mli-rec-item">{data.explanation}</div>
         </div>
       )}
 
       {compareRows.length > 0 && (
         <div style={{ marginTop: 12 }}>
-          <div className="mli-recs-title">Current System vs Optimized System</div>
+          <div className="mli-recs-title">Current Plan vs Recommended Plan</div>
           <MLTable headers={['Metric', 'Current', 'Optimized', 'Improvement']} rows={compareRows} />
         </div>
       )}
 
       {historyRows.length > 0 && (
         <div style={{ marginTop: 12 }}>
-          <div className="mli-recs-title">Optimization History</div>
+          <div className="mli-recs-title">Transfer Planning History</div>
           <MLTable headers={['Created', 'Mode', 'Units', 'Wastage Reduced', 'Coverage', 'Runtime']} rows={historyRows} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SyntheticResults({ data, color, history = [], latestSocketEvent = null }) {
-  if (!data?.generated_count || data.generated_count === 0) return <NoData>No synthetic data generated</NoData>;
-
-  const summary = data.summary || {};
-  const preview = Array.isArray(data.preview) ? data.preview : [];
-  const clusters = Array.isArray(summary.clusters) ? summary.clusters : [];
-  const narrative = Array.isArray(summary.narrative) ? summary.narrative : [];
-  const historyRows = history.slice(0, 8).map((item) => [
-    new Date(item.createdAt).toLocaleString(),
-    item.scenario,
-    item.district,
-    item.count,
-    `${item.qualityScore || 0}`
-  ]);
-
-  return (
-    <div className="mli-result-panel">
-      <ResultHeader title="Synthetic Donor Data Generation" color={color} />
-
-      <div className="mli-stat-row">
-        <StatCard label="Records Generated" value={data.generated_count} accent={color} />
-        <StatCard label="Scenario" value={data.scenario?.replace(/_/g, ' ') || 'normal'} accent={color} />
-        <StatCard label="Quality Score" value={data.quality_score || 0} accent={color} />
-        <StatCard label="Seed" value={data.seed || 42} accent={color} />
-      </div>
-
-      {latestSocketEvent && (
-        <div className="mli-ci-row" style={{ marginBottom: 14 }}>
-          Live event: generation #{String(latestSocketEvent.generationId || '').slice(-6)} received at {new Date(latestSocketEvent.generatedAt || Date.now()).toLocaleTimeString()} with {latestSocketEvent.generatedCount || 0} records.
-        </div>
-      )}
-
-      {narrative.length > 0 && (
-        <div className="mli-recs" style={{ marginBottom: 14 }}>
-          <div className="mli-recs-title">Generation Narrative</div>
-          {narrative.map((line, idx) => (
-            <div key={`${line}-${idx}`} className="mli-rec-item">{line}</div>
-          ))}
-        </div>
-      )}
-
-      <div className="mli-synth-grid">
-        <div className="mli-synth-block">
-          <div className="mli-recs-title">Blood Group Distribution</div>
-          {renderDistributionBars(summary.bloodGroupDistribution, color)}
-        </div>
-        <div className="mli-synth-block">
-          <div className="mli-recs-title">Availability Bands</div>
-          {renderDistributionBars(summary.availabilityBands, '#10b981')}
-        </div>
-      </div>
-
-      {preview.length > 0 && (
-        <div style={{ marginTop: 14 }}>
-          <div className="mli-recs-title">Preview Records</div>
-          <MLTable
-            headers={['ID', 'Name', 'Blood', 'Age', 'Availability', 'City', 'Eligible']}
-            rows={preview.slice(0, 10).map((item) => [
-              item.syntheticId,
-              item.fullName,
-              item.bloodGroup,
-              item.age,
-              `${Math.round((item.availabilityScore || 0) * 100)}%`,
-              item.city,
-              item.eligibleNow ? 'Yes' : 'No'
-            ])}
-          />
-        </div>
-      )}
-
-      {clusters.length > 0 && (
-        <div style={{ marginTop: 14 }}>
-          <div className="mli-recs-title">Cluster Map Summary</div>
-          <MLTable
-            headers={['City', 'State', 'Donors', 'High Availability', 'Rare Group Donors']}
-            rows={clusters.slice(0, 10).map((cluster) => [
-              cluster.city,
-              cluster.state,
-              cluster.donors,
-              cluster.highAvailability,
-              cluster.rareGroupDonors
-            ])}
-          />
-        </div>
-      )}
-
-      {historyRows.length > 0 && (
-        <div style={{ marginTop: 14 }}>
-          <div className="mli-recs-title">Generation History</div>
-          <MLTable headers={['Created', 'Scenario', 'District', 'Count', 'Quality']} rows={historyRows} />
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import doctorClinicalAPI from '../../../services/doctorClinicalAPI';
 import './ClinicalLoadCard.css';
 
@@ -64,15 +64,7 @@ const ClinicalLoadCard = () => {
     };
   };
 
-  useEffect(() => {
-    loadMetrics();
-    
-    // Auto-refresh every 5 minutes
-    const interval = setInterval(loadMetrics, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const loadMetrics = async () => {
+  const loadMetrics = useCallback(async () => {
     try {
       const response = await doctorClinicalAPI.getDoctorOverview();
       if (!response?.success) return;
@@ -95,7 +87,15 @@ const ClinicalLoadCard = () => {
     } catch (error) {
       console.error('Failed to load clinical load metrics:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadMetrics();
+
+    // Auto-refresh every 5 minutes
+    const interval = setInterval(loadMetrics, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [loadMetrics]);
 
   const handleRefresh = () => {
     setRefreshing(true);

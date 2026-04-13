@@ -1,23 +1,37 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
-  try {
-    const options = {
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-      socketTimeoutMS: 45000,
-    };
+  const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+  if (!mongoUri) {
+    throw new Error('Missing MongoDB connection string. Set MONGODB_URI (or MONGO_URI).');
+  }
 
-    console.log('Connecting to MongoDB...');
-    const conn = await mongoose.connect(process.env.MONGODB_URI, options);
+  const options = {
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
+    maxPoolSize: 20,
+    minPoolSize: 2,
+    retryWrites: true
+  };
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-    console.log(`Database: ${conn.connection.name}`);
+  const maxAttempts = Number(process.env.DB_CONNECT_RETRIES || 5);
+  const retryDelayMs = Number(process.env.DB_CONNECT_RETRY_DELAY_MS || 4000);
 
-  } catch (error) {
-    console.error('MongoDB connection error:', error.message);
-    console.error('Please check your internet connection and MongoDB Atlas credentials');
-    // Exit process with failure
-    process.exit(1);
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      console.log(`Connecting to MongoDB (attempt ${attempt}/${maxAttempts})...`);
+      const conn = await mongoose.connect(mongoUri, options);
+      console.log(`MongoDB Connected: ${conn.connection.host}`);
+      console.log(`Database: ${conn.connection.name}`);
+      return;
+    } catch (error) {
+      console.error(`MongoDB connection error (attempt ${attempt}):`, error.message);
+      if (attempt === maxAttempts) {
+        console.error('Please verify MongoDB Atlas credentials/network allowlist and try again.');
+        process.exit(1);
+      }
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+    }
   }
 };
 

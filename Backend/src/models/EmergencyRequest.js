@@ -15,6 +15,35 @@
 const mongoose = require('mongoose');
 
 const emergencyRequestSchema = new mongoose.Schema({
+  // Inter-hospital coordination envelope
+  fromHospitalId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'HospitalProfile'
+  },
+  toHospitalId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'HospitalProfile'
+  },
+  coordinationStatus: {
+    type: String,
+    enum: ['PENDING', 'ACCEPTED', 'REJECTED'],
+    default: 'PENDING'
+  },
+  urgency: {
+    type: String,
+    enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
+    default: 'HIGH'
+  },
+  message: {
+    type: String,
+    default: null,
+    trim: true
+  },
+  requiredWithin: {
+    type: Date,
+    default: null
+  },
+
   // Basic Request Info
   requestingHospitalId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -257,6 +286,8 @@ const emergencyRequestSchema = new mongoose.Schema({
 // Indexes for performance
 emergencyRequestSchema.index({ requestingHospitalId: 1, lifecycleStatus: 1 });
 emergencyRequestSchema.index({ assignedHospitalId: 1, lifecycleStatus: 1 });
+emergencyRequestSchema.index({ fromHospitalId: 1, coordinationStatus: 1, createdAt: -1 });
+emergencyRequestSchema.index({ toHospitalId: 1, coordinationStatus: 1, createdAt: -1 });
 emergencyRequestSchema.index({ bloodGroup: 1, severityLevel: 1 });
 emergencyRequestSchema.index({ createdAt: -1 });
 emergencyRequestSchema.index({ escalationLevel: 1, lifecycleStatus: 1 });

@@ -2,6 +2,7 @@ import numpy as np
 from typing import Dict, List, Any
 
 
+# Lightweight policy-gradient style policy for allocation decisions.
 class SimplePolicy:
     def __init__(self, state_dim: int, action_dim: int, learning_rate: float = 0.01):
         self.state_dim = state_dim
@@ -13,6 +14,7 @@ class SimplePolicy:
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.05
 
+    # Epsilon-greedy action selection with softmax-scored logits.
     def select_action(self, state: np.ndarray, explore: bool = True) -> int:
         if explore and np.random.random() < self.epsilon:
             return np.random.randint(0, self.action_dim)
@@ -21,6 +23,7 @@ class SimplePolicy:
         probs = exp_logits / (exp_logits.sum() + 1e-8)
         return int(np.argmax(probs))
 
+    # Episode-level policy update using normalized discounted returns.
     def update(self, states: List[np.ndarray], actions: List[int],
                rewards: List[float], gamma: float = 0.99):
         T = len(rewards)
@@ -47,6 +50,7 @@ class SimplePolicy:
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
+    # Expose policy diagnostics for UI and API responses.
     def get_policy_info(self) -> Dict[str, Any]:
         return {
             "state_dim": self.state_dim,
@@ -57,6 +61,7 @@ class SimplePolicy:
         }
 
 
+# Tabular Q-learning variant for conservative/stable decision mode.
 class QLearningPolicy:
     def __init__(self, state_buckets: int, action_dim: int, learning_rate: float = 0.1):
         self.state_buckets = state_buckets
@@ -68,10 +73,12 @@ class QLearningPolicy:
         self.epsilon_min = 0.05
         self.q_table = {}
 
+    # Bucketize continuous state into a compact discrete key for Q-table lookup.
     def _discretize_state(self, state: np.ndarray) -> tuple:
         bins = np.clip(np.digitize(state, np.linspace(0, 100, self.state_buckets)), 0, self.state_buckets - 1)
         return tuple(bins[:5])
 
+    # Epsilon-greedy action selection over learned Q-values.
     def select_action(self, state: np.ndarray, explore: bool = True) -> int:
         s_key = self._discretize_state(state)
         if s_key not in self.q_table:
@@ -80,6 +87,7 @@ class QLearningPolicy:
             return np.random.randint(0, self.action_dim)
         return int(np.argmax(self.q_table[s_key]))
 
+    # One-step temporal-difference update for the selected transition.
     def update_single(self, state: np.ndarray, action: int, reward: float,
                       next_state: np.ndarray, done: bool):
         s_key = self._discretize_state(state)
@@ -93,6 +101,7 @@ class QLearningPolicy:
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
+    # Expose table size and exploration stats for observability.
     def get_policy_info(self) -> Dict[str, Any]:
         return {
             "type": "q_learning",

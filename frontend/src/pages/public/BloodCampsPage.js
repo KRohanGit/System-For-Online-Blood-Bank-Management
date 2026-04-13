@@ -6,6 +6,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import EmptyState from '../../components/common/EmptyState';
 import ErrorMessage from '../../components/common/ErrorMessage';
 import CampDetailsModal from '../../components/common/CampDetailsModal';
+import { connectSocket, onEvent } from '../../services/socketService';
 import './BloodCampsPage.css';
 
 function BloodCampsPage() {
@@ -30,6 +31,32 @@ function BloodCampsPage() {
   useEffect(() => {
     fetchAllCamps();
   }, []);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const socketUserId = user.id || user._id || `guest-${Date.now()}`;
+    const socketRole = String(user.role || localStorage.getItem('role') || 'public_user').toLowerCase();
+
+    connectSocket(socketUserId, socketRole);
+
+    const refreshCamps = () => {
+      if (viewMode === 'nearby' && userLocation) {
+        fetchNearbyCamps();
+      } else {
+        fetchAllCamps();
+      }
+    };
+
+    const offCreate = onEvent('camp.created', refreshCamps);
+    const offUpdate = onEvent('camp.updated', refreshCamps);
+    const offCancel = onEvent('camp.cancelled', refreshCamps);
+
+    return () => {
+      offCreate();
+      offUpdate();
+      offCancel();
+    };
+  }, [viewMode, searchRadius, userLocation]);
 
   /**
    * Fetch all upcoming camps

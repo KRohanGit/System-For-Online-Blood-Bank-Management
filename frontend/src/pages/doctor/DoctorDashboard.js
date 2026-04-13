@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../../services/api';
 import doctorClinicalAPI from '../../services/doctorClinicalAPI';
@@ -12,6 +12,7 @@ import BloodUnitValidationPage from './BloodUnitValidationPage';
 import EmergencyConsultsPage from './EmergencyConsultsPage';
 import CampOversightPage from './CampOversightPage';
 import AuditTrailPage from './AuditTrailPage';
+import DoctorClinicalAssistantPage from './DoctorClinicalAssistantPage';
 import { connectSocket, disconnectSocket, onEmergencyNew, onEmergencyCritical, onEmergencyUpdate } from '../../services/socketService';
 import '../../styles/DoctorDashboard.css';
 
@@ -19,12 +20,70 @@ const DoctorDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [profile, setProfile] = useState(null);
   const [overview, setOverview] = useState(null);
+  const [overviewError, setOverviewError] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const checkVerificationAndLoadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await authAPI.getProfile();
+
+      if (response.success && response.data) {
+        const userData = response.data;
+
+        // Check if doctor is approved - allow if EITHER isVerified OR verificationStatus is approved
+        if (userData.role === 'doctor') {
+          const isUserVerified = userData.isVerified;
+          const profileStatus = userData.profile?.verificationStatus;
+
+          // Doctor can access dashboard if:
+          // 1. User.isVerified === true (approved at user level) OR
+          // 2. DoctorProfile.verificationStatus === 'approved'
+          const isApproved = (isUserVerified === true) || (profileStatus === 'approved');
+
+          if (!isApproved) {
+            navigate('/doctor/pending-approval');
+            return;
+          }
+        }
+        setProfile(userData);
+
+        // Fetch doctor overview data
+        try {
+          const overviewResponse = await doctorClinicalAPI.getDoctorOverview();
+          if (overviewResponse.success) {
+            setOverview(overviewResponse.data);
+            setOverviewError('');
+          } else {
+            setOverview(null);
+            setOverviewError('Unable to load doctor overview right now.');
+          }
+        } catch (overviewError) {
+          console.error('Error fetching overview:', overviewError);
+          setOverview(null);
+          setOverviewError('Unable to load doctor overview right now.');
+        }
+      } else {
+        navigate('/signin');
+      }
+    } catch (error) {
+      console.error('Profile check error:', error);
+      // Only redirect to signin if it's an auth error
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        navigate('/signin');
+      } else {
+        console.error('Dashboard load error:', error);
+        setLoading(false);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate]);
+
   useEffect(() => {
     checkVerificationAndLoadData();
-  }, []);
+  }, [checkVerificationAndLoadData]);
 
   useEffect(() => {
     if (!profile?.id) return;
@@ -54,90 +113,6 @@ const DoctorDashboard = () => {
     };
   }, [profile?.id]);
 
-  const checkVerificationAndLoadData = async () => {
-    try {
-      setLoading(true);
-      const response = await authAPI.getProfile();
-      
-      console.log('🔍 Dashboard - Full profile response:', response);
-      
-      if (response.success && response.data) {
-        const userData = response.data;
-        
-        // Check if doctor is approved - allow if EITHER isVerified OR verificationStatus is approved
-        if (userData.role === 'doctor') {
-          const isUserVerified = userData.isVerified;
-          const profileStatus = userData.profile?.verificationStatus;
-          
-          console.log('🔍 Dashboard verification check:', { 
-            isUserVerified, 
-            profileStatus,
-            hasProfile: !!userData.profile,
-            fullProfile: userData.profile
-          });
-          
-          // Doctor can access dashboard if:
-          // 1. User.isVerified === true (approved at user level) OR
-          // 2. DoctorProfile.verificationStatus === 'approved'
-          const isApproved = (isUserVerified === true) || (profileStatus === 'approved');
-          
-          console.log('🔍 Approval status:', {
-            isUserVerified: isUserVerified === true,
-            isProfileApproved: profileStatus === 'approved',
-            finalDecision: isApproved
-          });
-          
-          if (!isApproved) {
-            console.log('❌ Doctor not yet approved, redirecting to pending');
-            navigate('/doctor/pending-approval');
-            return;
-          } else {
-            console.log('✅ Doctor is approved, proceeding to load dashboard');
-          }
-        }
-        setProfile(userData);
-
-        // Fetch doctor overview data
-        try {
-          const overviewResponse = await doctorClinicalAPI.getDoctorOverview();
-          if (overviewResponse.success) {
-            setOverview(overviewResponse.data);
-          } else {
-            console.warn('⚠️ Overview API returned unsuccess, but continuing...', overviewResponse);
-            // Set default overview data
-            setOverview({
-              pending: { validations: 0, consults: 0, advisories: 0, camps: 0 },
-              availability: { status: 'on_call' },
-              emergencyAlerts: []
-            });
-          }
-        } catch (overviewError) {
-          console.error('⚠️ Error fetching overview (continuing anyway):', overviewError);
-          // Set default overview data so dashboard can still load
-          setOverview({
-            pending: { validations: 0, consults: 0, advisories: 0, camps: 0 },
-            availability: { status: 'on_call' },
-            emergencyAlerts: []
-          });
-        }
-      } else {
-        navigate('/signin');
-      }
-    } catch (error) {
-      console.error('❌ Profile check error:', error);
-      // Only redirect to signin if it's an auth error
-      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-        navigate('/signin');
-      } else {
-        // For other errors, show error but don't redirect
-        console.error('Dashboard load error, but staying on page:', error);
-        setLoading(false);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAvailabilityChange = async (newStatus) => {
     try {
       const response = await doctorClinicalAPI.updateAvailability({
@@ -158,6 +133,22 @@ const DoctorDashboard = () => {
   };
 
   const renderContent = () => {
+    if (overviewError && activeTab === 'overview') {
+      return (
+        <div className="dashboard-panel-state error">
+          {overviewError}
+        </div>
+      );
+    }
+
+    if (!overview && activeTab === 'overview') {
+      return (
+        <div className="dashboard-panel-state loading">
+          Loading doctor overview...
+        </div>
+      );
+    }
+
     switch(activeTab) {
       case 'overview':
         return (
@@ -196,6 +187,8 @@ const DoctorDashboard = () => {
         return <CampOversightPage />;
       case 'audit':
         return <AuditTrailPage />;
+      case 'clinical-assistant':
+        return <DoctorClinicalAssistantPage />;
       default:
         return (
           <div className="overview-section">
@@ -278,6 +271,12 @@ const DoctorDashboard = () => {
               onClick={() => setActiveTab('audit')}
             >
               Audit Trail
+            </button>
+            <button
+              className={activeTab === 'clinical-assistant' ? 'active' : ''}
+              onClick={() => setActiveTab('clinical-assistant')}
+            >
+              AI Clinical Assistant
             </button>
           </div>
 

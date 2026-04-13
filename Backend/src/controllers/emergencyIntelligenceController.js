@@ -113,54 +113,6 @@ async function analyzeHospitalImpacts(incidentLocation, demandByGroup, totalDema
     // Add city filter if needed
   }).populate('userId', 'email').lean();
   
-  // DUMMY DATA: Add Vizag hospitals if database is empty
-  if (hospitals.length === 0) {
-    hospitals = [
-      {
-        _id: 'dummy-hospital-vizag-1',
-        hospitalName: 'King George Hospital (KGH)',
-        location: { latitude: 17.7231, longitude: 83.3012 },
-        address: 'Maharani Peta, Visakhapatnam, Andhra Pradesh 530002',
-        phone: '+91 891 256 2555'
-      },
-      {
-        _id: 'dummy-hospital-vizag-2',
-        hospitalName: 'Queen Mary Hospital',
-        location: { latitude: 17.7145, longitude: 83.3089 },
-        address: 'Beach Road, Visakhapatnam, Andhra Pradesh 530001',
-        phone: '+91 891 256 1234'
-      },
-      {
-        _id: 'dummy-hospital-vizag-3',
-        hospitalName: 'GITAM Institute of Medical Sciences',
-        location: { latitude: 17.7842, longitude: 83.3776 },
-        address: 'Rushikonda, Visakhapatnam, Andhra Pradesh 530045',
-        phone: '+91 891 280 5555'
-      },
-      {
-        _id: 'dummy-hospital-vizag-4',
-        hospitalName: 'Seven Hills Hospital',
-        location: { latitude: 17.7306, longitude: 83.3185 },
-        address: 'Rockdale Layout, Visakhapatnam, Andhra Pradesh 530002',
-        phone: '+91 891 278 4444'
-      },
-      {
-        _id: 'dummy-hospital-vizag-5',
-        hospitalName: 'Apollo Hospitals',
-        location: { latitude: 17.7452, longitude: 83.3142 },
-        address: 'Waltair Main Road, Visakhapatnam, Andhra Pradesh 530002',
-        phone: '+91 891 254 0000'
-      },
-      {
-        _id: 'dummy-hospital-vizag-6',
-        hospitalName: 'Care Hospital',
-        location: { latitude: 17.7398, longitude: 83.3252 },
-        address: 'Ramnagar, Visakhapatnam, Andhra Pradesh 530002',
-        phone: '+91 891 667 1000'
-      }
-    ];
-  }
-  
   const impacts = [];
   
   for (const hospital of hospitals) {
@@ -182,24 +134,6 @@ async function analyzeHospitalImpacts(incidentLocation, demandByGroup, totalDema
       hospitalId: hospital._id,
       status: 'Available'
     }).lean();
-    
-    // DUMMY DATA: Generate realistic inventory if none exists
-    if (inventory.length === 0 && hospital._id.toString().startsWith('dummy-')) {
-      // Varied inventory levels for different hospitals
-      const inventoryLevels = {
-        'dummy-hospital-vizag-1': { 'A+': 45, 'O+': 38, 'B+': 28, 'AB+': 15, 'A-': 8, 'O-': 12, 'B-': 6, 'AB-': 3 }, // KGH - largest
-        'dummy-hospital-vizag-2': { 'A+': 22, 'O+': 18, 'B+': 15, 'AB+': 8, 'A-': 4, 'O-': 6, 'B-': 3, 'AB-': 2 },
-        'dummy-hospital-vizag-3': { 'A+': 35, 'O+': 30, 'B+': 20, 'AB+': 12, 'A-': 6, 'O-': 8, 'B-': 4, 'AB-': 2 }, // GITAM
-        'dummy-hospital-vizag-4': { 'A+': 18, 'O+': 15, 'B+': 12, 'AB+': 6, 'A-': 3, 'O-': 4, 'B-': 2, 'AB-': 1 },
-        'dummy-hospital-vizag-5': { 'A+': 28, 'O+': 25, 'B+': 18, 'AB+': 10, 'A-': 5, 'O-': 7, 'B-': 3, 'AB-': 2 }, // Apollo
-        'dummy-hospital-vizag-6': { 'A+': 20, 'O+': 17, 'B+': 14, 'AB+': 7, 'A-': 4, 'O-': 5, 'B-': 2, 'AB-': 1 }
-      };
-      
-      inventory = Object.entries(inventoryLevels[hospital._id] || {}).map(([bloodGroup, count]) => ({
-        bloodGroup,
-        quantity: count
-      }));
-    }
     
     // Aggregate available units by blood group
     const availableUnits = {};

@@ -15,7 +15,7 @@ function Sidebar({ isOpen, toggleSidebar }) {
     { path: '/geo-intelligence', icon: '🗺️', label: 'Geo Intelligence', gradient: 'linear-gradient(135deg, #56ab2f 0%, #a8e063 100%)', badge: 'NEW' },
     { path: '/admin/ml-intelligence', icon: '🧠', label: 'ML Intelligence', gradient: 'linear-gradient(135deg, #667eea 0%, #00d2ff 100%)', badge: 'ML' },
     { path: '/admin/digital-twin', icon: '🔬', label: 'Digital Twin', gradient: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)', badge: 'AI' },
-    { path: '/admin/rl-agent', icon: '🤖', label: 'RL Agent', gradient: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)', badge: 'AI' },
+    { path: '/admin/rl-agent', icon: '🤖', label: 'Allocation Assistant', gradient: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)' },
     { path: '/admin/graph-intelligence', icon: '🕸️', label: 'Graph Network', gradient: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)', badge: 'AI' },
     { path: '/admin/donors', icon: '👥', label: 'Donors', gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)' },
     { path: '/admin/approvals', icon: '🧑‍⚕️', label: 'Doctor Approvals', gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' },

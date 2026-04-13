@@ -49,6 +49,13 @@ router.post('/advisories', doctorClinicalController.submitClinicalAdvisory);
 router.get('/advisories', doctorClinicalController.getClinicalAdvisories);
 
 /**
+ * AI Clinical Assistant
+ */
+router.post('/cases/analyze', doctorClinicalController.analyzeClinicalCase);
+router.get('/cases', doctorClinicalController.getClinicalCases);
+router.patch('/cases/:caseId/outcome', doctorClinicalController.updateClinicalCaseOutcome);
+
+/**
  * Audit Trail
  */
 router.get('/audit-trail', doctorClinicalController.getAuditTrail);

@@ -1,6 +1,10 @@
 const bloodTracingService = require('../services/bloodTracingService');
 const BloodUnit = require('../models/BloodUnit');
 const BloodLifecycleEvent = require('../models/BloodLifecycleEvent');
+const User = require('../models/User');
+const PublicUser = require('../models/PublicUser');
+const jwt = require('jsonwebtoken');
+const { isTokenRevoked } = require('../services/auth/tokenBlacklist');
 
 /**
  * Blood Trace Controller
@@ -32,14 +36,6 @@ const traceBloodUnit = async (req, res) => {
       });
     }
 
-    // Allow both MongoDB ID and unit unique ID
-    let query = {};
-    if (unitId.startsWith('BU-')) {
-      query = { unitId };
-    } else {
-      query = { _id: unitId };
-    }
-
     const trace = await bloodTracingService.traceBloodUnit(unitId);
 
     return res.status(200).json({
@@ -52,6 +48,76 @@ const traceBloodUnit = async (req, res) => {
       success: false,
       message: err.message || 'Error retrieving blood trace',
       statusCode: 500
+    });
+  }
+};
+
+const getViewerContext = async (req) => {
+  const authHeader = req.header('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { role: 'PUBLIC', userId: null, user: null };
+  }
+
+  const token = authHeader.replace('Bearer ', '').trim();
+  if (!token || isTokenRevoked(token)) {
+    return { role: 'PUBLIC', userId: null, user: null };
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const isPublicRole = String(decoded.role || '').toLowerCase() === 'public_user';
+    const isDonorRole = String(decoded.role || '').toLowerCase() === 'donor';
+
+    let user = null;
+    if (isPublicRole || isDonorRole) {
+      user = await PublicUser.findById(decoded.userId).select('fullName email verificationStatus');
+      if (!user && isDonorRole) {
+        user = await User.findById(decoded.userId).select('fullName email role');
+      }
+    } else {
+      user = await User.findById(decoded.userId).select('fullName email role');
+    }
+
+    if (!user) {
+      return { role: 'PUBLIC', userId: null, user: null };
+    }
+
+    return {
+      role: decoded.role,
+      userId: decoded.userId,
+      user
+    };
+  } catch (error) {
+    return { role: 'PUBLIC', userId: null, user: null };
+  }
+};
+
+const verifyQrCode = async (req, res) => {
+  try {
+    const qrData = req.body?.qrData || req.body?.unitId || req.query?.qrData || req.query?.unitId || req.params?.unitId;
+
+    if (!qrData) {
+      return res.status(400).json({
+        success: false,
+        message: 'QR data or unit ID is required',
+        statusCode: 400
+      });
+    }
+
+    const viewerContext = await getViewerContext(req);
+    const trace = await bloodTracingService.verifyBloodQRCode(qrData, viewerContext);
+
+    return res.status(200).json({
+      success: true,
+      message: 'QR code verified successfully',
+      data: trace
+    });
+  } catch (err) {
+    console.error('Error verifying blood QR code:', err.message);
+    return res.status(400).json({
+      success: false,
+      message: err.message || 'Error verifying QR code',
+      statusCode: 400
     });
   }
 };
@@ -443,6 +509,7 @@ const getUnitTimeline = async (req, res) => {
 
 module.exports = {
   traceBloodUnit,
+  verifyQrCode,
   createBloodUnit,
   getDonorBloodUnits,
   initiateTransfer,

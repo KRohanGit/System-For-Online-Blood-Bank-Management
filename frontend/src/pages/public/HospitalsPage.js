@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { hospitalAPI, geolocationHelper } from '../../services/communityApi';
+import { connectSocket, disconnectSocket, onEvent } from '../../services/socketService';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import EmptyState from '../../components/common/EmptyState';
 import ErrorMessage from '../../components/common/ErrorMessage';
@@ -31,6 +32,32 @@ export default function HospitalsPage() {
   useEffect(() => {
     fetchAllHospitals();
   }, []);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const socketUserId = user.id || user._id || `hosp-guest-${Date.now()}`;
+    const socketRole = String(user.role || localStorage.getItem('role') || 'public_user').toLowerCase();
+    connectSocket(socketUserId, socketRole);
+
+    const refreshHospitals = () => {
+      if (viewMode === 'nearby') {
+        fetchNearbyHospitals();
+      } else {
+        fetchAllHospitals();
+      }
+    };
+
+    const offCreated = onEvent('hospital.created', refreshHospitals);
+    const offOnline = onEvent('hospital.online', refreshHospitals);
+    const offOffline = onEvent('hospital.offline', refreshHospitals);
+
+    return () => {
+      offCreated();
+      offOnline();
+      offOffline();
+      disconnectSocket();
+    };
+  }, [viewMode, searchRadius]);
 
   useEffect(() => {
     filterHospitals();

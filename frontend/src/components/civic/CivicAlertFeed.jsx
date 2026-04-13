@@ -5,7 +5,7 @@ import config from '../../config/config';
 import './CivicAlertFeed.css';
 
 const CivicAlertFeed = () => {
-  const API_URL = config?.API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  const API_URL = config?.API_URL || process.env.REACT_APP_API_URL || '/api';
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState(null);

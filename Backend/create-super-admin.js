@@ -3,7 +3,6 @@
 // Run this script: node create-super-admin.js
 
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 // Define User schema inline
@@ -59,8 +58,7 @@ async function createSuperAdmin() {
       
       if (resetPassword) {
         console.log('\n🔄 Resetting Super Admin password...');
-        const salt = await bcrypt.genSalt(12);
-        existingAdmin.password = await bcrypt.hash(superAdminPassword, salt);
+        existingAdmin.password = superAdminPassword;
         existingAdmin.role = 'super_admin'; // Ensure role is updated
         existingAdmin.isVerified = true;
         await existingAdmin.save();
@@ -76,14 +74,10 @@ async function createSuperAdmin() {
     }
 
     // Hash password
-    console.log('\n🔐 Hashing password...');
-    const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(superAdminPassword, salt);
-
     // Create Super Admin user
     const superAdmin = new User({
       email: superAdminEmail,
-      password: hashedPassword,
+      password: superAdminPassword,
       role: 'super_admin',
       isVerified: true // Super admin is always verified
     });

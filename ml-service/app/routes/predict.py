@@ -17,6 +17,7 @@ from ..services.hospital_ranking import hospital_ranker
 router = APIRouter(prefix="/predict", tags=["Predictions"])
 
 
+# Demand forecast endpoint.
 @router.post("/demand", response_model=DemandPredictionResponse)
 async def predict_demand(request: DemandPredictionRequest):
     try:
@@ -31,6 +32,7 @@ async def predict_demand(request: DemandPredictionRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Crisis risk prediction endpoint.
 @router.post("/crisis", response_model=CrisisPredictionResponse)
 async def predict_crisis(request: CrisisPredictionRequest):
     try:
@@ -43,6 +45,17 @@ async def predict_crisis(request: CrisisPredictionRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Manual crisis model retraining endpoint.
+@router.post("/crisis/retrain")
+async def retrain_crisis_model():
+    try:
+        result = crisis_predictor.retrain()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Donor return likelihood endpoint.
 @router.post("/donor-return", response_model=DonorReturnResponse)
 async def predict_donor_return(request: DonorReturnRequest):
     try:
@@ -56,9 +69,11 @@ async def predict_donor_return(request: DonorReturnRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Wastage risk prediction endpoint.
 @router.post("/wastage", response_model=WastagePredictionResponse)
 async def predict_wastage(request: WastagePredictionRequest):
     try:
+        # blood_group is optional; convert enum to raw value only when provided.
         bg = request.blood_group.value if request.blood_group else None
         result = wastage_predictor.predict(
             hospital_id=request.hospital_id,
@@ -70,6 +85,7 @@ async def predict_wastage(request: WastagePredictionRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Operational anomaly detection endpoint.
 @router.post("/anomalies", response_model=AnomalyDetectionResponse)
 async def detect_anomalies(request: AnomalyDetectionRequest):
     try:
@@ -83,6 +99,7 @@ async def detect_anomalies(request: AnomalyDetectionRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Hospital ranking endpoint for transfer coordination.
 @router.post("/hospital-ranking", response_model=HospitalRankingResponse)
 async def rank_hospitals(request: HospitalRankingRequest):
     try:

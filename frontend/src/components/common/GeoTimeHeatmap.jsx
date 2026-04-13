@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import config from '../../config/config';
+import { connectSocket, disconnectSocket, onEvent } from '../../services/socketService';
 import './GeoTimeHeatmap.css';
 
 /**
@@ -9,6 +10,20 @@ import './GeoTimeHeatmap.css';
  */
 
 const BLOOD_GROUPS = ['ALL', 'O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'];
+
+function getAuthContext() {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return { userId: null, role: null };
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return {
+      userId: payload.userId || payload.id || payload._id || null,
+      role: payload.role || null
+    };
+  } catch {
+    return { userId: null, role: null };
+  }
+}
 
 const GeoTimeHeatmap = ({ hospitalLocation = null }) => {
   const [timeFilter, setTimeFilter] = useState('7d');
@@ -22,11 +37,7 @@ const GeoTimeHeatmap = ({ hospitalLocation = null }) => {
     Number.isFinite(hospitalLocation.latitude) &&
     Number.isFinite(hospitalLocation.longitude);
 
-  useEffect(() => {
-    fetchHeatmapData();
-  }, [timeFilter, bloodGroupFilter, hasConfiguredHospitalLocation, hospitalLocation]);
-
-  const fetchHeatmapData = async () => {
+  const fetchHeatmapData = useCallback(async () => {
     setLoading(true);
     try {
       if (!hasConfiguredHospitalLocation) {
@@ -35,7 +46,7 @@ const GeoTimeHeatmap = ({ hospitalLocation = null }) => {
         return;
       }
 
-      const API_URL = config?.API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const API_URL = config?.API_URL || process.env.REACT_APP_API_URL || '/api';
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -116,7 +127,36 @@ const GeoTimeHeatmap = ({ hospitalLocation = null }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [bloodGroupFilter, hasConfiguredHospitalLocation, hospitalLocation, timeFilter]);
+
+  useEffect(() => {
+    fetchHeatmapData();
+  }, [fetchHeatmapData]);
+
+  useEffect(() => {
+    const { userId, role } = getAuthContext();
+    const socket = connectSocket(userId, role);
+
+    const refresh = () => fetchHeatmapData();
+    const offEmergencyNew = onEvent('emergency:new', refresh);
+    const offEmergencyUpdate = onEvent('emergency:update', refresh);
+    const offInventoryChange = onEvent('inventory:change', refresh);
+    const offHospitalCreated = onEvent('hospital.created', refresh);
+    const offHospitalOnline = onEvent('hospital.online', refresh);
+    const offHospitalOffline = onEvent('hospital.offline', refresh);
+
+    return () => {
+      offEmergencyNew();
+      offEmergencyUpdate();
+      offInventoryChange();
+      offHospitalCreated();
+      offHospitalOnline();
+      offHospitalOffline();
+      if (socket) {
+        disconnectSocket();
+      }
+    };
+  }, [fetchHeatmapData]);
 
   const getIntensityColor = (requests, fulfilled) => {
     if (requests <= 0) return '#10b981';

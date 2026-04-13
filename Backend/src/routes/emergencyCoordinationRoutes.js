@@ -27,6 +27,24 @@ router.get(
 );
 
 router.get(
+  '/hospitals/nearby',
+  checkRole(['HOSPITAL_ADMIN']),
+  emergencyCoordinationController.getNearbyHospitalsForCoordination
+);
+
+router.get(
+  '/hospitals/:hospitalId/summary',
+  checkRole(['HOSPITAL_ADMIN', 'SUPER_ADMIN']),
+  emergencyCoordinationController.getHospitalCoordinationSummary
+);
+
+router.post(
+  '/hospital-insights',
+  checkRole(['HOSPITAL_ADMIN', 'SUPER_ADMIN']),
+  emergencyCoordinationController.getHospitalInsights
+);
+
+router.get(
   '/request/:requestId',
   checkRole(['HOSPITAL_ADMIN', 'SUPER_ADMIN']),
   emergencyCoordinationController.getRequestDetails
@@ -56,6 +74,12 @@ router.post(
   '/request/:requestId/dispatch',
   checkRole(['HOSPITAL_ADMIN']),
   emergencyCoordinationController.dispatchBloodTransfer
+);
+
+router.get(
+  '/request/:requestId/delivery-session',
+  checkRole(['HOSPITAL_ADMIN', 'SUPER_ADMIN']),
+  emergencyCoordinationController.getDeliverySession
 );
 
 router.post(

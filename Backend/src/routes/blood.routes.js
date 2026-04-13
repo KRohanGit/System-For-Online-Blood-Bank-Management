@@ -20,13 +20,14 @@ const bloodTraceController = require('../controllers/bloodTraceController');
 
 // QR Code Trace - Anyone can view (public transparency)
 router.get('/trace/:unitId', bloodTraceController.traceBloodUnit);
+router.post('/trace/verify', bloodTraceController.verifyQrCode);
 
 // ============================================================================
 // DONOR ROUTES (Authenticated PUBLIC_USER)
 // ============================================================================
 
-// Donor: View my blood unit donations
-router.get('/my-donations', auth, checkRole(['PUBLIC_USER']), bloodTraceController.getDonorBloodUnits);
+// Donor/Public user: View my blood unit donations
+router.get('/my-donations', auth, checkRole(['PUBLIC_USER', 'donor']), bloodTraceController.getDonorBloodUnits);
 
 // ============================================================================
 // ADMIN/HOSPITAL ROUTES (Authenticated ADMIN/HOSPITAL_ADMIN)

@@ -3,7 +3,60 @@ const CampBooking = require('../models/CampBooking');
 const Notification = require('../models/Notification');
 const PublicUser = require('../models/PublicUser');
 const User = require('../models/User');
+const HospitalProfile = require('../models/HospitalProfile');
 const { broadcast, emitToRole, emitToHospital } = require('../services/realtime/socketService');
+
+const normalizeStatus = (camp) => {
+  if (camp.status) return camp.status;
+  const lifecycle = String(camp.lifecycle?.status || '').toLowerCase();
+  if (lifecycle === 'completed') return 'completed';
+  if (lifecycle === 'cancelled') return 'cancelled';
+  return 'upcoming';
+};
+
+const getOrganizerId = (camp) => camp.organizerId || camp.organizer?.userId;
+
+const getCampTitle = (camp) => camp.title || camp.campName;
+
+const getCampDate = (camp) => camp.dateTime || camp.schedule?.date;
+
+const getCampLocation = (camp) => {
+  if (camp.location?.coordinates?.length === 2) return camp.location;
+  if (camp.venue?.location?.coordinates?.length === 2) {
+    return {
+      type: 'Point',
+      coordinates: camp.venue.location.coordinates,
+      address: camp.venue.address,
+      city: camp.venue.city,
+      state: camp.venue.state,
+      pincode: camp.venue.pincode
+    };
+  }
+  return null;
+};
+
+const formatCampForClient = (camp) => ({
+  _id: camp._id,
+  title: getCampTitle(camp),
+  description: camp.description,
+  dateTime: getCampDate(camp),
+  duration: camp.duration || { hours: 4 },
+  capacity: camp.capacity || camp.venue?.expectedDonors || 0,
+  location: getCampLocation(camp),
+  bloodGroupsNeeded: camp.bloodGroupsNeeded || [],
+  organizer: {
+    id: getOrganizerId(camp),
+    name: camp.organizerName || camp.organizer?.name,
+    type: camp.organizer?.type || null,
+    contactPhone: camp.organizerContact?.phone || camp.organizer?.contactPhone,
+    contactEmail: camp.organizerContact?.email || camp.organizer?.contactEmail
+  },
+  organizerName: camp.organizerName || camp.organizer?.name,
+  status: normalizeStatus(camp),
+  lifecycle: camp.lifecycle,
+  createdAt: camp.createdAt,
+  updatedAt: camp.updatedAt
+});
 
 exports.getAllCamps = async (req, res) => {
   try {
@@ -18,20 +71,19 @@ exports.getAllCamps = async (req, res) => {
     const skip = (page - 1) * limit;
     const sortOptions = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
 
-    // Build query
+    // Build query against canonical schema fields
     const query = {
-      isActive: true
+      'schedule.date': { $gt: new Date() },
+      'lifecycle.status': { $nin: ['Cancelled', 'Completed'] }
     };
 
-    if (status) {
-      query.status = status;
+    if (status && status !== 'upcoming') {
+      if (String(status).toLowerCase() === 'cancelled') query['lifecycle.status'] = 'Cancelled';
+      if (String(status).toLowerCase() === 'completed') query['lifecycle.status'] = 'Completed';
     }
 
-    // Only show future camps
-    query.dateTime = { $gt: new Date() };
-
     const camps = await BloodCamp.find(query)
-      .sort(sortOptions)
+      .sort({ 'schedule.date': sortOptions.dateTime || 1 })
       .skip(skip)
       .limit(parseInt(limit))
       .select('-__v');
@@ -42,7 +94,7 @@ exports.getAllCamps = async (req, res) => {
       success: true,
       message: 'Blood camps retrieved successfully',
       data: {
-        camps,
+        camps: camps.map(formatCampForClient),
         pagination: {
           total,
           page: parseInt(page),
@@ -127,7 +179,7 @@ exports.getNearbyCamps = async (req, res) => {
 
     // Use geospatial query to find nearby camps
     const camps = await BloodCamp.find({
-      'location.coordinates': {
+      'venue.location': {
         $near: {
           $geometry: {
             type: 'Point',
@@ -136,15 +188,15 @@ exports.getNearbyCamps = async (req, res) => {
           $maxDistance: parseFloat(maxDistance) * 1000 // Convert km to meters
         }
       },
-      isActive: true,
-      status: 'upcoming',
-      dateTime: { $gt: new Date() }
+      'lifecycle.status': { $nin: ['Cancelled', 'Completed'] },
+      'schedule.date': { $gt: new Date() }
     }).select('-__v');
 
     // Calculate distance for each camp
     const campsWithDistance = camps.map(camp => {
-      const campLong = camp.location.coordinates[0];
-      const campLat = camp.location.coordinates[1];
+      const coordinates = camp.venue?.location?.coordinates || [0, 0];
+      const campLong = coordinates[0];
+      const campLat = coordinates[1];
       
       // Haversine formula to calculate distance
       const R = 6371; // Earth's radius in km
@@ -157,7 +209,7 @@ exports.getNearbyCamps = async (req, res) => {
       const distance = R * c;
       
       return {
-        ...camp.toJSON(),
+        ...formatCampForClient(camp.toJSON()),
         distance: parseFloat(distance.toFixed(2))
       };
     });
@@ -189,8 +241,7 @@ exports.getCampById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const camp = await BloodCamp.findById(id)
-      .populate('organizerId', 'fullName email phone hospitalName');
+    const camp = await BloodCamp.findById(id);
 
     if (!camp) {
       return res.status(404).json({
@@ -210,7 +261,7 @@ exports.getCampById = async (req, res) => {
       message: 'Blood camp retrieved successfully',
       data: {
         camp: {
-          ...camp.toJSON(),
+          ...formatCampForClient(camp.toJSON()),
           currentBookings: bookingCount
         }
       }
@@ -293,22 +344,64 @@ exports.createCamp = async (req, res) => {
     }
 
     // Create camp
+    const campDate = new Date(dateTime);
+    const startTime = campDate.toTimeString().slice(0, 5);
+    const endDate = new Date(campDate.getTime() + Number((duration?.hours || 4)) * 60 * 60 * 1000);
+    const endTime = endDate.toTimeString().slice(0, 5);
+
+    let coordinatingHospital = null;
+    if (userRole === 'hospital_admin') {
+      const hp = await HospitalProfile.findOne({ userId }).lean();
+      coordinatingHospital = hp?._id || null;
+    }
+    if (!coordinatingHospital) {
+      const fallbackHospital = await HospitalProfile.findOne({ verificationStatus: 'approved' }).lean();
+      coordinatingHospital = fallbackHospital?._id || null;
+    }
+
     const camp = new BloodCamp({
-      title,
+      campName: title,
       description,
-      organizerId: userId,
-      organizerModel,
-      organizerName: organizer.fullName || organizer.hospitalName,
-      organizerContact: organizerContact || {
-        phone: organizer.phone,
-        email: organizer.email
+      organizer: {
+        userId,
+        userModel: organizerModel,
+        name: organizer.fullName || organizer.hospitalName || organizer.email,
+        type: userRole === 'hospital_admin' ? 'Hospital' : 'Individual',
+        contactPhone: (organizerContact?.phone || organizer.phone || '9999999999'),
+        contactEmail: (organizerContact?.email || organizer.email || 'noreply@lifelink.local'),
+        affiliatedHospital: coordinatingHospital || undefined
       },
-      location,
-      dateTime,
-      duration: duration || { hours: 4 },
-      capacity,
-      facilities,
-      bloodGroupsNeeded
+      venue: {
+        name: title,
+        address: location?.address || 'Address not provided',
+        city: location?.city || 'Unknown',
+        state: location?.state || 'Unknown',
+        pincode: location?.pincode || '000000',
+        location: {
+          type: 'Point',
+          coordinates: location?.coordinates || [0, 0]
+        },
+        type: 'Indoor',
+        seatingCapacity: Number(capacity || 50),
+        expectedDonors: Number(capacity || 50)
+      },
+      schedule: {
+        date: campDate,
+        startTime,
+        endTime,
+        category: 'Community'
+      },
+      medicalSupport: {
+        coordinatingHospital,
+        emergencyContactName: organizer.fullName || organizer.hospitalName || 'Coordinator',
+        emergencyContactPhone: organizerContact?.phone || organizer.phone || '9999999999',
+        medicalSupportAvailable: true
+      },
+      bloodGroupsNeeded: bloodGroupsNeeded || [],
+      lifecycle: {
+        status: 'Pre-Camp',
+        approvalStatus: 'Pending'
+      }
     });
 
     await camp.save();
@@ -317,25 +410,39 @@ exports.createCamp = async (req, res) => {
     try {
       broadcast('camp.created', {
         campId: camp._id,
-        title: camp.title,
-        organizerName: camp.organizerName,
-        dateTime: camp.dateTime,
-        location: camp.location,
+        title: getCampTitle(camp),
+        organizerName: camp.organizer?.name,
+        dateTime: getCampDate(camp),
+        location: getCampLocation(camp),
         timestamp: new Date().toISOString()
       });
 
       // Also emit to specific roles
       emitToRole('public_user', 'camp.created', {
         campId: camp._id,
-        title: camp.title,
-        message: `New blood camp organized: ${camp.title}`
+        title: getCampTitle(camp),
+        message: `New blood camp organized: ${getCampTitle(camp)}`
       });
 
       emitToRole('hospital_admin', 'camp.created', {
         campId: camp._id,
-        title: camp.title,
-        organizer: camp.organizerName,
-        message: `New blood camp organized: ${camp.title}`
+        title: getCampTitle(camp),
+        organizer: camp.organizer?.name,
+        message: `New blood camp organized: ${getCampTitle(camp)}`
+      });
+
+      emitToRole('doctor', 'camp.created', {
+        campId: camp._id,
+        title: getCampTitle(camp),
+        organizer: camp.organizer?.name,
+        message: `New blood camp organized: ${getCampTitle(camp)}`
+      });
+
+      emitToRole('super_admin', 'camp.created', {
+        campId: camp._id,
+        title: getCampTitle(camp),
+        organizer: camp.organizer?.name,
+        message: `New blood camp organized: ${getCampTitle(camp)}`
       });
     } catch (socketError) {
       console.error('Error emitting socket event:', socketError);
@@ -348,7 +455,7 @@ exports.createCamp = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Blood camp created successfully',
-      data: { camp }
+      data: { camp: formatCampForClient(camp.toJSON()) }
     });
   } catch (error) {
     console.error('Error creating blood camp:', error);
@@ -379,7 +486,7 @@ exports.updateCamp = async (req, res) => {
     }
 
     // Check if user is the organizer
-    if (camp.organizerId.toString() !== userId.toString()) {
+    if (String(getOrganizerId(camp)) !== String(userId)) {
       return res.status(403).json({
         success: false,
         message: 'You are not authorized to update this camp'
@@ -387,7 +494,7 @@ exports.updateCamp = async (req, res) => {
     }
 
     // Prevent updates to completed or cancelled camps
-    if (camp.status === 'completed' || camp.status === 'cancelled') {
+      if (['Completed', 'Cancelled'].includes(camp.lifecycle?.status)) {
       return res.status(400).json({
         success: false,
         message: 'Cannot update completed or cancelled camps'
@@ -407,14 +514,41 @@ exports.updateCamp = async (req, res) => {
       }
     });
 
-    Object.assign(camp, updates);
+    if (updates.title) {
+      camp.campName = updates.title;
+      if (camp.venue) camp.venue.name = updates.title;
+    }
+    if (updates.description) camp.description = updates.description;
+    if (updates.location && camp.venue) {
+      camp.venue.address = updates.location.address || camp.venue.address;
+      camp.venue.city = updates.location.city || camp.venue.city;
+      camp.venue.state = updates.location.state || camp.venue.state;
+      camp.venue.pincode = updates.location.pincode || camp.venue.pincode;
+      if (updates.location.coordinates?.length === 2) {
+        camp.venue.location.coordinates = updates.location.coordinates;
+      }
+    }
+    if (updates.dateTime && camp.schedule) {
+      const updatedDate = new Date(updates.dateTime);
+      camp.schedule.date = updatedDate;
+      camp.schedule.startTime = updatedDate.toTimeString().slice(0, 5);
+    }
+    if (updates.capacity && camp.venue) {
+      camp.venue.expectedDonors = Number(updates.capacity);
+      camp.venue.seatingCapacity = Number(updates.capacity);
+    }
+    if (updates.bloodGroupsNeeded) camp.bloodGroupsNeeded = updates.bloodGroupsNeeded;
+    if (updates.organizerContact && camp.organizer) {
+      camp.organizer.contactPhone = updates.organizerContact.phone || camp.organizer.contactPhone;
+      camp.organizer.contactEmail = updates.organizerContact.email || camp.organizer.contactEmail;
+    }
     await camp.save();
 
     // Emit real-time socket event for camp update
     try {
       broadcast('camp.updated', {
         campId: camp._id,
-        title: camp.title,
+        title: getCampTitle(camp),
         updates: updates,
         timestamp: new Date().toISOString()
       });
@@ -422,14 +556,26 @@ exports.updateCamp = async (req, res) => {
       // Also emit to specific roles
       emitToRole('public_user', 'camp.updated', {
         campId: camp._id,
-        title: camp.title,
-        message: `Blood camp "${camp.title}" has been updated`
+        title: getCampTitle(camp),
+        message: `Blood camp "${getCampTitle(camp)}" has been updated`
       });
 
       emitToRole('hospital_admin', 'camp.updated', {
         campId: camp._id,
-        title: camp.title,
-        message: `Blood camp "${camp.title}" has been updated`
+        title: getCampTitle(camp),
+        message: `Blood camp "${getCampTitle(camp)}" has been updated`
+      });
+
+      emitToRole('doctor', 'camp.updated', {
+        campId: camp._id,
+        title: getCampTitle(camp),
+        message: `Blood camp "${getCampTitle(camp)}" has been updated`
+      });
+
+      emitToRole('super_admin', 'camp.updated', {
+        campId: camp._id,
+        title: getCampTitle(camp),
+        message: `Blood camp "${getCampTitle(camp)}" has been updated`
       });
     } catch (socketError) {
       console.error('Error emitting socket event:', socketError);
@@ -437,13 +583,13 @@ exports.updateCamp = async (req, res) => {
 
     // Notify all booked users about the update
     notifyCampBookings(id, 'camp_update', 'Camp Updated', 
-      `The blood camp "${camp.title}" has been updated. Please check the new details.`)
+      `The blood camp "${getCampTitle(camp)}" has been updated. Please check the new details.`)
       .catch(err => console.error('Error notifying bookings:', err));
 
     res.status(200).json({
       success: true,
       message: 'Blood camp updated successfully',
-      data: { camp }
+      data: { camp: formatCampForClient(camp.toJSON()) }
     });
   } catch (error) {
     console.error('Error updating blood camp:', error);
@@ -475,21 +621,21 @@ exports.cancelCamp = async (req, res) => {
     }
 
     // Check if user is the organizer
-    if (camp.organizerId.toString() !== userId.toString()) {
+    if (String(getOrganizerId(camp)) !== String(userId)) {
       return res.status(403).json({
         success: false,
         message: 'You are not authorized to cancel this camp'
       });
     }
 
-    if (camp.status === 'cancelled') {
+    if (camp.lifecycle?.status === 'Cancelled') {
       return res.status(400).json({
         success: false,
         message: 'Camp is already cancelled'
       });
     }
 
-    if (camp.status === 'completed') {
+    if (camp.lifecycle?.status === 'Completed') {
       return res.status(400).json({
         success: false,
         message: 'Cannot cancel a completed camp'
@@ -497,7 +643,7 @@ exports.cancelCamp = async (req, res) => {
     }
 
     // Cancel camp
-    camp.status = 'cancelled';
+    camp.lifecycle.status = 'Cancelled';
     camp.cancellationReason = reason || 'Not specified';
     camp.cancelledAt = new Date();
     await camp.save();
@@ -506,7 +652,7 @@ exports.cancelCamp = async (req, res) => {
     try {
       broadcast('camp.cancelled', {
         campId: camp._id,
-        title: camp.title,
+        title: getCampTitle(camp),
         reason: camp.cancellationReason,
         timestamp: new Date().toISOString()
       });
@@ -514,16 +660,30 @@ exports.cancelCamp = async (req, res) => {
       // Also emit to specific roles
       emitToRole('public_user', 'camp.cancelled', {
         campId: camp._id,
-        title: camp.title,
+        title: getCampTitle(camp),
         reason: camp.cancellationReason,
-        message: `Blood camp "${camp.title}" has been cancelled. Reason: ${camp.cancellationReason}`
+        message: `Blood camp "${getCampTitle(camp)}" has been cancelled. Reason: ${camp.cancellationReason}`
       });
 
       emitToRole('hospital_admin', 'camp.cancelled', {
         campId: camp._id,
-        title: camp.title,
+        title: getCampTitle(camp),
         reason: camp.cancellationReason,
-        message: `Blood camp "${camp.title}" has been cancelled`
+        message: `Blood camp "${getCampTitle(camp)}" has been cancelled`
+      });
+
+      emitToRole('doctor', 'camp.cancelled', {
+        campId: camp._id,
+        title: getCampTitle(camp),
+        reason: camp.cancellationReason,
+        message: `Blood camp "${getCampTitle(camp)}" has been cancelled`
+      });
+
+      emitToRole('super_admin', 'camp.cancelled', {
+        campId: camp._id,
+        title: getCampTitle(camp),
+        reason: camp.cancellationReason,
+        message: `Blood camp "${getCampTitle(camp)}" has been cancelled`
       });
     } catch (socketError) {
       console.error('Error emitting socket event:', socketError);
@@ -544,7 +704,7 @@ exports.cancelCamp = async (req, res) => {
         userId: booking.userId,
         userModel: 'PublicUser',
         title: 'Camp Cancelled',
-        message: `The blood camp "${camp.title}" scheduled for ${new Date(camp.dateTime).toLocaleDateString()} has been cancelled. Reason: ${camp.cancellationReason}`,
+        message: `The blood camp "${getCampTitle(camp)}" scheduled for ${new Date(getCampDate(camp)).toLocaleDateString()} has been cancelled. Reason: ${camp.cancellationReason}`,
         type: 'camp_cancellation',
         priority: 'high',
         relatedEntity: {
@@ -558,7 +718,7 @@ exports.cancelCamp = async (req, res) => {
       success: true,
       message: 'Blood camp cancelled successfully',
       data: {
-        camp,
+        camp: formatCampForClient(camp.toJSON()),
         cancelledBookings: bookings.length
       }
     });
@@ -591,7 +751,7 @@ exports.deleteCamp = async (req, res) => {
     }
 
     // Check if user is the organizer
-    if (camp.organizerId.toString() !== userId.toString()) {
+    if (String(getOrganizerId(camp)) !== String(userId)) {
       return res.status(403).json({
         success: false,
         message: 'You are not authorized to delete this camp'
@@ -612,7 +772,7 @@ exports.deleteCamp = async (req, res) => {
     }
 
     // Soft delete
-    camp.isActive = false;
+    camp.lifecycle.status = 'Cancelled';
     await camp.save();
 
     res.status(200).json({
@@ -639,14 +799,14 @@ exports.getMyCamps = async (req, res) => {
     const { page = 1, limit = 10, status } = req.query;
 
     const skip = (page - 1) * limit;
-    const query = { organizerId: userId };
+    const query = { 'organizer.userId': userId };
 
     if (status) {
       query.status = status;
     }
 
     const camps = await BloodCamp.find(query)
-      .sort({ dateTime: -1 })
+      .sort({ 'schedule.date': -1 })
       .skip(skip)
       .limit(parseInt(limit))
       .select('-__v');
@@ -657,7 +817,7 @@ exports.getMyCamps = async (req, res) => {
       success: true,
       message: 'Your camps retrieved successfully',
       data: {
-        camps,
+        camps: camps.map(formatCampForClient),
         pagination: {
           total,
           page: parseInt(page),

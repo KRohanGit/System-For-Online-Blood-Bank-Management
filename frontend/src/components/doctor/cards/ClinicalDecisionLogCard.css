@@ -3,7 +3,9 @@
 .clinical-decision-log-card {
   background: white;
   padding: 20px;
-  border: 1px solid #ddd;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
 }
 
 .clinical-decision-log-card.loading {
@@ -21,19 +23,19 @@
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .card-header h3 {
   margin: 0;
-  font-size: 16px;
-  color: #000;
-  font-weight: normal;
+  font-size: 18px;
+  color: #0f172a;
+  font-weight: 700;
 }
 
 .decision-count {
   font-size: 14px;
-  color: #000;
+  color: #64748b;
 }
 
 .no-decisions {
@@ -43,7 +45,7 @@
 
 .no-decisions p {
   font-size: 14px;
-  color: #000;
+  color: #64748b;
   margin: 0;
 }
 
@@ -56,12 +58,13 @@
 
 .decision-item {
   background: white;
-  border: 1px solid #ddd;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
   padding: 15px;
 }
 
 .decision-item:hover {
-  background: #f5f5f5;
+  background: #f8fafc;
 }
 
 .decision-header {
@@ -77,20 +80,25 @@
   display: inline-block;
   padding: 5px 10px;
   font-size: 12px;
-  border: 1px solid #ddd;
-  background: white;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  border-radius: 999px;
+  color: #334155;
+  font-weight: 600;
 }
 
 .case-type-tag {
   font-size: 12px;
   padding: 5px 10px;
-  border: 1px solid #ddd;
-  background: white;
+  border: 1px solid #dbeafe;
+  background: #eff6ff;
+  border-radius: 999px;
+  color: #1e40af;
 }
 
 .decision-time {
   font-size: 12px;
-  color: #666;
+  color: #64748b;
 }
 
 .decision-details {
@@ -101,23 +109,23 @@
 
 .case-info {
   font-size: 13px;
-  color: #000;
+  color: #0f172a;
 }
 
 .patient-initials {
-  color: #666;
+  color: #64748b;
 }
 
 .justification-section strong {
   font-size: 13px;
-  color: #000;
-  font-weight: normal;
+  color: #0f172a;
+  font-weight: 700;
 }
 
 .justification-text {
   margin: 5px 0 0 0;
   font-size: 13px;
-  color: #000;
+  color: #334155;
   line-height: 1.5;
 }
 
@@ -125,10 +133,12 @@
   width: 100%;
   padding: 12px;
   background: white;
-  border: 1px solid #ddd;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
   font-size: 14px;
   cursor: pointer;
-  color: #000;
+  color: #0f172a;
+  font-weight: 600;
 }
 
 .view-full-log-btn:hover {
@@ -155,7 +165,8 @@
   width: 90%;
   display: flex;
   flex-direction: column;
-  border: 1px solid #ddd;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
 }
 
 .modal-header {
@@ -163,19 +174,20 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 18px;
-  color: #000;
-  font-weight: normal;
+  color: #0f172a;
+  font-weight: 700;
 }
 
 .close-btn {
   background: white;
-  border: 1px solid #ddd;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   font-size: 24px;
   cursor: pointer;
   padding: 5px 10px;
@@ -199,7 +211,8 @@
 }
 
 .full-log-item {
-  border: 1px solid #ddd;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
   padding: 15px;
 }
 
@@ -230,14 +243,14 @@
 
 .decision-metadata {
   font-size: 12px;
-  color: #666;
+  color: #64748b;
   display: flex;
   gap: 15px;
 }
 
 .modal-footer {
   padding: 20px;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #e2e8f0;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -246,9 +259,12 @@
 .btn-secondary {
   padding: 10px 20px;
   background: white;
-  border: 1px solid #ddd;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
+  color: #0f172a;
+  font-weight: 600;
 }
 
 .btn-secondary:hover {

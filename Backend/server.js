@@ -35,6 +35,8 @@ const rlRoutes = require('./src/routes/rlRoutes');
 const graphRoutes = require('./src/routes/graphRoutes');
 const optimizeRoutes = require('./src/routes/optimizeRoutes');
 const secureDocumentRoutes = require('./src/routes/secureDocumentRoutes');
+const demandForecastRoutes = require('./src/routes/demandForecastRoutes');
+const coordinationManagementRoutes = require('./src/routes/coordinationManagementRoutes');
 const { parseAllowedOrigins, isOriginAllowed } = require('./src/utils/originMatcher');
 
 let deliveryIntelligenceRoutes = null;
@@ -50,7 +52,13 @@ try {
 const app = express();
 const server = http.createServer(app);
 
-const clientOrigins = parseAllowedOrigins(process.env.CLIENT_URL || process.env.FRONTEND_URL || '');
+const configuredOrigins = [process.env.CLIENT_URL, process.env.FRONTEND_URL]
+  .filter(Boolean)
+  .join(',');
+const defaultDevOrigins = process.env.NODE_ENV === 'development'
+  ? 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001'
+  : '';
+const clientOrigins = parseAllowedOrigins([configuredOrigins, defaultDevOrigins].filter(Boolean).join(','));
 
 app.use(securityHeaders);
 app.use(cors({
@@ -133,6 +141,8 @@ app.use('/api/rl', apiLimiter, rlRoutes);
 app.use('/api/graph', apiLimiter, graphRoutes);
 app.use('/api/optimize', apiLimiter, optimizeRoutes);
 app.use('/api/documents', apiLimiter, secureDocumentRoutes);
+app.use('/api/demand-forecast', apiLimiter, demandForecastRoutes);
+app.use('/api/coordination', apiLimiter, coordinationManagementRoutes);
 
 // Root route
 app.get('/', (req, res) => {

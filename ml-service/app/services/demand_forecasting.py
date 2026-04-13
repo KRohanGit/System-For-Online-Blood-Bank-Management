@@ -12,12 +12,14 @@ MODEL_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file_
 
 
 class DemandForecaster:
+    # Entry service used by /predict/demand route.
 
     def __init__(self):
         self.model = None
         self.scaler = None
         self._load_model()
 
+    # Optional model artifact loading (kept for compatibility / future model-based path).
     def _load_model(self):
         model_path = os.path.join(MODEL_DIR, "demand_lstm.pkl")
         scaler_path = os.path.join(MODEL_DIR, "demand_scaler.pkl")
@@ -27,6 +29,7 @@ class DemandForecaster:
             with open(scaler_path, "rb") as f:
                 self.scaler = pickle.load(f)
 
+    # Pull and aggregate historical emergency demand for one hospital + blood group.
     def _fetch_historical_demand(self, hospital_id: str, blood_group: str, days_back: int = 365) -> pd.DataFrame:
         collection = get_collection("emergencyrequests")
         cutoff = datetime.utcnow() - timedelta(days=days_back)
@@ -60,6 +63,7 @@ class DemandForecaster:
         full_df = full_df.merge(df, on="date", how="left").fillna(0)
         return full_df
 
+    # Build time-series features used by forecast logic.
     def _compute_features(self, df: pd.DataFrame) -> np.ndarray:
         df = df.copy()
         df["day_of_week"] = df["date"].dt.dayofweek
@@ -74,6 +78,7 @@ class DemandForecaster:
                         "rolling_7", "rolling_30", "lag_1", "lag_7", "trend"]
         return df[feature_cols].values
 
+    # Main forecast path: seasonal/statistical projection + confidence bounds.
     def predict(self, hospital_id: str, blood_group: str, horizon_days: int,
                 include_confidence: bool = True) -> Dict[str, Any]:
         df = self._fetch_historical_demand(hospital_id, blood_group)
@@ -119,6 +124,7 @@ class DemandForecaster:
             }
         return result
 
+    # Safety fallback when history is too short: average-based projection.
     def _fallback_prediction(self, hospital_id: str, blood_group: str,
                              horizon_days: int) -> Dict[str, Any]:
         collection = get_collection("emergencyrequests")
@@ -148,4 +154,5 @@ class DemandForecaster:
         }
 
 
+# Singleton instance imported by API routes.
 demand_forecaster = DemandForecaster()

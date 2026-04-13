@@ -83,38 +83,6 @@ export const getOptimizationCompare = (runId = null) =>
     params: runId ? { runId } : {}
   });
 
-export const generateSyntheticData = (
-  {
-    dataType = 'donors',
-    count = 100,
-    seed = 42,
-    scenario = 'normal',
-    district = 'all',
-    includeGeo = true,
-    injectToSystem = false
-  } = {}
-) =>
-  api.post('/synthetic/generate', {
-    dataType,
-    count,
-    seed,
-    scenario,
-    district,
-    includeGeo,
-    injectToSystem
-  });
-
-export const getSyntheticPreview = (generationId = null, limit = 20) =>
-  api.get('/synthetic/preview', {
-    params: {
-      ...(generationId ? { generationId } : {}),
-      limit
-    }
-  });
-
-export const getSyntheticHistory = (limit = 10) =>
-  api.get('/synthetic/history', { params: { limit } });
-
 export const getMLHealth = () =>
   api.get('/ml/health');
 
@@ -155,3 +123,68 @@ export const graphBottlenecks = (threshold = 0.3) =>
 
 export const graphStabilityIndex = () =>
   api.get('/ml/graph/stability-index');
+
+export const findSimilarCases = (patientFeatures, topK = 10) =>
+  api.post('/ml/find-similar-cases', { patientFeatures, topK });
+
+export const recommendTreatment = (patientFeatures, topK = 10) =>
+  api.post('/ml/recommend-treatment', { patientFeatures, topK });
+
+export const predictOutcome = (patientFeatures, treatmentPlan) =>
+  api.post('/ml/predict-outcome', { patientFeatures, treatmentPlan });
+
+export const getHospitalCaseAnalytics = (hospitalId = null) =>
+  api.get('/hospital/case-analytics', {
+    params: hospitalId ? { hospitalId } : {}
+  });
+
+export const v2CausalAnalysis = (payload) =>
+  api.post('/ml/v2/forecast/causal-analysis', payload);
+
+export const v2BayesianUpdate = (payload) =>
+  api.post('/ml/v2/forecast/bayesian/update', payload);
+
+export const v2BayesianPredict = (bloodGroup = 'O+', horizon = 7) =>
+  api.get('/ml/v2/forecast/bayesian/predict', { params: { bloodGroup, horizon } });
+
+export const v2EpiActiveAlerts = (hospitalId = null) =>
+  api.get('/ml/v2/forecast/epi-coupling/active-alerts', {
+    params: hospitalId ? { hospitalId } : {}
+  });
+
+export const v2EpiAdjust = (payload) =>
+  api.post('/ml/v2/forecast/epi-coupling/adjust', payload);
+
+export const v2RareGroupStatus = (hospitalId = null) =>
+  api.get('/ml/v2/forecast/rare-group-augmentation/status', {
+    params: hospitalId ? { hospitalId } : {}
+  });
+
+export const v2RareGroupTrigger = (payload) =>
+  api.post('/ml/v2/forecast/rare-group-augmentation/trigger', payload);
+
+export const v2MonteCarloStress = (payload) =>
+  api.post('/ml/v2/forecast/monte-carlo-stress/run', payload);
+
+export const v2Circadian = (bloodGroup = 'O+', hours = 24, hospitalId = null) =>
+  api.get('/ml/v2/forecast/circadian', {
+    params: {
+      bloodGroup,
+      hours,
+      ...(hospitalId ? { hospitalId } : {})
+    }
+  });
+
+export const v2SupplyGapAnalysis = (hospitalId = null, weeks = 6) =>
+  api.get('/ml/v2/forecast/supply-demand-coforecast/gap-analysis', {
+    params: {
+      weeks,
+      ...(hospitalId ? { hospitalId } : {})
+    }
+  });
+
+export const v2OptimizeRecruitment = (payload) =>
+  api.post('/ml/v2/forecast/supply-demand-coforecast/optimize-recruitment', payload);
+
+export const v2HospitalAction = (actionType, payload = {}) =>
+  api.post('/ml/v2/forecast/hospital-actions', { actionType, payload });

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 
 const apiClient = axios.create({
   baseURL: `${API_BASE_URL}/api`,
@@ -29,6 +29,16 @@ const bloodApi = {
   traceBloodUnit: async (unitId) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/blood/trace/${unitId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, message: error.message };
+    }
+  },
+
+  // Public/Authenticated: Verify QR payload and resolve trace
+  verifyQrCode: async (qrData) => {
+    try {
+      const response = await apiClient.post('/blood/trace/verify', { qrData });
       return response.data;
     } catch (error) {
       throw error.response?.data || { success: false, message: error.message };

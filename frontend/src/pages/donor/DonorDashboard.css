@@ -131,6 +131,135 @@
   color: #4b5563;
 }
 
+.overview-actions {
+  margin-top: 16px;
+}
+
+.trace-action-btn,
+.trace-lookup-form button,
+.trace-view-btn {
+  border: none;
+  background: #dc2626;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.trace-action-btn:hover,
+.trace-lookup-form button:hover,
+.trace-view-btn:hover {
+  background: #b91c1c;
+}
+
+.trace-tab h2 {
+  font-size: 24px;
+  margin: 0 0 12px 0;
+  color: #1f2937;
+}
+
+.trace-subtitle {
+  color: #4b5563;
+  margin-bottom: 20px;
+}
+
+.trace-actions-row {
+  margin-bottom: 16px;
+}
+
+.trace-live-message {
+  margin: 0 0 12px;
+  color: #166534;
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.trace-lookup-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.trace-lookup-form input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+
+.trace-loading,
+.trace-empty {
+  color: #6b7280;
+}
+
+.trace-error {
+  color: #b91c1c;
+}
+
+.trace-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.trace-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  background: #fff;
+}
+
+.trace-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.trace-card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #111827;
+}
+
+.trace-status {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.trace-status-transfused {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.trace-status-expired {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.trace-impact-message {
+  color: #374151;
+  font-size: 14px;
+}
+
+.trace-usage-context {
+  margin: 8px 0 12px;
+  color: #1e40af;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .history-tab h2,
 .certificates-tab h2 {
   font-size: 24px;
@@ -157,5 +286,9 @@
 
   .tabs-content {
     padding: 16px;
+  }
+
+  .trace-lookup-form {
+    flex-direction: column;
   }
 }

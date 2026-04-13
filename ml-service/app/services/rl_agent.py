@@ -7,11 +7,13 @@ from app.services.rl_environment import BloodAllocationEnv
 from app.services.rl_policy import SimplePolicy, QLearningPolicy
 
 
+# Orchestrates training, simulation, and policy inspection for allocation RL.
 class RLAllocationAgent:
     def __init__(self):
         self.trained_policy = None
         self.training_history = []
 
+    # Train policy across episodes using either policy-gradient or Q-learning mode.
     def train(self, episodes: int = 50, algorithm: str = "policy_gradient",
               max_hospitals: int = 10) -> Dict[str, Any]:
         hospitals = fetch_hospital_data()[:max_hospitals]
@@ -59,6 +61,7 @@ class RLAllocationAgent:
         self.trained_policy = policy
         self.training_history = episode_metrics
 
+        # Return compact training telemetry for dashboard rendering.
         return {
             "algorithm": algorithm,
             "episodes_trained": episodes,
@@ -72,6 +75,7 @@ class RLAllocationAgent:
             "generated_at": timestamp()
         }
 
+    # Run a forward simulation with current policy or baseline strategies.
     def simulate_allocation(self, strategy: str = "optimal",
                             duration_days: int = 30) -> Dict[str, Any]:
         hospitals = fetch_hospital_data()[:10]
@@ -127,6 +131,7 @@ class RLAllocationAgent:
             "generated_at": timestamp()
         }
 
+    # Share current policy health/details for UI status panels.
     def get_policy(self) -> Dict[str, Any]:
         if not self.trained_policy:
             return {
@@ -142,6 +147,7 @@ class RLAllocationAgent:
             "generated_at": timestamp()
         }
 
+    # Heuristic fallback: push units from highest stock to lowest stock per blood group.
     def _greedy_action(self, env: BloodAllocationEnv) -> int:
         best_action = 0
         best_imbalance = float('inf')
@@ -160,6 +166,7 @@ class RLAllocationAgent:
                     best_action = min(best_action, min(env.action_dim, 200) - 1)
         return best_action
 
+    # Basic convergence signal from early-vs-late reward trend and final variance.
     def _compute_convergence(self, rewards: List[float]) -> Dict[str, Any]:
         if len(rewards) < 10:
             return {"converged": False, "trend": "insufficient_data"}
@@ -176,4 +183,5 @@ class RLAllocationAgent:
         }
 
 
+# Shared singleton used by RL routes.
 rl_agent = RLAllocationAgent()

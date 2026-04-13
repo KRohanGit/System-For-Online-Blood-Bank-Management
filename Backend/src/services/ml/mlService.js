@@ -1,4 +1,4 @@
-const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:8000';
+const ML_SERVICE_URL = process.env.ML_API_URL || process.env.ML_SERVICE_URL || 'http://ml-service:10000';
 
 // ML Service connection state
 let mlServiceReady = false;
@@ -63,11 +63,63 @@ async function predictDemand(hospitalId, bloodGroup, horizonDays = 7) {
   });
 }
 
+async function forecastV2(endpoint, method = 'POST', payload = null) {
+  return callMLService(`/ml/v2/forecast${endpoint}`, method, payload);
+}
+
+async function causalAnalysisV2(payload) {
+  return forecastV2('/causal-analysis', 'POST', payload);
+}
+
+async function bayesianUpdateV2(payload) {
+  return forecastV2('/bayesian/update', 'POST', payload);
+}
+
+async function bayesianPredictV2(bloodGroup = 'O+', horizon = 7) {
+  return forecastV2(`/bayesian/predict?bloodGroup=${encodeURIComponent(bloodGroup)}&horizon=${horizon}`, 'GET');
+}
+
+async function epiActiveAlertsV2(hospitalId) {
+  return forecastV2(`/epi-coupling/active-alerts?hospitalId=${encodeURIComponent(hospitalId)}`, 'GET');
+}
+
+async function epiAdjustV2(payload) {
+  return forecastV2('/epi-coupling/adjust', 'POST', payload);
+}
+
+async function rareGroupStatusV2(hospitalId) {
+  return forecastV2(`/rare-group-augmentation/status?hospitalId=${encodeURIComponent(hospitalId)}`, 'GET');
+}
+
+async function rareGroupTriggerV2(payload) {
+  return forecastV2('/rare-group-augmentation/trigger', 'POST', payload);
+}
+
+async function monteCarloStressV2(payload) {
+  return forecastV2('/monte-carlo-stress/run', 'POST', payload);
+}
+
+async function circadianV2(bloodGroup = 'O+', hours = 24) {
+  return forecastV2(`/circadian?bloodGroup=${encodeURIComponent(bloodGroup)}&hours=${hours}`, 'GET');
+}
+
+async function supplyGapV2(hospitalId, weeks = 6) {
+  return forecastV2(`/supply-demand-coforecast/gap-analysis?hospitalId=${encodeURIComponent(hospitalId)}&weeks=${weeks}`, 'GET');
+}
+
+async function optimizeRecruitmentV2(payload) {
+  return forecastV2('/supply-demand-coforecast/optimize-recruitment', 'POST', payload);
+}
+
 async function predictCrisis(hospitalId, lookaheadHours = 48) {
   return callMLService('/predict/crisis', 'POST', {
     hospital_id: hospitalId,
     lookahead_hours: lookaheadHours
   });
+}
+
+async function retrainCrisisModel() {
+  return callMLService('/predict/crisis/retrain', 'POST', {});
 }
 
 async function predictDonorReturn(donorId, donationHistory = [], demographics = {}) {
@@ -104,6 +156,20 @@ async function rankHospitals(bloodGroup, urgency, patientLocation, unitsNeeded =
   });
 }
 
+async function predictDeliveryEta(features) {
+  return callMLService('/delivery-eta/predict', 'POST', {
+    distance_km: features.distance_km,
+    base_eta_minutes: features.base_eta_minutes,
+    hour_of_day: features.hour_of_day,
+    day_of_week: features.day_of_week,
+    traffic_ratio: features.traffic_ratio,
+    weather_score: features.weather_score,
+    priority_flag: features.priority_flag || 0,
+    route_complexity_score: features.route_complexity_score ?? 0.5,
+    historical_delay_factor: features.historical_delay_factor ?? 1.0
+  });
+}
+
 async function runSimulation(scenarioType, parameters, durationDays = 30, monteCarloRuns = 100) {
   return callMLService('/simulation/run', 'POST', {
     scenario_type: scenarioType,
@@ -119,15 +185,6 @@ async function optimizeTransfers(objective = 'minimize_waste', constraints = {},
     constraints,
     hospital_ids: hospitalIds,
     blood_groups: bloodGroups
-  });
-}
-
-async function generateSyntheticData(dataType, count = 100, hospitalIds = null, seed = 42) {
-  return callMLService('/synthetic/generate', 'POST', {
-    data_type: dataType,
-    count,
-    hospital_ids: hospitalIds,
-    seed
   });
 }
 
@@ -194,6 +251,31 @@ async function graphStabilityIndex() {
   return callMLService('/graph/stability-index', 'GET');
 }
 
+async function findSimilarCases(patientFeatures, topK = 10) {
+  return callMLService('/clinical/find-similar-cases', 'POST', {
+    patient_features: patientFeatures,
+    top_k: topK
+  });
+}
+
+async function recommendTreatment(patientFeatures, topK = 10) {
+  return callMLService('/clinical/recommend-treatment', 'POST', {
+    patient_features: patientFeatures,
+    top_k: topK
+  });
+}
+
+async function predictClinicalOutcome(patientFeatures, treatmentPlan = {}) {
+  return callMLService('/clinical/predict-outcome', 'POST', {
+    patient_features: patientFeatures,
+    treatment_plan: treatmentPlan
+  });
+}
+
+async function triggerClinicalRetraining(force = false) {
+  return callMLService('/clinical/retrain', 'POST', { force_retrain: !!force });
+}
+
 /**
  * Start monitoring ML Service health
  * Periodically checks if ML service is available and logs status
@@ -249,14 +331,26 @@ function getMLServiceURL() {
 module.exports = {
   callMLService,
   predictDemand,
+  causalAnalysisV2,
+  bayesianUpdateV2,
+  bayesianPredictV2,
+  epiActiveAlertsV2,
+  epiAdjustV2,
+  rareGroupStatusV2,
+  rareGroupTriggerV2,
+  monteCarloStressV2,
+  circadianV2,
+  supplyGapV2,
+  optimizeRecruitmentV2,
   predictCrisis,
+  retrainCrisisModel,
   predictDonorReturn,
   predictWastage,
   detectAnomalies,
   rankHospitals,
+  predictDeliveryEta,
   runSimulation,
   optimizeTransfers,
-  generateSyntheticData,
   getMLHealth,
   digitalTwinSimulate,
   digitalTwinStatus,
@@ -269,6 +363,10 @@ module.exports = {
   graphCentrality,
   graphBottlenecks,
   graphStabilityIndex,
+  findSimilarCases,
+  recommendTreatment,
+  predictClinicalOutcome,
+  triggerClinicalRetraining,
   startMLServiceMonitoring,
   stopMLServiceMonitoring,
   isMLServiceReady,

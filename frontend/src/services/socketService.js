@@ -1,6 +1,8 @@
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+const API_URL = process.env.REACT_APP_API_URL || '';
+const derivedSocketUrl = API_URL ? API_URL.replace(/\/api\/?$/, '') : '';
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || derivedSocketUrl || (typeof window !== 'undefined' ? window.location.origin : '');
 
 let socket = null;
 
@@ -49,9 +51,14 @@ export function joinBloodCampRoom(campId) {
 }
 
 export function onEvent(eventName, callback) {
-  if (socket) {
-    socket.on(eventName, callback);
-    return () => socket.off(eventName, callback);
+  const activeSocket = socket;
+  if (activeSocket) {
+    activeSocket.on(eventName, callback);
+    return () => {
+      if (activeSocket && activeSocket.off) {
+        activeSocket.off(eventName, callback);
+      }
+    };
   }
   return () => {};
 }

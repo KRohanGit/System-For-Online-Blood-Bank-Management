@@ -6,6 +6,7 @@ import Modal from '../../components/common/Modal';
 import {
   createEmergencyRequest,
   getEmergencyRequests,
+  getNearbyCoordinationHospitals,
   acceptEmergencyRequest,
   declineEmergencyRequest
 } from '../../services/emergencyCoordinationApi';
@@ -19,6 +20,7 @@ function EmergencyInterCloud() {
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [matchingHospitals, setMatchingHospitals] = useState([]);
+  const [nearbyHospitals, setNearbyHospitals] = useState([]);
   const [activeRequests, setActiveRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -51,6 +53,7 @@ function EmergencyInterCloud() {
   // Load active requests on component mount
   useEffect(() => {
     loadEmergencyRequests();
+    loadNearbyHospitals();
   }, []);
 
   const loadEmergencyRequests = async () => {
@@ -59,6 +62,16 @@ function EmergencyInterCloud() {
       setActiveRequests(data.requests || []);
     } catch (err) {
       console.error('Error loading requests:', err);
+    }
+  };
+
+  const loadNearbyHospitals = async () => {
+    try {
+      const response = await getNearbyCoordinationHospitals({ radius: 50 });
+      setNearbyHospitals(response.data || []);
+    } catch (err) {
+      console.error('Error loading nearby hospitals:', err);
+      setNearbyHospitals([]);
     }
   };
 
@@ -172,33 +185,10 @@ function EmergencyInterCloud() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
-    
-    try {
-      // TODO: Implement actual API call when backend is ready
-      console.log('Sending message:', messageForm);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setSuccess(`Message sent successfully to ${messageForm.recipientHospital}!`);
-      setShowMessageModal(false);
-      
-      // Reset form
-      setMessageForm({
-        recipientHospital: '',
-        messageType: 'URGENT_REQUEST',
-        subject: '',
-        message: '',
-        bloodGroup: '',
-        unitsNeeded: ''
-      });
-    } catch (err) {
-      setError(err.message || 'Failed to send message');
-    } finally {
-      setLoading(false);
-    }
+
+    setError('Direct message endpoint is not configured. Use emergency request workflow for auditable coordination.');
+    setShowMessageModal(false);
   };
 
   const getSeverityColor = (severity) => {
@@ -221,62 +211,6 @@ function EmergencyInterCloud() {
     };
     return colors[status] || 'blue';
   };
-
-  // Mock data - Inter-hospital network
-  const nearbyHospitals = [
-    {
-      id: 1,
-      name: 'St. Mary Medical Center',
-      distance: '2.3 km',
-      availability: {
-        'A+': 15, 'A-': 3, 'B+': 12, 'B-': 2, 
-        'AB+': 5, 'AB-': 1, 'O+': 18, 'O-': 4
-      },
-      lastDonation: '15 mins ago',
-      responseTime: '< 10 mins',
-      status: 'online',
-      contact: '+1 234-567-1001'
-    },
-    {
-      id: 2,
-      name: 'Hope Healthcare',
-      distance: '3.8 km',
-      availability: {
-        'A+': 8, 'A-': 1, 'B+': 10, 'B-': 0, 
-        'AB+': 3, 'AB-': 0, 'O+': 14, 'O-': 2
-      },
-      lastDonation: '1 hour ago',
-      responseTime: '< 15 mins',
-      status: 'online',
-      contact: '+1 234-567-1002'
-    },
-    {
-      id: 3,
-      name: 'Metro Health Center',
-      distance: '5.1 km',
-      availability: {
-        'A+': 20, 'A-': 5, 'B+': 15, 'B-': 3, 
-        'AB+': 8, 'AB-': 2, 'O+': 25, 'O-': 6
-      },
-      lastDonation: '30 mins ago',
-      responseTime: '< 20 mins',
-      status: 'online',
-      contact: '+1 234-567-1003'
-    },
-    {
-      id: 4,
-      name: 'Community Hospital',
-      distance: '7.5 km',
-      availability: {
-        'A+': 5, 'A-': 0, 'B+': 4, 'B-': 1, 
-        'AB+': 2, 'AB-': 0, 'O+': 8, 'O-': 1
-      },
-      lastDonation: '3 hours ago',
-      responseTime: '< 30 mins',
-      status: 'busy',
-      contact: '+1 234-567-1004'
-    }
-  ];
 
   return (
     <DashboardLayout>
@@ -631,8 +565,8 @@ function EmergencyInterCloud() {
                   >
                     <option value="">Select Hospital</option>
                     {nearbyHospitals.map(hospital => (
-                      <option key={hospital.id} value={hospital.name}>
-                        {hospital.name} ({hospital.distance})
+                      <option key={hospital.hospitalId || hospital._id} value={hospital.hospitalName || hospital.name}>
+                        {hospital.hospitalName || hospital.name} ({hospital.distanceKm || hospital.distance || 'N/A'} km)
                       </option>
                     ))}
                   </select>

@@ -72,6 +72,22 @@ export const getClinicalAdvisories = async (params = {}) => {
   return response.data;
 };
 
+// AI Clinical Assistant
+export const analyzeClinicalCase = async (casePayload) => {
+  const response = await api.post('/doctor-clinical/cases/analyze', casePayload);
+  return response.data;
+};
+
+export const getClinicalCases = async (params = {}) => {
+  const response = await api.get('/doctor-clinical/cases', { params });
+  return response.data;
+};
+
+export const updateClinicalCaseOutcome = async (caseId, outcomePayload) => {
+  const response = await api.patch(`/doctor-clinical/cases/${caseId}/outcome`, outcomePayload);
+  return response.data;
+};
+
 // Audit Trail
 export const getAuditTrail = async (params = {}) => {
   const response = await api.get('/doctor-clinical/audit-trail', { params });
@@ -91,6 +107,9 @@ const doctorClinicalAPI = {
   submitCampOversight,
   submitClinicalAdvisory,
   getClinicalAdvisories,
+  analyzeClinicalCase,
+  getClinicalCases,
+  updateClinicalCaseOutcome,
   getAuditTrail
 };
 

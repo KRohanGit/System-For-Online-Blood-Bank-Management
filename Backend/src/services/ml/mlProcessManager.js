@@ -10,6 +10,12 @@ const MAX_RESTART_ATTEMPTS = 5;
 const RESTART_DELAY = 3000;
 const HEALTH_CHECK_INTERVAL = 30000;
 let healthIntervalRef = null;
+const ML_API_URL = process.env.ML_API_URL || process.env.ML_SERVICE_URL || 'http://ml-service:10000';
+
+function shouldUseExternalMLService() {
+  const externalFlag = String(process.env.ML_EXTERNAL || '').toLowerCase();
+  return process.env.NODE_ENV === 'production' || externalFlag === '1' || externalFlag === 'true';
+}
 
 function getProjectRoot() {
   return path.join(__dirname, '../../../../');
@@ -39,6 +45,18 @@ function resolvePythonExecutable(mlServicePath) {
  */
 function startMLService() {
   return new Promise((resolve, reject) => {
+    if (shouldUseExternalMLService()) {
+      checkMLHealth()
+        .then(() => {
+          console.log(`[ML Manager] Using external ML Service at ${ML_API_URL}`);
+          resolve();
+        })
+        .catch((error) => {
+          reject(new Error(`External ML service is not reachable at ${ML_API_URL}: ${error.message}`));
+        });
+      return;
+    }
+
     if (mlProcess) {
       console.log('[ML Manager] ML Service already running');
       resolve();
@@ -133,7 +151,7 @@ function startMLService() {
             checkMLHealth()
               .then(() => {
                 console.log('[ML Manager] ML Service started successfully');
-                console.log('[ML Manager] ML Service running on http://localhost:8000');
+                console.log(`[ML Manager] ML Service running at ${ML_API_URL}`);
                 restartAttempts = 0;
                 resolve();
               })
@@ -156,15 +174,18 @@ function startMLService() {
  */
 function checkMLHealth() {
   return new Promise((resolve, reject) => {
+    const targetUrl = new URL(ML_API_URL);
+    const isHttps = targetUrl.protocol === 'https:';
     const options = {
-      hostname: 'localhost',
-      port: 8000,
-      path: '/health',
+      hostname: targetUrl.hostname,
+      port: Number(targetUrl.port || (isHttps ? 443 : 80)),
+      path: `${targetUrl.pathname.replace(/\/$/, '')}/health`,
       method: 'GET',
       timeout: 5000
     };
 
-    const req = http.request(options, (res) => {
+    const client = isHttps ? require('https') : http;
+    const req = client.request(options, (res) => {
       if (res.statusCode === 200) {
         resolve({ status: 'healthy' });
       } else {
@@ -196,7 +217,11 @@ function startHealthMonitoring() {
 
   healthIntervalRef = setInterval(async () => {
     try {
-      if (!mlProcess || isShuttingDown) {
+      if (isShuttingDown) {
+        return;
+      }
+
+      if (!shouldUseExternalMLService() && !mlProcess) {
         return;
       }
 
@@ -212,6 +237,8 @@ function startHealthMonitoring() {
         await startMLService().catch(err => {
           console.error('[ML Manager] Restart failed:', err.message);
         });
+      } else if (shouldUseExternalMLService()) {
+        console.warn(`[ML Manager] External ML Service health check failed: ${ML_API_URL}`);
       }
     }
   }, HEALTH_CHECK_INTERVAL);
@@ -229,7 +256,7 @@ async function stopMLService() {
       healthIntervalRef = null;
     }
 
-    if (!mlProcess) {
+    if (shouldUseExternalMLService() || !mlProcess) {
       resolve();
       return;
     }

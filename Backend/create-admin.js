@@ -3,7 +3,6 @@
 // Run this script: node create-admin.js
 
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 // Define User schema inline
@@ -127,8 +126,7 @@ async function createAdminUser() {
       const updatePassword = process.argv.includes('--reset-password');
       if (updatePassword) {
         console.log('\n🔄 Resetting hospital admin password...');
-        const salt = await bcrypt.genSalt(12);
-        existingAdmin.password = await bcrypt.hash(adminPassword, salt);
+        existingAdmin.password = adminPassword;
         existingAdmin.role = 'hospital_admin'; // Update role
         existingAdmin.isVerified = true;
         await existingAdmin.save();
@@ -138,13 +136,10 @@ async function createAdminUser() {
     } else {
       // Create new hospital admin user
       console.log('\n🔨 Creating Hospital Admin user...');
-      
-      const salt = await bcrypt.genSalt(12);
-      const hashedPassword = await bcrypt.hash(adminPassword, salt);
-      
+
       const admin = new User({
         email: adminEmail,
-        password: hashedPassword,
+        password: adminPassword,
         role: 'hospital_admin',
         isVerified: true
       });

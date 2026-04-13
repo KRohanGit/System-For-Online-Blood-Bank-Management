@@ -7,8 +7,10 @@ from ..db import get_collection
 BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
 
 
+# Detects operational outliers from inventory and emergency request streams.
 class AnomalyDetector:
 
+    # Aggregate recent inventory snapshots by hospital and blood group.
     def _fetch_inventory_metrics(self, hospital_id: Optional[str],
                                   time_window_hours: int) -> List[Dict]:
         collection = get_collection("bloodinventories")
@@ -35,6 +37,7 @@ class AnomalyDetector:
         ]
         return list(collection.aggregate(pipeline))
 
+    # Aggregate recent request activity by hospital and hour bucket.
     def _fetch_request_metrics(self, hospital_id: Optional[str],
                                 time_window_hours: int) -> List[Dict]:
         collection = get_collection("emergencyrequests")
@@ -60,6 +63,7 @@ class AnomalyDetector:
         ]
         return list(collection.aggregate(pipeline))
 
+    # Flag indices with high z-score deviation from local distribution.
     def _detect_statistical_anomalies(self, values: List[float],
                                        threshold: float = 2.5) -> List[int]:
         if len(values) < 3:
@@ -72,6 +76,7 @@ class AnomalyDetector:
         z_scores = np.abs((arr - mean) / std)
         return [i for i, z in enumerate(z_scores) if z > threshold]
 
+    # Flag indices outside IQR whiskers for robust outlier detection.
     def _detect_iqr_anomalies(self, values: List[float]) -> List[int]:
         if len(values) < 4:
             return []
@@ -83,6 +88,7 @@ class AnomalyDetector:
         upper = q3 + 1.5 * iqr
         return [i for i, v in enumerate(arr) if v < lower or v > upper]
 
+    # Main detector: combine inventory/request checks and return severity summary.
     def detect(self, hospital_id: Optional[str] = None,
                metric_type: str = "inventory",
                time_window_hours: int = 24) -> Dict[str, Any]:
@@ -152,4 +158,5 @@ class AnomalyDetector:
         }
 
 
+# Shared singleton used by prediction routes.
 anomaly_detector = AnomalyDetector()

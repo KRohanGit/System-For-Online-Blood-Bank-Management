@@ -2,6 +2,7 @@ const HospitalProfile = require('../models/HospitalProfile');
 const User = require('../models/User');
 const PublicUser = require('../models/PublicUser');
 const DonorCredential = require('../models/DonorCredential');
+const ClinicalCase = require('../models/ClinicalCase');
 const bcrypt = require('bcryptjs');
 const { sendDonorCredentialEmail, getEmailDeliveryMode } = require('../services/email.service');
 
@@ -459,6 +460,155 @@ const deleteDonorAccount = async (req, res) => {
   }
 };
 
+/**
+ * Get AI-ready case analytics for the hospital dashboard.
+ */
+const getCaseAnalytics = async (req, res) => {
+  try {
+    const role = String(req.userRole || '').toLowerCase();
+    const requestedHospitalId = req.query?.hospitalId;
+
+    let targetHospitalId = null;
+    if (role === 'super_admin' && requestedHospitalId) {
+      targetHospitalId = requestedHospitalId;
+    } else {
+      const hospitalProfile = await HospitalProfile.findOne({ userId: req.userId || req.user?._id }).select('_id hospitalName').lean();
+      if (!hospitalProfile?._id) {
+        return res.status(404).json({ success: false, message: 'Hospital profile not found' });
+      }
+      targetHospitalId = hospitalProfile._id;
+    }
+
+    const [
+      totalCases,
+      commonConditions,
+      avgBloodUsageResult,
+      successRateResult,
+      bloodGroupUsage,
+      weeklyTrend
+    ] = await Promise.all([
+      ClinicalCase.countDocuments({ hospitalId: targetHospitalId }),
+      ClinicalCase.aggregate([
+        { $match: { hospitalId: targetHospitalId } },
+        { $group: { _id: '$anonymizedPatientFeatures.conditionType', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 6 }
+      ]),
+      ClinicalCase.aggregate([
+        { $match: { hospitalId: targetHospitalId } },
+        { $group: { _id: null, avgUnits: { $avg: '$treatment.unitsGiven' } } }
+      ]),
+      ClinicalCase.aggregate([
+        {
+          $match: {
+            hospitalId: targetHospitalId,
+            'outcome.survival': { $in: [true, false] }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            successful: {
+              $sum: { $cond: [{ $eq: ['$outcome.survival', true] }, 1, 0] }
+            }
+          }
+        }
+      ]),
+      ClinicalCase.aggregate([
+        { $match: { hospitalId: targetHospitalId } },
+        { $group: { _id: '$treatment.bloodTypeUsed', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 8 }
+      ]),
+      ClinicalCase.aggregate([
+        {
+          $match: {
+            hospitalId: targetHospitalId,
+            timestamp: { $gte: new Date(Date.now() - 42 * 24 * 60 * 60 * 1000) }
+          }
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: '$timestamp' },
+              week: { $isoWeek: '$timestamp' }
+            },
+            cases: { $sum: 1 },
+            avgUnits: { $avg: '$treatment.unitsGiven' }
+          }
+        },
+        { $sort: { '_id.year': 1, '_id.week': 1 } }
+      ])
+    ]);
+
+    const averageUnitsPerCase = Number(avgBloodUsageResult?.[0]?.avgUnits || 0).toFixed(2);
+    const successTotal = successRateResult?.[0]?.total || 0;
+    const successCount = successRateResult?.[0]?.successful || 0;
+    const successRate = successTotal > 0 ? (successCount / successTotal) * 100 : null;
+
+    const recentWeeks = weeklyTrend.slice(-2);
+    const priorWeeks = weeklyTrend.slice(-4, -2);
+    const recentCasesAvg = recentWeeks.length
+      ? recentWeeks.reduce((sum, week) => sum + (week.cases || 0), 0) / recentWeeks.length
+      : 0;
+    const priorCasesAvg = priorWeeks.length
+      ? priorWeeks.reduce((sum, week) => sum + (week.cases || 0), 0) / priorWeeks.length
+      : 0;
+
+    const demandGrowth = priorCasesAvg > 0 ? ((recentCasesAvg - priorCasesAvg) / priorCasesAvg) * 100 : 0;
+    const topBloodUsage = bloodGroupUsage?.[0]?._id;
+
+    const aiInsights = [];
+    const predictiveAlerts = [];
+
+    if (demandGrowth > 15) {
+      aiInsights.push('High demand cases increasing compared to previous weeks');
+      predictiveAlerts.push(`Projected case load increase of ${demandGrowth.toFixed(1)}% over baseline`);
+    }
+
+    if (topBloodUsage) {
+      aiInsights.push(`Blood group ${topBloodUsage} is currently the most used in transfusion plans`);
+    }
+
+    if (!aiInsights.length) {
+      aiInsights.push('Case volume and transfusion demand are currently stable');
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalCases,
+        commonConditions: commonConditions.map((item) => ({
+          conditionType: item._id || 'unknown',
+          count: item.count
+        })),
+        averageUnitsPerCase: Number(averageUnitsPerCase),
+        successRate: successRate === null ? null : Number(successRate.toFixed(2)),
+        bloodGroupUsage: bloodGroupUsage.map((item) => ({
+          bloodGroup: item._id || 'unknown',
+          count: item.count
+        })),
+        weeklyTrend: weeklyTrend.map((item) => ({
+          year: item._id.year,
+          week: item._id.week,
+          cases: item.cases,
+          avgUnits: Number((item.avgUnits || 0).toFixed(2))
+        })),
+        aiInsights,
+        predictiveAlerts
+      }
+    });
+  } catch (error) {
+    console.error('Get case analytics error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch case analytics',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getHospitalProfile,
   updateHospitalProfile,
@@ -466,5 +616,6 @@ module.exports = {
   createDonorAccount,
   resendDonorCredentials,
   updateDonorStatus,
-  deleteDonorAccount
+  deleteDonorAccount,
+  getCaseAnalytics
 };

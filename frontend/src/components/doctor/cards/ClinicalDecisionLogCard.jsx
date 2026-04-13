@@ -1,6 +1,6 @@
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import doctorClinicalAPI from '../../../services/doctorClinicalAPI';
 import './ClinicalDecisionLogCard.css';
 
@@ -8,12 +8,7 @@ const ClinicalDecisionLogCard = () => {
   const [recentDecisions, setRecentDecisions] = useState([]);
   const [showFullLog, setShowFullLog] = useState(false);
   const [fullLogData, setFullLogData] = useState(null);
-  const [expandedDecision, setExpandedDecision] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadRecentDecisions();
-  }, []);
 
   const formatDecisionTime = (timestamp) => {
     const now = new Date();
@@ -43,7 +38,7 @@ const ClinicalDecisionLogCard = () => {
     doctorId: record.doctorId || 'N/A'
   });
 
-  const loadRecentDecisions = async () => {
+  const loadRecentDecisions = useCallback(async () => {
     setLoading(true);
     try {
       const response = await doctorClinicalAPI.getAuditTrail({ page: 1, limit: 5 });
@@ -55,7 +50,11 @@ const ClinicalDecisionLogCard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadRecentDecisions();
+  }, [loadRecentDecisions]);
 
   const handleViewFullLog = async () => {
     try {
@@ -80,22 +79,6 @@ const ClinicalDecisionLogCard = () => {
     setShowFullLog(false);
     setFullLogData(null);
   };
-
-  const toggleExpand = (decisionId) => {
-    setExpandedDecision(expandedDecision === decisionId ? null : decisionId);
-  };
-
-  const getActionBadgeClass = (actionType) => {
-    const classes = {
-      'APPROVED': 'badge-approved',
-      'REJECTED': 'badge-rejected',
-      'DOWNGRADED': 'badge-downgraded',
-      'CANCELLED': 'badge-cancelled'
-    };
-    return classes[actionType] || 'badge-default';
-  };
-
-
 
   if (loading) {
     return (

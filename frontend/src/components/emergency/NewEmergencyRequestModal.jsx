@@ -1,19 +1,28 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './NewEmergencyRequestModal.css';
 
-const NewEmergencyRequestModal = ({ isOpen, onClose, onSubmit, nearbyHospitals }) => {
+const NewEmergencyRequestModal = ({ isOpen, onClose, onSubmit, nearbyHospitals, initialHospitalId = '' }) => {
   const [formData, setFormData] = useState({
     receivingHospital: '',
     bloodGroup: '',
     componentType: 'RBC',
     unitsRequired: '',
-    urgencyLevel: 'CRITICAL',
+    urgencyLevel: 'HIGH',
     patientCriticality: '',
     requiredWithin: '',
     notes: ''
   });
 
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormData((prev) => ({
+        ...prev,
+        receivingHospital: initialHospitalId || prev.receivingHospital
+      }));
+    }
+  }, [initialHospitalId, isOpen]);
 
   if (!isOpen) return null;
 
@@ -29,7 +38,7 @@ const NewEmergencyRequestModal = ({ isOpen, onClose, onSubmit, nearbyHospitals }
     const newErrors = {};
     if (!formData.receivingHospital) newErrors.receivingHospital = 'Please select a hospital';
     if (!formData.bloodGroup) newErrors.bloodGroup = 'Blood group is required';
-    if (!formData.unitsRequired || formData.unitsRequired <= 0) newErrors.unitsRequired = 'Valid units required';
+    if (formData.unitsRequired && Number(formData.unitsRequired) <= 0) newErrors.unitsRequired = 'Units must be greater than 0';
     if (!formData.patientCriticality) newErrors.patientCriticality = 'Patient criticality is required';
     if (!formData.requiredWithin) newErrors.requiredWithin = 'Time requirement is required';
     
@@ -42,11 +51,11 @@ const NewEmergencyRequestModal = ({ isOpen, onClose, onSubmit, nearbyHospitals }
     if (validate()) {
       onSubmit(formData);
       setFormData({
-        receivingHospital: '',
+        receivingHospital: initialHospitalId || '',
         bloodGroup: '',
         componentType: 'RBC',
         unitsRequired: '',
-        urgencyLevel: 'CRITICAL',
+        urgencyLevel: 'HIGH',
         patientCriticality: '',
         requiredWithin: '',
         notes: ''
@@ -121,13 +130,13 @@ const NewEmergencyRequestModal = ({ isOpen, onClose, onSubmit, nearbyHospitals }
 
           <div className="form-row">
             <div className="form-group">
-              <label>Units Required *</label>
+              <label>Units Required (Optional)</label>
               <input
                 type="number"
                 name="unitsRequired"
                 value={formData.unitsRequired}
                 onChange={handleChange}
-                placeholder="Enter units"
+                placeholder="Approximate units (optional)"
                 min="1"
                 className={errors.unitsRequired ? 'error' : ''}
               />
@@ -141,9 +150,10 @@ const NewEmergencyRequestModal = ({ isOpen, onClose, onSubmit, nearbyHospitals }
                 value={formData.urgencyLevel}
                 onChange={handleChange}
               >
-                <option value="CRITICAL">Critical</option>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
                 <option value="HIGH">High</option>
-                <option value="MODERATE">Moderate</option>
+                <option value="CRITICAL">Critical</option>
               </select>
             </div>
           </div>
@@ -164,11 +174,10 @@ const NewEmergencyRequestModal = ({ isOpen, onClose, onSubmit, nearbyHospitals }
           <div className="form-group">
             <label>Required Within *</label>
             <input
-              type="text"
+              type="datetime-local"
               name="requiredWithin"
               value={formData.requiredWithin}
               onChange={handleChange}
-              placeholder="e.g., 2 hours, 30 minutes, Immediately"
               className={errors.requiredWithin ? 'error' : ''}
             />
             {errors.requiredWithin && <span className="error-msg">{errors.requiredWithin}</span>}

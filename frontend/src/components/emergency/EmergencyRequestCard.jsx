@@ -1,7 +1,7 @@
 import React from 'react';
 import './EmergencyRequestCard.css';
 
-const EmergencyRequestCard = ({ request, onAccept, onReject, isOutgoing }) => {
+const EmergencyRequestCard = ({ request, onAccept, onReject, onTrack, onDispatch, isOutgoing }) => {
   const getUrgencyClass = (urgency) => {
     switch(urgency?.toLowerCase()) {
       case 'critical': return 'urgency-critical';
@@ -13,13 +13,22 @@ const EmergencyRequestCard = ({ request, onAccept, onReject, isOutgoing }) => {
 
   const getStatusClass = (status) => {
     switch(status?.toLowerCase()) {
+      case 'created': return 'status-pending';
       case 'accepted': return 'status-accepted';
+      case 'partner_accepted': return 'status-accepted';
       case 'dispatched': return 'status-dispatched';
+      case 'logistics_dispatch': return 'status-dispatched';
       case 'completed': return 'status-completed';
+      case 'delivered': return 'status-completed';
       case 'rejected': return 'status-rejected';
+      case 'failed': return 'status-rejected';
       default: return 'status-pending';
     }
   };
+
+  const isPendingForAction = ['pending', 'created'].includes(String(request.status || '').toLowerCase());
+  const isTrackable = ['accepted', 'partner_accepted', 'dispatched', 'logistics_dispatch', 'in_transit', 'delivered', 'completed'].includes(String(request.status || request.lifecycleStatus || '').toLowerCase());
+  const isDispatchable = ['accepted', 'partner_accepted'].includes(String(request.status || request.lifecycleStatus || '').toLowerCase());
 
   const formatTimeAgo = (date) => {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
@@ -88,7 +97,7 @@ const EmergencyRequestCard = ({ request, onAccept, onReject, isOutgoing }) => {
           <span className="time-ago">{formatTimeAgo(request.createdAt)}</span>
         </div>
 
-        {!isOutgoing && request.status === 'PENDING' && (
+        {!isOutgoing && isPendingForAction && (
           <div className="action-buttons">
             <button 
               className="btn-accept"
@@ -101,6 +110,28 @@ const EmergencyRequestCard = ({ request, onAccept, onReject, isOutgoing }) => {
               onClick={() => onReject(request._id)}
             >
               Reject
+            </button>
+          </div>
+        )}
+
+        {isTrackable && typeof onTrack === 'function' && (
+          <div className="action-buttons" style={{ marginTop: '0.5rem' }}>
+            <button
+              className="btn-accept"
+              onClick={() => onTrack(request)}
+            >
+              Track Delivery
+            </button>
+          </div>
+        )}
+
+        {isDispatchable && typeof onDispatch === 'function' && (
+          <div className="action-buttons" style={{ marginTop: '0.5rem' }}>
+            <button
+              className="btn-accept"
+              onClick={() => onDispatch(request)}
+            >
+              Dispatch Transfer
             </button>
           </div>
         )}

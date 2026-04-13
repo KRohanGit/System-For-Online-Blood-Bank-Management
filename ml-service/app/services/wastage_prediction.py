@@ -1,6 +1,7 @@
 import numpy as np
 from datetime import datetime, timedelta
 from typing import Dict, List, Any
+from bson import ObjectId
 from ..db import get_collection
 
 
@@ -10,21 +11,61 @@ SHELF_LIFE_DAYS = 42
 
 class WastagePredictor:
 
+    # Build accepted hospital id variants (user id/profile id/object id) for robust matching.
+    def _candidate_hospital_ids(self, hospital_id: str) -> List[Any]:
+        values = [hospital_id]
+
+        if isinstance(hospital_id, str) and ObjectId.is_valid(hospital_id):
+            values.append(ObjectId(hospital_id))
+
+        # Resolve userId -> HospitalProfile _id when caller passes auth user id.
+        profiles = get_collection("hospitalprofiles")
+        profile = None
+        if isinstance(hospital_id, str) and ObjectId.is_valid(hospital_id):
+            oid = ObjectId(hospital_id)
+            profile = profiles.find_one({"userId": oid}, {"_id": 1})
+        if profile and profile.get("_id"):
+            values.append(profile["_id"])
+            values.append(str(profile["_id"]))
+
+        # Deduplicate while preserving order.
+        seen = set()
+        deduped = []
+        for v in values:
+            key = str(v)
+            if key in seen:
+                continue
+            seen.add(key)
+            deduped.append(v)
+        return deduped
+
+    # Pull live available inventory units, optionally filtered to one blood group.
     def _fetch_inventory(self, hospital_id: str, blood_group: str = None) -> List[Dict]:
         collection = get_collection("bloodinventories")
-        query = {"hospital": hospital_id, "status": "Available"}
+        hospital_candidates = self._candidate_hospital_ids(hospital_id)
+        query = {
+            "status": "Available",
+            "$or": [
+                {"hospitalId": {"$in": hospital_candidates}},
+                {"hospital": {"$in": hospital_candidates}}
+            ]
+        }
         if blood_group:
             query["bloodGroup"] = blood_group
         units = list(collection.find(query).sort("expiryDate", 1))
         return units
 
+    # Estimate recent daily usage from completed transfer activity.
     def _fetch_usage_rate(self, hospital_id: str, blood_group: str, days: int = 30) -> float:
         collection = get_collection("bloodtransfers")
         cutoff = datetime.utcnow() - timedelta(days=days)
+        hospital_candidates = self._candidate_hospital_ids(hospital_id)
         count = collection.count_documents({
             "$or": [
-                {"fromHospital": hospital_id},
-                {"toHospital": hospital_id}
+                {"fromHospital": {"$in": hospital_candidates}},
+                {"toHospital": {"$in": hospital_candidates}},
+                {"fromHospitalId": {"$in": hospital_candidates}},
+                {"toHospitalId": {"$in": hospital_candidates}}
             ],
             "bloodGroup": blood_group,
             "status": "completed",
@@ -32,6 +73,7 @@ class WastagePredictor:
         })
         return count / max(days, 1)
 
+    # Combine expiry pressure and consumption velocity into a single risk score.
     def _compute_wastage_risk(self, unit: Dict, daily_usage: float) -> Dict[str, Any]:
         expiry = unit.get("expiryDate")
         if not expiry:
@@ -53,6 +95,7 @@ class WastagePredictor:
         risk = min(1.0, base_risk * 0.6 + usage_factor * 0.4)
         return {"risk": round(risk, 4), "days_to_expiry": days_left}
 
+    # Generate hospital-level wastage outputs: at-risk units, FIFO actions, and cost impact.
     def predict(self, hospital_id: str, blood_group: str = None,
                 horizon_days: int = 14) -> Dict[str, Any]:
         groups = [blood_group] if blood_group else BLOOD_GROUPS
@@ -103,6 +146,7 @@ class WastagePredictor:
             "generated_at": datetime.utcnow().isoformat()
         }
 
+    # Helper used by FIFO prioritization to quickly measure expiry proximity.
     def _days_to_expiry(self, unit: Dict) -> int:
         expiry = unit.get("expiryDate")
         if not expiry:
@@ -112,4 +156,5 @@ class WastagePredictor:
         return (expiry - datetime.utcnow()).days
 
 
+# Shared singleton used by FastAPI routes.
 wastage_predictor = WastagePredictor()

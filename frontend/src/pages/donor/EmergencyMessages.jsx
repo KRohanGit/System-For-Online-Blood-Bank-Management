@@ -14,7 +14,7 @@ const EmergencyMessages = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/emergency/messages`,
+        `${process.env.REACT_APP_API_URL || '/api'}/emergency/messages`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setMessages(response.data.data);
@@ -29,7 +29,7 @@ const EmergencyMessages = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/emergency/messages/${messageId}/read`,
+        `${process.env.REACT_APP_API_URL || '/api'}/emergency/messages/${messageId}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
