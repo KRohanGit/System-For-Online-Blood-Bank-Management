@@ -45,6 +45,38 @@
   font-weight: 500;
 }
 
+.team-guidance {
+  text-align: center;
+  padding: 2rem;
+  margin: 2rem auto;
+  max-width: 600px;
+  background: linear-gradient(135deg, #c41e3a15, #ff69b415);
+  border: 2px solid #c41e3a;
+  border-radius: 10px;
+}
+
+.guidance-label {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #666666;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.faculty-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #c41e3a;
+  margin-bottom: 0.5rem;
+}
+
+.faculty-role {
+  font-size: 1rem;
+  color: #333333;
+  font-weight: 500;
+}
+
 .team-description {
   max-width: 900px;
   margin: 3rem auto;

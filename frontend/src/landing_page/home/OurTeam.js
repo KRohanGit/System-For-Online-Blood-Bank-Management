@@ -44,6 +44,12 @@ function OurTeam() {
         <p className="team-subtitle">People Behind LifeLink</p>
       </div>
 
+      <div className="team-guidance">
+        <p className="guidance-label">Under the Guidance of</p>
+        <h2 className="faculty-name">Dr. D. Veerabhadra Rao</h2>
+        <p className="faculty-role">Project Mentor & Faculty Advisor</p>
+      </div>
+
       <div className="team-description">
         <div className="description-card">
           <p className="description-text">
